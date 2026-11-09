@@ -1,0 +1,21 @@
+{
+  "messages": [
+    {
+      "id": "c4e5f6a7-3333-4e00-a000-000000000012",
+      "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+      "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+      "sender": "wayway",
+      "text": "Got it, I'll keep the afternoon budget-friendly. Is a museum + market plan OK for you?",
+      "createdAt": "2026-11-21T10:44:00+09:00",
+      "round": 1
+    }
+  ],
+  "preferenceUpdate": {
+    "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+    "round": 1,
+    "statements": [
+      "Prefers free or cheap activities",
+      "Slightly prefers the museum over shopping"
+    ]
+  }
+}
