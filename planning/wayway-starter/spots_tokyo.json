@@ -1,0 +1,6 @@
+{
+  "tnm": {"id": "tnm", "name": "Tokyo National Museum", "category": "museum", "price": 1000, "dietTags": [], "durationMin": 90, "openHours": "09:30-17:00", "area": "Ueno", "lat": 35.7188, "lng": 139.7765},
+  "shibuya": {"id": "shibuya", "name": "Shibuya shopping", "category": "shopping", "price": 0, "dietTags": [], "durationMin": 120, "openHours": "10:00-21:00", "area": "Shibuya", "lat": 35.6595, "lng": 139.7005},
+  "ameyoko": {"id": "ameyoko", "name": "Ameyoko Market", "category": "food", "price": 1500, "dietTags": ["vegetarian"], "durationMin": 90, "openHours": "10:00-20:00", "area": "Ueno", "lat": 35.7106, "lng": 139.7745},
+  "tsukiji": {"id": "tsukiji", "name": "Tsukiji Outer Market", "category": "food", "price": 2000, "dietTags": [], "durationMin": 120, "openHours": "06:00-14:00", "area": "Tsukiji", "lat": 35.6655, "lng": 139.7707}
+}

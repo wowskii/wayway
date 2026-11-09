@@ -1,0 +1,134 @@
+{
+  "messages": [
+    {
+      "id": "9a7d3b2e-1111-4e00-a000-000000000042",
+      "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+      "senderId": "wayway",
+      "text": "Round 2: thanks for your private feedback! Option B still works for everyone. Vote below, you have 30 min.",
+      "createdAt": "2026-11-21T10:46:00+09:00",
+      "optionSetId": "3f0c8d11-2222-4e00-b000-000000000007"
+    }
+  ],
+  "optionSet": {
+    "id": "3f0c8d11-2222-4e00-b000-000000000007",
+    "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+    "slot": {
+      "day": 1,
+      "start": "13:30",
+      "end": "17:00",
+      "label": "Afternoon, day 1"
+    },
+    "round": 2,
+    "options": [
+      {
+        "id": "A",
+        "kind": "best_total",
+        "title": "Everyone goes shopping in Shibuya",
+        "spots": [
+          "shibuya"
+        ],
+        "scores": [
+          {
+            "memberId": "7c1e0c3a-0002-4a00-9000-000000000002",
+            "level": "must_go",
+            "source": "vote",
+            "reason": "Wants shopping"
+          },
+          {
+            "memberId": "7c1e0c3a-0004-4a00-9000-000000000004",
+            "level": "must_go",
+            "source": "ai_estimate",
+            "reason": "Wants souvenirs"
+          },
+          {
+            "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+            "level": "want_to_go",
+            "source": "ai_estimate",
+            "reason": "Fine with it"
+          },
+          {
+            "memberId": "7c1e0c3a-0001-4a00-9000-000000000001",
+            "level": "definitely_no",
+            "source": "vote",
+            "reason": "Dislikes crowded malls"
+          }
+        ],
+        "satisfiedMemberIds": [
+          "7c1e0c3a-0002-4a00-9000-000000000002",
+          "7c1e0c3a-0004-4a00-9000-000000000004",
+          "7c1e0c3a-0003-4a00-9000-000000000003"
+        ],
+        "explanation": "Most people are happy, but Mia would not enjoy it.",
+        "assumptions": [
+          "Shibuya is 20 min away by subway"
+        ],
+        "metrics": {
+          "mean": 6.88,
+          "min": 0,
+          "gini": 0.295,
+          "satisfactionRatio": 0.75,
+          "weightedTotal": 27.5
+        }
+      },
+      {
+        "id": "B",
+        "kind": "fairest",
+        "title": "Museum first, then Ameyoko market",
+        "spots": [
+          "tnm",
+          "ameyoko"
+        ],
+        "scores": [
+          {
+            "memberId": "7c1e0c3a-0002-4a00-9000-000000000002",
+            "level": "same",
+            "source": "ai_estimate",
+            "reason": "Gets shopping later"
+          },
+          {
+            "memberId": "7c1e0c3a-0004-4a00-9000-000000000004",
+            "level": "want_to_go",
+            "source": "vote",
+            "reason": "Souvenirs at Ameyoko"
+          },
+          {
+            "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+            "level": "want_to_go",
+            "source": "ai_estimate",
+            "reason": "Likes the museum, low cost"
+          },
+          {
+            "memberId": "7c1e0c3a-0001-4a00-9000-000000000001",
+            "level": "want_to_go",
+            "source": "vote",
+            "reason": "Loves the museum"
+          }
+        ],
+        "satisfiedMemberIds": [
+          "7c1e0c3a-0002-4a00-9000-000000000002",
+          "7c1e0c3a-0004-4a00-9000-000000000004",
+          "7c1e0c3a-0003-4a00-9000-000000000003",
+          "7c1e0c3a-0001-4a00-9000-000000000001"
+        ],
+        "explanation": "A bit less for Tom, but nobody is left out.",
+        "assumptions": [
+          "Museum visit limited to 1.5 hours"
+        ],
+        "fairnessNote": "Mia's choice is favored a little this time: she compromised at lunch.",
+        "metrics": {
+          "mean": 6.88,
+          "min": 5,
+          "gini": 0.068,
+          "satisfactionRatio": 1.0,
+          "weightedTotal": 29.75
+        }
+      }
+    ],
+    "candidateOptionId": "B",
+    "status": "voting",
+    "roundDeadline": "2026-11-21T11:16:00+09:00",
+    "voteDeadline": "2026-11-21T11:16:00+09:00",
+    "voterIds": [],
+    "voteAttempt": 1
+  }
+}
