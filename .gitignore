@@ -1,0 +1,15 @@
+WAYWAY_PROJECT_CONTEXT.md
+
+# Dependencies and build output
+node_modules/
+.next/
+dist/
+
+# Secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
