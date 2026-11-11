@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "node --env-file=.env.local scripts/db.mjs push",
+    "db:types": "node --env-file=.env.local scripts/db.mjs types",
+    "seed": "node --env-file=.env.local scripts/seed.mjs",
+    "check:privacy": "node --env-file=.env.local scripts/check-privacy.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
