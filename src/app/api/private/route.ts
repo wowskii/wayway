@@ -5,14 +5,8 @@
 import { NextResponse } from "next/server";
 import type { PrivateChatRequest, PrivateChatResponse } from "@/contracts/contract";
 import { badRequest, handleError, isUuid, readJson } from "@/lib/interview/http";
-import { getInterviewState, sendInterviewMessage, type InterviewMessage } from "@/lib/interview/service";
-import type { InterviewProgress } from "@/lib/ai/types";
-
-/** Contract response + the interview extras (messages may carry a confirmation card). */
-export type PrivateChatApiResponse = PrivateChatResponse & {
-  messages: InterviewMessage[];
-  interview: InterviewProgress;
-};
+import { getInterviewState, sendInterviewMessage } from "@/lib/interview/service";
+import type { InterviewTurnResponse } from "@/lib/interview/types";
 
 export async function POST(req: Request) {
   const body = (await readJson(req)) as Partial<PrivateChatRequest> | null;
@@ -21,7 +15,8 @@ export async function POST(req: Request) {
   }
   try {
     const result = await sendInterviewMessage(body.tripId, body.memberId, body.message.text);
-    return NextResponse.json(result satisfies PrivateChatApiResponse);
+    // The answer is a contract PrivateChatResponse with interview extras (see lib/interview/types.ts)
+    return NextResponse.json(result satisfies InterviewTurnResponse & PrivateChatResponse);
   } catch (err) {
     return handleError(err);
   }

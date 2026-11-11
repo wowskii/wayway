@@ -4,10 +4,10 @@ import "server-only";
 // save what it learned -> save WayWay's reply -> send both messages back.
 // Hard constraints (diet, allergies, budget) are only PROPOSED here; they are applied
 // in confirmConstraints() after the member taps "Confirm".
-import type { HardConstraints, PrivateMessage } from "@/contracts/contract";
+import type { HardConstraints } from "@/contracts/contract";
 import { openingMessage } from "@/lib/ai-mock/interview";
 import { getInterviewer } from "@/lib/ai/interviewer";
-import { isInterviewTopic, progressFrom, type InterviewProgress } from "@/lib/ai/types";
+import { isInterviewTopic, progressFrom } from "@/lib/ai/types";
 import {
   constraintsToConfirm,
   toMemberProfile,
@@ -16,16 +16,11 @@ import {
 } from "@/lib/db/mappers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import type { ConfirmResponse, InterviewMessage, InterviewState, InterviewTurnResponse } from "./types";
 
 const ONBOARDING_ROUND = 0;
 const HISTORY_SIZE = 12;
 export const MAX_MESSAGE_LENGTH = 1000;
-
-/** A private message as the interview page needs it: the contract shape + the confirmation card. */
-export interface InterviewMessage extends PrivateMessage {
-  constraintsToConfirm?: Partial<HardConstraints>;
-  constraintsStatus?: "pending" | "confirmed" | "rejected";
-}
 
 export class InterviewError extends Error {
   constructor(public status: 400 | 401 | 403 | 404 | 409 | 500, message: string) {
@@ -63,7 +58,7 @@ async function loadOwnMember(tripId: string, memberId?: string) {
 }
 
 /** Everything the interview page needs on load. Posts WayWay's opening message the first time. */
-export async function getInterviewState(tripId: string) {
+export async function getInterviewState(tripId: string): Promise<InterviewState> {
   const { supabase, member, priv } = await loadOwnMember(tripId);
   const admin = createAdminClient();
 
@@ -93,7 +88,7 @@ export async function getInterviewState(tripId: string) {
 }
 
 /** One turn of the interview: the member's message in, WayWay's reply out. */
-export async function sendInterviewMessage(tripId: string, memberId: string, text: string) {
+export async function sendInterviewMessage(tripId: string, memberId: string, text: string): Promise<InterviewTurnResponse> {
   const clean = text.trim();
   if (!clean) throw new InterviewError(400, "Write a message first.");
   if (clean.length > MAX_MESSAGE_LENGTH) throw new InterviewError(400, `Keep it under ${MAX_MESSAGE_LENGTH} characters.`);
@@ -169,7 +164,7 @@ export async function sendInterviewMessage(tripId: string, memberId: string, tex
   return {
     messages: [toInterviewMessage(mine), toInterviewMessage(reply)],
     preferenceUpdate: out.preferenceUpdate,
-    interview: out.interview satisfies InterviewProgress,
+    interview: out.interview,
   };
 }
 
@@ -205,7 +200,7 @@ export async function answerConstraintCard(
   messageId: string,
   decision: "confirm" | "reject",
   edited?: unknown,
-) {
+): Promise<ConfirmResponse> {
   const { supabase, member, priv } = await loadOwnMember(tripId);
   const admin = createAdminClient();
 
