@@ -117,14 +117,14 @@ isOneToOne: false
                   ]
                 },"member_private": {
                   Row: {
-                    "allergies": (string)[],"max_budget": number | null,"member_id": string,"preference_statements": (string)[],"private_note": string,"updated_at": string
+                    "allergies": (string)[],"interview_topics": (string)[],"max_budget": number | null,"member_id": string,"preference_statements": (string)[],"private_note": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "allergies"?: (string)[],"max_budget"?: number | null,"member_id": string,"preference_statements"?: (string)[],"private_note"?: string,"updated_at"?: string
+                    "allergies"?: (string)[],"interview_topics"?: (string)[],"max_budget"?: number | null,"member_id": string,"preference_statements"?: (string)[],"private_note"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "allergies"?: (string)[],"max_budget"?: number | null,"member_id"?: string,"preference_statements"?: (string)[],"private_note"?: string,"updated_at"?: string
+                    "allergies"?: (string)[],"interview_topics"?: (string)[],"max_budget"?: number | null,"member_id"?: string,"preference_statements"?: (string)[],"private_note"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {

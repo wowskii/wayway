@@ -9,6 +9,7 @@ The tables are created by the SQL files in `migrations/` (run in order). They fo
 | `npm run db:types` | Regenerates `src/lib/db/database.types.ts` (TypeScript types of the tables) |
 | `npm run seed` | Creates the demo trip "Tokyo Spring Trip" (invite code `tokyo26`) |
 | `npm run check:privacy` | Automatic test that one member cannot read another member's private data |
+| `npm run check:interview` | Plays a full mock interview through the API and checks what was saved (app must be running) |
 
 To change the schema: **add a new migration file** (never edit one that was already pushed), tell the team, push, regenerate types.
 
@@ -18,7 +19,7 @@ To change the schema: **add a new migration file** (never edit one that was alre
 | `profiles` | account (display name) | yourself | sign-up trigger, yourself |
 | `trips` | `Trip` | members + creator | creator |
 | `trip_members` | public part of `MemberProfile` (name, diet, interests, pace, sleep) | everyone in the trip | `join_trip()`, yourself (some columns) |
-| `member_private` | private part (allergies, max budget, private note, preference statements) | **only you** | you, API |
+| `member_private` | private part (allergies, max budget, private note, preference statements, interview topics covered) | **only you** | you, API |
 | `member_state` | fairness credits, "definitely no" counter | **nobody** (server only) | API |
 | `private_messages` | `PrivateMessage` (interview + private reactions) | **only you** | you (your own messages), API (WayWay replies) |
 | `chat_messages` | `ChatMessage` (group chat, realtime) | everyone in the trip | members (as themselves), API (WayWay) |
