@@ -1,0 +1,81 @@
+{
+  "_about": "Role 4 evidence for data/spots_tokyo.json. Spot cannot carry sources or allergens, so they live here. allergens = known present (blocks a member with that allergy). allergenFree = verified absent (only from the venue). Missing = unknown: not blocked, the member is reminded privately. Sources read on 2026-11-09.",
+  "tnm": {
+    "sourceUrl": "https://www.tnm.jp/modules/r_free_page/?id=156&lang=en",
+    "checked": "2026-11-09",
+    "note": "Adult collection exhibitions only."
+  },
+  "meiji": {
+    "sourceUrl": "https://www.meijijingu.or.jp/en/visit/",
+    "checked": "2026-11-09",
+    "note": "Naien grounds only; museum and inner garden excluded."
+  },
+  "hamarikyu": {
+    "sourceUrl": "https://www.tokyo-park.or.jp/teien/en/download/pdf/pamphlet_hama.pdf",
+    "checked": "2026-11-09",
+    "note": "Adult admission; teahouse excluded."
+  },
+  "miraikan": {
+    "sourceUrl": "https://www.gotokyo.org/en/spot/5/index.html",
+    "checked": "2026-11-09",
+    "note": "Adult regular admission; dome and special exhibits excluded."
+  },
+  "zojoji": {
+    "sourceUrl": "https://www.gotokyo.org/book/wp-content/uploads/2026/04/AO2_2604_tbf2026_low_EN.pdf",
+    "checked": "2026-11-09",
+    "note": "Grounds only. Check separate hours and fees for inner facilities."
+  },
+  "senso_ji": {
+    "sourceUrl": "https://www.gotokyo.org/book/wp-content/uploads/2025/03/2503_tbf2025_low_EN.pdf",
+    "checked": "2026-11-09",
+    "note": "Standard visit; paid items and services excluded."
+  },
+  "ueno_park": {
+    "sourceUrl": "https://www.gotokyo.org/en/spot/482/index.html",
+    "checked": "2026-11-09",
+    "note": "Park grounds only; museums and zoo separate."
+  },
+  "yoyogi_park": {
+    "sourceUrl": "https://www.gotokyo.org/en/spot/21/index.html",
+    "checked": "2026-11-09",
+    "note": "Park grounds only. Special facilities excluded."
+  },
+  "shinjuku_gyoen": {
+    "sourceUrl": "https://policies.env.go.jp/national-garden/shinjukugyoen/english/guide/information/",
+    "checked": "2026-11-09",
+    "note": "Adult general admission."
+  },
+  "ts_tantan": {
+    "allergens": [
+      "sesame"
+    ],
+    "sourceUrl": "https://foods.jr-cross.co.jp/ts-tantan/lib/img/mt_upload/HP_TSTokyoAkiba_GM_20261001.pdf",
+    "checked": "2026-11-09",
+    "note": "One Golden Sesame bowl, no sides. Contains sesame. Plant-based per operator. Tokyo Station/Gransta complex pin, not an indoor navigation point. Source lists 10:00-22:00; dataset says 07:00-22:30 (to fix in spots_tokyo.json)."
+  },
+  "imperial_east": {
+    "sourceUrl": "https://www.kunaicho.go.jp/visit/higashigyoen/index.html",
+    "checked": "2026-11-09",
+    "note": "Garden admission only. Palace tours have separate access."
+  },
+  "nmwa": {
+    "sourceUrl": "https://www.nmwa.go.jp/en/visit/",
+    "checked": "2026-11-09",
+    "note": "Adult permanent collection; see museum admission guide."
+  },
+  "ameyoko": {
+    "sourceUrl": "https://www.gotokyo.org/en/spot/71/index.html",
+    "checked": "2026-11-09",
+    "note": "Vendors set prices and hours. Dietary evidence needed for a named vendor and dish. Dataset price is a rough per-person estimate; vendors vary."
+  },
+  "tsukiji": {
+    "sourceUrl": "https://www.gotokyo.org/en/spot/65/index.html",
+    "checked": "2026-11-09",
+    "note": "Individual vendor prices, hours and diet vary. Dataset price is a rough per-person estimate; vendors vary."
+  },
+  "ain_soph": {
+    "sourceUrl": "https://www.ain-soph.jp/ginza",
+    "checked": "2026-11-09",
+    "note": "Plant-based operator menu. Date, meal and allergy handling must be confirmed."
+  }
+}

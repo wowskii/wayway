@@ -1,0 +1,187 @@
+{
+  "id": "scenario3_split",
+  "description": "Two pairs with opposite interests (anime and electronics vs temples and gardens). No shared route can keep everyone at 'same' or better, so a split with a rendezvous should appear; one member refuses to split.",
+  "expected": [
+    "A split option C appears with exactly 2 branches and a rendezvous inside the slot",
+    "Nobody is alone in a branch unless they want it",
+    "Because Noah refuses the split, the best shared option wins (split_refused)"
+  ],
+  "trip": {
+    "id": "5b2f9e10-0000-4c00-8000-000000000003",
+    "name": "Split test trip",
+    "city": "Tokyo",
+    "startDate": "2026-11-24",
+    "endDate": "2026-11-26",
+    "timezone": "Asia/Tokyo",
+    "goal": "balanced",
+    "members": [
+      {
+        "id": "b3000000-0000-4000-8000-000000000001",
+        "name": "Yuki",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 50000
+        },
+        "interests": [
+          "anime",
+          "electronics"
+        ],
+        "pace": "packed",
+        "sleep": "night_owl",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Must see Akihabara",
+          "Hates temples"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "b3000000-0000-4000-8000-000000000002",
+        "name": "Leo",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 50000
+        },
+        "interests": [
+          "anime",
+          "games"
+        ],
+        "pace": "packed",
+        "sleep": "night_owl",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants Akihabara game centers",
+          "Bored by gardens"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "b3000000-0000-4000-8000-000000000003",
+        "name": "Emma",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 50000
+        },
+        "interests": [
+          "temples",
+          "gardens"
+        ],
+        "pace": "relaxed",
+        "sleep": "early_bird",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants Senso-ji",
+          "Dislikes noisy electronics shops"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "b3000000-0000-4000-8000-000000000004",
+        "name": "Noah",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 50000
+        },
+        "interests": [
+          "temples",
+          "history"
+        ],
+        "pace": "relaxed",
+        "sleep": "flexible",
+        "privateNote": "I get anxious when the group splits up, I'd rather stay together.",
+        "preferenceStatements": [
+          "Likes temples",
+          "[private] Prefers the group to stay together"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      }
+    ]
+  },
+  "canaries": [
+    "anxious",
+    "stay together"
+  ],
+  "personas": [
+    {
+      "memberId": "b3000000-0000-4000-8000-000000000001",
+      "likes": {
+        "akihabara": "must_go",
+        "shopping": "want_to_go",
+        "temple": "definitely_no",
+        "nature": "lean_not_go"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "b3000000-0000-4000-8000-000000000002",
+      "likes": {
+        "akihabara": "must_go",
+        "shopping": "want_to_go",
+        "temple": "lean_not_go",
+        "nature": "definitely_no"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "b3000000-0000-4000-8000-000000000003",
+      "likes": {
+        "temple": "must_go",
+        "nature": "want_to_go",
+        "akihabara": "definitely_no",
+        "shopping": "lean_not_go"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "b3000000-0000-4000-8000-000000000004",
+      "likes": {
+        "temple": "must_go",
+        "museum": "want_to_go",
+        "akihabara": "lean_not_go"
+      },
+      "default": "same",
+      "acceptsSplit": false
+    }
+  ],
+  "slots": [
+    {
+      "slot": {
+        "day": 1,
+        "start": "13:00",
+        "end": "17:00",
+        "label": "Afternoon, day 1"
+      },
+      "chat": [
+        {
+          "id": "c1",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000003",
+          "senderId": "b3000000-0000-4000-8000-000000000001",
+          "text": "Akihabara or nothing",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c2",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000003",
+          "senderId": "b3000000-0000-4000-8000-000000000003",
+          "text": "I really want to see Senso-ji and a garden",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c3",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000003",
+          "senderId": "b3000000-0000-4000-8000-000000000004",
+          "text": "@WayWay can you find something for this afternoon?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    }
+  ]
+}
