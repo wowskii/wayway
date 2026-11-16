@@ -1,8 +1,9 @@
 // Fake LLM for offline tests. Some answers are deliberately WRONG to check validation + retry:
 // - first afternoon answer: invented spot, private info leaked, missing scores;
 // - lunch answer: a non-vegetarian restaurant (removed by the hard-constraint filter) and a two-spot meal.
+// - sonnet models reject a forced tool_choice (400), like OpenRouter does, to test the "auto" fallback.
 
-import type { LLMClient } from "../lib/ai/llm";
+import { ProviderError, type LLMClient } from "../lib/ai/llm";
 
 let optionCalls = 0;
 let slotCalls = 0;
@@ -23,7 +24,11 @@ const all = (level: string, reason: string) => ["m1", "m2", "m3", "m4"].map((m) 
 
 export const mockClient: LLMClient = {
   async chat(body: any) {
-    const name = body.tool_choice.function.name;
+    // Like OpenRouter for anthropic/claude-sonnet-5.5: a forced tool_choice is rejected with a 400.
+    if (/sonnet/i.test(body.model) && typeof body.tool_choice === "object") {
+      throw new ProviderError(400, 'OpenRouter 400: {"error":{"message":"tool_choice: type \\"tool\\" and \\"any\\" are not supported for this model."}}');
+    }
+    const name = body.tools[0].function.name;
     const user: string = body.messages[1].content;
 
     if (name === "save_preferences") {

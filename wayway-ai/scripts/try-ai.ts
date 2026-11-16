@@ -10,7 +10,7 @@
 import type { ChatMessage, Option, PrivateMessage, Spot, TimeSlot, Trip } from "@/contracts/contract";
 import { LEVEL_VALUE } from "@/contracts/contract";
 import {
-  extractPreferences, generateOptions, negotiateSlot, reviseOptions, setClient, writeMessage, PROMPT_VERSION,
+  extractPreferences, generateOptions, negotiateSlot, pickCandidate, reviseOptions, setClient, writeMessage, PROMPT_VERSION,
   type Candidate, type MemberReaction,
 } from "../lib/ai";
 import { SPOTS, TRIP } from "../data/scenario2";
@@ -132,8 +132,8 @@ async function main() {
   tom.preferenceStatements = tomEx.preferenceUpdate.statements;
   const reactions: MemberReaction[] = (tomEx.preferenceUpdate.reactions ?? []).map((r) => ({ memberId: tom.id, ...r }));
 
-  const candidate = options.find((o) => o.kind === "fairest") ?? options[0];
-  console.log(`\n5) reviseOptions — round 2 (candidate ${candidate.id} kept by code)`);
+  const candidate = pickCandidate(options);   // highest min, then highest mean (not the kind label)
+  console.log(`\n5) reviseOptions — round 2 (candidate ${candidate.id} picked by metrics: min ${candidate.metrics?.min}, mean ${candidate.metrics?.mean.toFixed(2)})`);
   const rev = await reviseOptions({
     trip: TRIP, slot: SLOT, allowedSpots: allowed, recentChat: chat,
     previousOptions: options, candidate, reactions,
@@ -141,10 +141,22 @@ async function main() {
   });
   console.log(`   ${rev.candidates.length} new candidate(s)`);
   if (rev.rejected.length) console.log("   rejected:", rev.rejected);
-  show(tempRank([candidate, ...rev.candidates]));
+  console.log(`   reasoning: ${rev.reasoning}`);
+  const names = new Map(TRIP.members.map((mb) => [mb.id, mb.name]));
+  for (const c of rev.candidates) {
+    console.log(`   new: ${c.title} [${(c.branches ? c.branches.flatMap((b) => b.spots) : c.spots).join(" > ")}] ${c.scores.map((s) => `${names.get(s.memberId)}=${s.level}`).join(", ")}`);
+  }
+  console.log(`   kept by code: ${rev.kept.map((o) => `${o.id} (${o.kind})`).join(", ")}`);
+  show(tempRank([...rev.kept, ...rev.candidates]));
 
   console.log("\n6) generateOptions — lunch (meal slot: one food spot, vegetarian for Mia)");
   const lunch: TimeSlot = { day: 2, start: "12:00", end: "13:30", label: "Lunch, day 2" };
+  // Diet check (why a restaurant passes): every member's diet must be in the spot's dietTags.
+  console.log(`   diets: ${TRIP.members.map((m) => `${m.name}=[${m.hard.diet.join(", ")}]`).join(", ")}`);
+  for (const id of ["afuri_harajuku", "ts_tantan", "ichiran_shibuya"]) {
+    const s = SPOTS.find((x) => x.id === id);
+    console.log(`   ${id}: dietTags=[${s?.dietTags.join(", ")}] -> ${allowed.some((x) => x.id === id) ? "kept" : "removed"} by the filter`);
+  }
   const lunchGen = await generateOptions({ trip: TRIP, slot: lunch, allowedSpots: allowed, recentChat: [] });
   console.log(`   ${lunchGen.candidates.length} valid candidates after ${lunchGen.attempts} attempt(s)`);
   if (lunchGen.rejected.length) console.log("   rejected:", lunchGen.rejected);

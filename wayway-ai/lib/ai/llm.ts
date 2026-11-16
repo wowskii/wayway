@@ -1,6 +1,7 @@
 // The only file that talks to the LLM provider (OpenRouter, chat completions format).
 // callTool forces a structured output (tool call), validates it with code,
 // and retries ONCE with the validation errors ("generate, then verify").
+// Models that reject a forced tool_choice get "auto" + an explicit instruction instead (see send()).
 //
 // Every failure (provider down, timeout, missing key, invalid output, validator bug)
 // ends as an AIOutputError, so each caller's fallback always applies: the app never
@@ -45,6 +46,20 @@ export class AIOutputError extends Error {
 }
 
 // ---------- Provider adapter ----------
+// HTTP error from the provider, with its status so callTool can react to specific cases.
+export class ProviderError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+// Some models reject a forced tool_choice with a 400 ("tool_choice: type "tool" and "any" are not
+// supported for this model", e.g. anthropic/claude-sonnet-5.5). We then fall back to "auto" + an
+// instruction, and remember the model so later calls go straight to "auto".
+const autoToolChoiceModels = new Set<string>();
+const isToolChoiceRejection = (e: unknown) =>
+  e instanceof ProviderError && e.status === 400 && /tool_choice/i.test(e.message);
+
 // Normalized answer of one call, so tests can inject a fake model (scripts/mock.ts).
 export interface ChatResult {
   toolCall: { id: string; arguments: string } | null;   // arguments = JSON string
@@ -71,9 +86,13 @@ const openRouterClient: LLMClient = {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(LIMITS.requestTimeoutMs),
     });
-    if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    if (!res.ok) throw new ProviderError(res.status, `OpenRouter ${res.status}: ${(await res.text()).slice(0, 500)}`);
     const data: any = await res.json();
-    if (data.error) throw new Error(`OpenRouter error: ${JSON.stringify(data.error).slice(0, 300)}`);
+    if (data.error) {
+      // OpenRouter can also report an upstream error inside a 200 body, with its own code.
+      const status = typeof data.error.code === "number" ? data.error.code : 500;
+      throw new ProviderError(status, `OpenRouter error: ${JSON.stringify(data.error).slice(0, 500)}`);
+    }
     const choice = data.choices?.[0] ?? {};
     const message = choice.message ?? {};
     const call = message.tool_calls?.[0];
@@ -104,20 +123,39 @@ export async function callTool<T>(call: ToolCall<T>): Promise<ToolResult<T>> {
   let outputTokens = 0;
   let lastErrors: string[] = [];
 
+  // One provider request. Forced tool choice by default; "auto" + an instruction appended to the
+  // system prompt for models known to reject forcing. If forcing is rejected (400 mentioning
+  // tool_choice), the SAME request is sent again in "auto" mode and the model is remembered.
+  // This provider retry is NOT the validation retry: the attempt counter does not move.
+  const send = async (msgs: any[]): Promise<ChatResult> => {
+    const request = (auto: boolean) => client.chat({
+      model: call.model,
+      max_tokens: maxTokens,
+      temperature: call.temperature,
+      messages: auto
+        ? [{ ...msgs[0], content: `${msgs[0].content}\n\nYou MUST answer by calling the tool ${call.tool.name}, never with plain text.` }, ...msgs.slice(1)]
+        : msgs,
+      tools: [{
+        type: "function",
+        function: { name: call.tool.name, description: call.tool.description, parameters: call.tool.schema },
+      }],
+      tool_choice: auto ? "auto" : { type: "function", function: { name: call.tool.name } },
+    });
+    if (autoToolChoiceModels.has(call.model)) return request(true);
+    try {
+      return await request(false);
+    } catch (e) {
+      if (!isToolChoiceRejection(e)) throw e;
+      autoToolChoiceModels.add(call.model);
+      console.warn(`[llm] ${call.model} rejects a forced tool_choice: using "auto" + instruction from now on.`);
+      return request(true);
+    }
+  };
+
   for (let attempt = 1; attempt <= LIMITS.maxRetries + 1; attempt++) {
     let res: ChatResult;
     try {
-      res = await client.chat({
-        model: call.model,
-        max_tokens: maxTokens,
-        temperature: call.temperature,
-        messages,
-        tools: [{
-          type: "function",
-          function: { name: call.tool.name, description: call.tool.description, parameters: call.tool.schema },
-        }],
-        tool_choice: { type: "function", function: { name: call.tool.name } },
-      });
+      res = await send(messages);
     } catch (e) {
       // Provider problem: retrying immediately rarely helps, let the caller's fallback act.
       const reason = e instanceof Error ? e.message : String(e);

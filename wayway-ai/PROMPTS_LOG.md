@@ -25,8 +25,19 @@ Problems found by reviewing v1 and the fixes made in v2:
 | 10 | No output language; pace/sleep/goal ignored; message kinds not explained; no neutrality rule; no version tracking. | Group-chat language for visible text, statements in English; pace/sleep/goal rules; `KIND_GUIDANCE` per message kind; neutrality (no ranking, never name non-voters or refusers); `PROMPT_VERSION`. |
 | 11 | Fixed time slots (team feedback): the slot was given, or guessed from fixed time windows. | New `negotiateSlot` prompt: WayWay proposes a time and waits; any member confirms or changes it; code checks days, past times and overlaps. Meal/activity comes from the agreed label, no fixed windows. |
 
-## Results per version (fill in with the real model)
+## v3 (Nov 16) — after the first real-model run (v2)
+| # | Problem seen with v2 | Fix in v3 |
+|---|---|---|
+| 12 | Round 2 did not target the unhappy member: new options kept Tom at `lean_not_go`. | Revision rule 4: for each member rated `lean_not_go` or lower on the shared options, propose at least one shared option that raises them to `same` or better without dropping anyone else below `same`; `reasoning` names whose feedback each new option answers. |
+| 13 | The round-2 candidate was chosen by its label (`fairest`), even when another option was fairer (v2 run: B had min 2.5, the split had 7.5). | `pickCandidate`: highest min, then highest mean (code, not the label). |
+| 14 | A round could lose its best option (only the candidate was carried over). | `keptOptions`: the candidate + the previous `best_total` are carried over; the prompt lists both and the validator rejects new candidates that repeat them. |
+| — | Check: why was `afuri_harajuku` offered to a vegetarian? | Not a bug: the dataset tags it `["vegetarian", "vegan"]` (vegan ramen on the menu), so the diet filter keeps it. `try-ai.ts` now prints the diets, dietTags and filter result. |
+
+Not prompt changes, also on Nov 16: models that reject a forced `tool_choice` (Sonnet 5.5 via OpenRouter) get `"auto"` + "You MUST answer by calling the tool…", remembered per model (`llm.ts`).
+
+## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |
 |---|---|---|---|---|---|---|---|
-| v2 | 2 (conflict) | | | | | | |
+| v2 (Nov 16) | 2 (conflict) | 6/7 calls | 1 (handle_time: missing `kind`) | 0 shown; 2 candidates blocked ("limited", from Sarah's private budget) | yes | Tom: A 1/1 (lean_not_go), B 0/1 (est. lean_not_go, real definitely_no) | Round 2 kept B (`fairest`, min 2.5) although split C had min 7.5. Lunch: only vegetarian places. |
+| v3 (Nov 16) | 2 (conflict) | all options calls valid on 1st try | 0 seen | 0 shown; 1 lunch candidate blocked ("tight") | yes | Tom: A 1/1 (lean_not_go), B 0/1 (est. same, real lean_not_go) | Candidate picked by metrics: B (min 5). Rule 4 works: the 3 new options all raise Tom (want_to_go, same, must_go); 3 others rejected for travel time. Round 2 keeps A and B. Kept options still show the AI's estimate for Tom (same), not his real reaction. |

@@ -4,6 +4,7 @@
 // B (fairest) and C (split) and computes the metrics.
 
 import type { Branch, MemberScore, Option, Spot, TimeSlot, Trip, Vote, ChatMessage } from "@/contracts/contract";
+import { LEVEL_VALUE } from "@/contracts/contract";
 import { LIMITS, MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import {
   buildAliases, findLeaks, formatChat, formatCritiques, formatEstimatesVsReactions, formatMembers, formatOptions,
@@ -35,17 +36,37 @@ export interface GenerateInput {
 
 export interface ReviseInput extends GenerateInput {
   previousOptions: Option[];
-  candidate: Option;                 // current best, kept by code
+  candidate: Option;                 // pickCandidate(previousOptions): kept by code with the previous best_total
   reactions: MemberReaction[];       // private reactions of this round (PreferenceUpdate.reactions + memberId)
   critiques: Vote[];                 // votes carrying a critique
 }
 
 export interface OptionsOutput {
   candidates: Candidate[];
+  kept: Option[];                    // reviseOptions: previous options carried over by code (candidate + previous best_total)
   reasoning: string;                 // kept for debugging and the report, never shown
   attempts: number;
   rejected: string[];                // why some candidates were dropped (logged)
 }
+
+// ---------- Round-to-round selection (code decides, not the label) ----------
+const optMin = (o: Option) => o.metrics?.min ?? Math.min(...o.scores.map((s) => LEVEL_VALUE[s.level]));
+const optMean = (o: Option) => o.metrics?.mean ?? o.scores.reduce((a, s) => a + LEVEL_VALUE[s.level], 0) / o.scores.length;
+
+// The candidate kept for the next round: highest min, then highest mean. Never chosen by its kind label.
+export function pickCandidate(options: Option[]): Option {
+  if (!options.length) throw new Error("pickCandidate: no options");
+  return [...options].sort((a, b) => optMin(b) - optMin(a) || optMean(b) - optMean(a))[0];
+}
+
+// Options carried over to the next round: the candidate, plus the previous best_total if different,
+// so a round never loses its best option. The next ranking runs on [...kept, ...new candidates].
+export function keptOptions(previous: Option[], candidate: Option): Option[] {
+  const best = previous.find((o) => o.kind === "best_total");
+  return best && best.id !== candidate.id ? [candidate, best] : [candidate];
+}
+
+const signature = (c: { spots: string[]; branches?: Branch[] }) => JSON.stringify(c.branches ?? c.spots);
 
 // ---------- Validation ----------
 interface Ctx {
@@ -56,6 +77,7 @@ interface Ctx {
   kind: SlotKind;
   minSatisfied: number;              // 0 in round 1
   leakTokens: Map<string, string[]>;
+  keptSignatures: Set<string>;       // options already carried over by code (revision only)
 }
 
 // Visits happen in order from `start`, with travel time between spots (travelMin) and, if given,
@@ -216,8 +238,9 @@ function makeValidator(ctx: Ctx, minCandidates: number, rejected: string[]) {
     raw.candidates.slice(0, LIMITS.maxCandidates).forEach((c: any, i: number) => {
       const r = checkCandidate(c, i, ctx);
       if (!r.candidate) return errors.push(...r.errors);
-      const sig = JSON.stringify(r.candidate.branches ?? r.candidate.spots);
+      const sig = signature(r.candidate);
       if (signatures.has(sig)) return errors.push(`Candidate ${i + 1}: duplicate of another candidate.`);
+      if (ctx.keptSignatures.has(sig)) return errors.push(`Candidate ${i + 1}: repeats an option our code already keeps.`);
       signatures.add(sig);
       valid.push(r.candidate);
     });
@@ -236,8 +259,10 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
   const spots = selectSpots(input.allowedSpots, slot);           // context selection
   const minSatisfied = revise ? revise.candidate.satisfiedMemberIds.length : 0;
   const kind = slotKind(slot);
+  const kept = revise ? keptOptions(revise.previousOptions, revise.candidate) : [];
   const ctx: Ctx = {
     trip, aliases, slot, kind, minSatisfied,
+    keptSignatures: new Set(kept.map(signature)),
     spots: new Map(spots.map((s) => [s.id, s])),
     leakTokens: privateTokens(trip, input.allowedSpots, {
       critiques: (revise?.critiques ?? []).map((v) => v.critique ?? ""),
@@ -260,7 +285,7 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
       chat: formatChat(recentChat, trip),
       ...(revise ? {
         previous: formatOptions(revise.previousOptions, aliases),
-        candidate: `Option ${revise.candidate.id}: ${revise.candidate.title}`,
+        candidate: kept.map((o) => `Option ${o.id}: ${o.title}`).join("; "),
         reactions: formatEstimatesVsReactions(revise.previousOptions, revise.reactions, aliases),
         critiques: formatCritiques(revise.critiques, aliases),
         minSatisfied,
@@ -269,7 +294,7 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
     tool: { name: "propose_options", description: "Propose candidate options for this slot.", schema: OPTIONS_SCHEMA },
     validate: makeValidator(ctx, revise ? 1 : LIMITS.minCandidates, rejected),
   });
-  return { ...res.value, attempts: res.attempts, rejected };
+  return { ...res.value, kept, attempts: res.attempts, rejected };
 }
 
 export async function generateOptions(input: GenerateInput): Promise<OptionsOutput> {
@@ -285,6 +310,6 @@ export async function reviseOptions(input: ReviseInput): Promise<OptionsOutput> 
     if (!(e instanceof AIOutputError)) throw e;   // only our own programming errors get through
     console.warn(`[reviseOptions] fallback (${e.kind}):`, e.errors);
     // Fallback: no better candidate found, keep the previous options.
-    return { candidates: [], reasoning: "", attempts: LIMITS.maxRetries + 1, rejected: e.errors };
+    return { candidates: [], kept: keptOptions(input.previousOptions, input.candidate), reasoning: "", attempts: LIMITS.maxRetries + 1, rejected: e.errors };
   }
 }
