@@ -1,6 +1,6 @@
 {
   "id": "scenario4_credits",
-  "description": "Three decisions in a row with the same group. Mia's taste is opposite to the majority; she should lose the first ones, earn credits, and get her favorite back once the credits are large enough. Sarah abstains and keeps her balance.",
+  "description": "Four decisions with the same group. Mia (museums, gardens) is opposite to Tom and Ken (shopping) and says so in the chat. When a shopping-heavy option beats her favorite she earns credits, and with enough credits her favorite should win later (balance back to 0). Sarah abstains and keeps her balance.",
   "expected": [
     "Mia earns credits after each compromise (max 3 per decision, weight capped at 1.5)",
     "At some decision her favorite wins and her balance resets to 0",
@@ -159,6 +159,20 @@
         {
           "id": "c1",
           "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "I'd really love a museum this afternoon",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c2",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "shopping pls",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c3",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
           "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
           "text": "@WayWay plan our afternoon",
           "createdAt": "2026-11-21T01:00:00Z"
@@ -191,7 +205,21 @@
       },
       "chat": [
         {
-          "id": "c3",
+          "id": "c5",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "Could we do a museum or a quiet garden today?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c6",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "I still need souvenirs",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c7",
           "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
           "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
           "text": "@WayWay and this afternoon?",
@@ -208,7 +236,21 @@
       },
       "chat": [
         {
-          "id": "c4",
+          "id": "c8",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "last chance for shopping!",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c9",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "I'd prefer a museum",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c10",
           "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
           "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
           "text": "@WayWay last morning plan?",

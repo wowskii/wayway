@@ -148,6 +148,15 @@ test("itinerary: stops in order with travel time; split = branches until the ren
   assert.deepEqual(spentFromItinerary(splitItems, ids, SPOTS_BY_ID), { mia: 1000, tom: 1500, sarah: 1000, ken: 1500 });
 });
 
+test("persona model v2: stops weighted by visit time, a hated stop caps the option at lean_not_go", () => {
+  const p = { memberId: "mia", likes: { museum: "must_go" as const, shopping: "lean_not_go" as const, akihabara: "definitely_no" as const } };
+  const route = (spots: string[]) => ({ ...buildOptions([museum], members, SPOT_INDEX).options[0], spots });
+  // 120 min of shopping (lean_not_go) + 75 min museum (must_go): time-weighted 2.15 -> same (v1 said want_to_go)
+  assert.equal(personaRating(route(["shibuya_shopping", "nezu_museum"]), p, members[0], SPOT_INDEX).level, "same");
+  // Akihabara (hated) + a loved museum: capped at lean_not_go
+  assert.equal(personaRating(route(["akihabara", "tnm"]), p, members[0], SPOT_INDEX).level, "lean_not_go");
+});
+
 test("personas and the run report: violations, estimate accuracy and privacy leaks", () => {
   const mia = { memberId: "mia", likes: { museum: "must_go" as const, shopping: "lean_not_go" as const } };
   const { options } = buildOptions([museum, shopping, split], members, SPOT_INDEX);

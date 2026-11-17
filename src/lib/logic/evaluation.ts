@@ -118,10 +118,16 @@ export interface Persona {
 }
 
 const LEVELS_BY_RANK: SatisfactionLevel[] = ["definitely_no", "lean_not_go", "same", "want_to_go", "must_go"];
+/** Version of the persona model, saved with every evaluation run (results of different versions are not comparable). */
+export const PERSONA_MODEL = "v2";
 
 /**
- * How a persona rates an option: the rounded mean of their stops' ratings; any hard-constraint
- * violation on their own path makes it definitely_no (a real person would refuse).
+ * How a persona rates an option (persona model v2):
+ *  - each stop gets the persona's level for that spot id, else its category, else `default`;
+ *  - stops are weighted by visit time (an hour at a museum counts more than 30 min at a shop);
+ *  - a stop the persona hates (definitely_no) caps the whole option at lean_not_go ("I'd hate part of it");
+ *  - any hard-constraint violation on their own path makes it definitely_no (a real person would refuse).
+ * v1 (unweighted rounded mean) produced too many ties when the AI mixed two kinds of stops.
  */
 export function personaRating(
   option: Option, persona: Persona, member: ConstraintMember, spots: SpotIndex,
@@ -131,12 +137,17 @@ export function personaRating(
   if (!path.length || own.some(issue => issue.status === "violation")) {
     return { level: "definitely_no", ...(option.kind === "split" ? { acceptsSplit: false } : {}) };
   }
-  const ranks = path.map(id => {
+  let weighted = 0, minutes = 0, hates = false;
+  for (const id of path) {
     const level = persona.likes[id] ?? persona.likes[spots[id]?.category ?? ""] ?? persona.default ?? "same";
-    return rankOf(level);
-  });
-  const mean = ranks.length ? ranks.reduce((a, b) => a + b, 0) / ranks.length : 2;
-  const level = LEVELS_BY_RANK[Math.max(0, Math.min(4, Math.round(mean)))];
+    const duration = spots[id]?.durationMin && spots[id].durationMin! > 0 ? spots[id].durationMin! : 60;
+    weighted += rankOf(level) * duration;
+    minutes += duration;
+    hates ||= level === "definitely_no";
+  }
+  let rank = Math.max(0, Math.min(4, Math.round(weighted / minutes)));
+  if (hates) rank = Math.min(rank, 1);
+  const level = LEVELS_BY_RANK[rank];
   if (option.kind !== "split") return { level };
   return { level, acceptsSplit: persona.acceptsSplit ?? LEVEL_VALUE[level] >= LEVEL_VALUE.same };
 }

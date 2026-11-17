@@ -17,7 +17,7 @@ import { buildOptions } from "@/lib/logic/options";
 import type { CandidateLike } from "@/lib/logic/options";
 import { advancePoll, castVote, startPoll } from "@/lib/logic/voting";
 import { itineraryFromOption, spentFromItinerary, travelMin } from "@/lib/logic/itinerary";
-import { evaluateRun, personaRating, publicCardText } from "@/lib/logic/evaluation";
+import { PERSONA_MODEL, evaluateRun, personaRating, publicCardText } from "@/lib/logic/evaluation";
 import type { Observation, Persona } from "@/lib/logic/evaluation";
 import type { Balances } from "@/lib/logic/metrics";
 
@@ -226,23 +226,26 @@ async function main() {
     .filter(s => !value("--scenario") || s.id === value("--scenario"));
   const results = [];
   for (const s of scenarios) results.push(await runScenario(s, gen, rounds));
-  const run = { generator: gen.name, rounds, date: new Date().toISOString(), results };
+  const run = { generator: gen.name, rounds, personaModel: PERSONA_MODEL, date: new Date().toISOString(), results };
   mkdirSync(new URL("./results/", import.meta.url), { recursive: true });
   const file = new URL(`./results/${run.date.slice(0, 16).replace(/[:T]/g, "-")}-${gen.name.split(" ")[0]}.json`, import.meta.url);
   writeFileSync(file, JSON.stringify(run, null, 2) + "\n");
   if (args.includes("--json")) return console.log(JSON.stringify(run, null, 2));
 
-  console.log(`Generator: ${gen.name} · rounds: ${rounds}\n`);
-  console.log("| Scenario | Valid AI outputs | Candidates thrown away by code | Proposed routes with violations | Final routes with violations | Estimate exact / ±1 level / mean gap | Public texts with leaks | Decisions |");
-  console.log("|---|---|---|---|---|---|---|---|");
+  console.log(`Generator: ${gen.name} · rounds: ${rounds} · persona model ${PERSONA_MODEL}\n`);
+  console.log("| Scenario | Valid AI outputs | Candidates thrown away by code | Proposed routes with violations | Final routes with violations | Estimate exact / ±1 level / mean gap | Public texts with leaks | Decisions (ties) | Credit changes |");
+  console.log("|---|---|---|---|---|---|---|---|---|");
   for (const r of results) {
     const e = r.report.estimateAccuracy;
     const j = r.report.jsonValidity;
     const decided = r.decisions.filter(d => d.winner).length;
+    const ties = r.decisions.filter(d => d.resolvedBy === "tie_candidate").length;
+    const creditChanges = r.decisions.reduce((n, d) => n + Object.values((d.credits ?? {}) as Record<string, string>)
+      .filter(v => v.split("→")[0] !== v.split("→")[1]).length, 0);
     const c = r.report.candidates;
     console.log(`| ${r.scenario} | ${j ? `${j.valid}/${j.total}` : "n/a"} | ${c.rejectedByAiValidator + c.droppedByLogic} (AI check ${c.rejectedByAiValidator}, hard filter ${c.droppedByLogic}) | ${r.report.proposedRoutes.withViolations}/${r.report.proposedRoutes.checked} | ` +
       `${r.report.finalRoutes.withViolations}/${r.report.finalRoutes.checked} | ${pct(e.exactMatch)} / ${pct(e.withinOneLevel)} / ${e.meanLevelGap?.toFixed(2) ?? "n/a"} (n=${e.n}) | ` +
-      `${r.report.privacy.payloadsWithLeaks}/${r.report.privacy.publicPayloads} | ${decided}/${r.decisions.length} |`);
+      `${r.report.privacy.payloadsWithLeaks}/${r.report.privacy.publicPayloads} | ${decided}/${r.decisions.length} (${ties}) | ${creditChanges} |`);
   }
   for (const r of results) {
     console.log(`\n${r.scenario}`);

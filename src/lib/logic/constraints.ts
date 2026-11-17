@@ -19,7 +19,7 @@ export interface SpotEvidence {
   allergens?: readonly string[];      // known to be present in the named dish / menu
   allergenFree?: readonly string[];   // verified absent (only from a reliable venue source)
 }
-export type SafetySpot = Pick<Spot, "id" | "category" | "dietTags"> & { price: number | null } & SpotEvidence;
+export type SafetySpot = Pick<Spot, "id" | "category" | "dietTags"> & { price: number | null; durationMin?: number } & SpotEvidence;
 export type SpotIndex = Readonly<Record<string, SafetySpot>>;
 export type ConstraintMember = Pick<MemberProfile, "id" | "hard">;
 export type Route = Pick<Option, "kind" | "spots" | "branches" | "rendezvous">;
