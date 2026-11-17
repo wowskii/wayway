@@ -122,9 +122,18 @@ async function main() {
   });
   console.log("   WayWay:", m.text);
 
-  console.log("\n4) extractPreferences — Tom reacts privately to the options");
+  const memberNames = Object.fromEntries(TRIP.members.map((mb) => [mb.id, mb.name]));
+  console.log("\n4a) extractPreferences — Mia asks WayWay privately which option to pick");
+  const miaAsk = await extractPreferences({
+    member: mia, history: [], round: 1, currentOptions: options, spots: SPOTS, memberNames,
+    message: privateMsg(mia.id, "Which one should I pick? And what time does the museum in A close?", 1),
+  });
+  console.log("   reactions:", miaAsk.preferenceUpdate.reactions ?? "none");
+  console.log("   reply:", miaAsk.reply);
+
+  console.log("\n4b) extractPreferences — Tom reacts privately to the options");
   const tomEx = await extractPreferences({
-    member: tom, history: [], round: 1, currentOptions: options,
+    member: tom, history: [], round: 1, currentOptions: options, spots: SPOTS, memberNames,
     message: privateMsg(tom.id, "A is ok I guess but way too much museum. B is boring. I really want real shopping time.", 1),
   });
   console.log("   reactions:", tomEx.preferenceUpdate.reactions ?? "none");

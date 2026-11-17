@@ -3,7 +3,7 @@
 // Sensitive statements (money, health, personal situation...) are stored with the
 // "[private] " prefix (see context.ts) and are then protected like a private note.
 
-import type { HardConstraints, MemberProfile, Option, PreferenceUpdate, PrivateMessage, SatisfactionLevel } from "@/contracts/contract";
+import type { HardConstraints, MemberProfile, Option, PreferenceUpdate, PrivateMessage, SatisfactionLevel, Spot } from "@/contracts/contract";
 import { LIMITS, MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import { isPrivateStatement, storeStatement, stripPrivate } from "./context";
 import { AIOutputError, callTool, type Validation } from "./llm";
@@ -16,6 +16,8 @@ export interface ExtractInput {
   history: PrivateMessage[];          // recent private messages of this member
   round: number;                      // 0 = onboarding
   currentOptions?: Option[];          // options the member is reacting to
+  spots?: Spot[];                     // to describe the option cards (names, areas, prices, hours)
+  memberNames?: Record<string, string>; // member id -> name, for split groups and "works for"
 }
 
 export interface ExtractOutput {
@@ -67,6 +69,39 @@ export function nonEmptyHard(h: Partial<HardConstraints> | undefined): Partial<H
   return Object.keys(out).length ? out : undefined;
 }
 
+// Neutrality (private chat): WayWay never recommends or ranks an option, even when asked.
+const RECOMMEND = new RegExp([
+  String.raw`\bI(?:'d| would)? (?:recommend|suggest|pick|choose|go (?:for|with))\b`,
+  String.raw`\byou should (?:pick|choose|vote|take|go (?:for|with))\b`,
+  String.raw`\b(?:best|right|ideal|perfect) (?:fit|choice|option|pick|match)\b`,
+  String.raw`\b(?:fits?|suits?) you (?:best|better|most)\b`,
+  String.raw`\bje (?:te |vous )?(?:recommande|conseille|sugg[eè]re)\b`,
+  String.raw`\b(?:meilleur|bon) choix\b`,
+  String.raw`\btu devrais (?:choisir|prendre|voter)\b`,
+].join("|"), "i");
+
+// The facts shown on each card: the only things WayWay may say about an option.
+export function describeOptions(options: Option[], spots: Spot[] = [], names: Record<string, string> = {}): string {
+  const byId = new Map(spots.map((s) => [s.id, s]));
+  const spot = (id: string) => {
+    const s = byId.get(id);
+    return s ? `${s.name} (${s.area}, about ${s.price} yen, ~${s.durationMin} min, open ${s.openHours})` : id;
+  };
+  const who = (ids: string[]) => ids.map((id) => names[id] ?? id).join(", ");
+  return options.map((o) => {
+    const lines = [`Option ${o.id}: ${o.title}`];
+    if (o.branches?.length) {
+      o.branches.forEach((b, i) => lines.push(`  Group ${i + 1} (${who(b.memberIds)}): ${b.spots.map(spot).join(" > ")}`));
+      if (o.rendezvous) lines.push(`  Everyone meets at ${byId.get(o.rendezvous.spotId)?.name ?? o.rendezvous.spotId} at ${o.rendezvous.time}`);
+    } else lines.push(`  Plan: ${o.spots.map(spot).join(" > ")}`);
+    lines.push(`  Trade-off: ${o.explanation}`);
+    if (o.assumptions.length) lines.push(`  Assumptions: ${o.assumptions.join("; ")}`);
+    if (o.satisfiedMemberIds.length) lines.push(`  Works for: ${who(o.satisfiedMemberIds)}`);
+    if (o.fairnessNote) lines.push(`  Note: ${o.fairnessNote}`);
+    return lines.join("\n");
+  }).join("\n");
+}
+
 function makeValidator(optionIds: Set<string>) {
   return (raw: any): Validation<Raw> => {
     const errors: string[] = [];
@@ -89,17 +124,20 @@ function makeValidator(optionIds: Set<string>) {
     }
 
     if (typeof raw?.reply !== "string" || raw.reply.trim() === "") errors.push("reply must be a non-empty string.");
-    else if (raw.reply.length > 400) errors.push("reply is too long: 1-2 sentences.");
+    else if (raw.reply.length > 500) errors.push("reply is too long: 1-3 sentences.");
+    else if (optionIds.size && RECOMMEND.test(raw.reply)) {
+      errors.push("The reply recommends an option. Stay neutral: compare the options with the member's own preferences, fact by fact, and let them choose.");
+    }
     checkHardConstraints(raw?.hardConstraintsToConfirm, errors);
     return errors.length ? { ok: false, errors } : { ok: true, value: raw as Raw };
   };
 }
 
 export async function extractPreferences(input: ExtractInput): Promise<ExtractOutput> {
-  const { member, message, history, round, currentOptions } = input;
+  const { member, message, history, round, currentOptions, spots, memberNames } = input;
   const context = currentOptions?.length
-    ? `Round ${round}. The member is reacting privately to these options:\n` +
-      currentOptions.map((o) => `Option ${o.id}: ${o.title} (${o.explanation})`).join("\n")
+    ? `Round ${round}. The member is reacting privately to these options (card facts):\n` +
+      describeOptions(currentOptions, spots, memberNames)
     : "Onboarding: the member is telling WayWay about themselves before the trip. No options yet.";
 
   try {

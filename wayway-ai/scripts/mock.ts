@@ -8,6 +8,7 @@ import { ProviderError, type LLMClient } from "../lib/ai/llm";
 let optionCalls = 0;
 let slotCalls = 0;
 let interviewCalls = 0;
+let askCalls = 0;
 
 const tool = (name: string, input: unknown) => {
   const id = `call_${Math.random().toString(36).slice(2)}`;
@@ -33,6 +34,14 @@ export const mockClient: LLMClient = {
     const user: string = body.messages[1].content;
 
     if (name === "save_preferences") {
+      if (user.includes("Which one should I pick")) {
+        askCalls++;
+        // First answer deliberately wrong: it recommends an option (the validator asks for neutrality).
+        return tool(name, { statements: [{ text: "Slightly prefers the museum", private: false }],
+          reply: askCalls === 1
+            ? "I'd recommend option B, it fits you best!"
+            : "That's your call! A has more museum time, B adds the market. The museum in A closes at 17:00." });
+      }
       if (user.includes("reacting privately")) {
         return tool(name, {
           statements: [

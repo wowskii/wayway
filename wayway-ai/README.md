@@ -64,6 +64,11 @@ In rounds 2–3, `extractPreferences` also returns `reactions` (option, level, n
 talked about. `reviseOptions` gets them (`reactions: MemberReaction[]`) and shows the model its own estimate next to
 each real reaction, so it can correct its picture of each member (per-member evaluation, Papachristou et al.).
 
+## Private chat during the rounds
+`extractPreferences` also answers questions about the current options. Pass `spots` and `memberNames` with
+`currentOptions`: the model then sees the card facts (`describeOptions`) and answers only with them.
+WayWay never recommends an option in private: the code rejects a reply like "I'd recommend B" and retries.
+
 ## Interface with role 1 (interview page)
 `interview(input)` has the same types as `src/lib/ai/types.ts` on `feature/web-skeleton` (`InterviewInput` →
 `InterviewOutput`). To connect it, in `src/lib/ai/interviewer.ts`: `if (mode === "real") return interview;`.
