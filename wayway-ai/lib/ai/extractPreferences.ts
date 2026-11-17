@@ -32,21 +32,45 @@ interface Raw {
 
 const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
+// Shared with interview.ts: the statement list and the hard constraints have the same rules.
+export function checkStatements(list: any, errors: string[]) {
+  if (!Array.isArray(list) || list.some((s: any) => typeof s?.text !== "string" || typeof s?.private !== "boolean")) {
+    errors.push('statements must be an array of {"text": string, "private": boolean}.');
+    return;
+  }
+  if (list.length > LIMITS.maxStatementsPerMember) {
+    errors.push(`Keep at most ${LIMITS.maxStatementsPerMember} statements: merge similar ones.`);
+  }
+  list.forEach((s: { text: string }, i: number) => {
+    if (!s.text.trim()) errors.push(`Statement ${i + 1} is empty.`);
+    else if (wordCount(s.text) > 15) errors.push(`Statement ${i + 1} is longer than 15 words.`);
+  });
+}
+
+export function checkHardConstraints(h: any, errors: string[]) {
+  if (h === undefined || h === null) return;
+  if (typeof h !== "object") return void errors.push("hardConstraintsToConfirm must be an object.");
+  if (h.diet !== undefined && !Array.isArray(h.diet)) errors.push("hardConstraintsToConfirm.diet must be an array.");
+  if (h.allergies !== undefined && !Array.isArray(h.allergies)) errors.push("hardConstraintsToConfirm.allergies must be an array.");
+  if (h.maxBudget !== undefined && (typeof h.maxBudget !== "number" || h.maxBudget <= 0)) {
+    errors.push("hardConstraintsToConfirm.maxBudget must be a positive number.");
+  }
+}
+
+// Only non-empty hard constraints are returned (an empty object would show an empty confirmation card).
+export function nonEmptyHard(h: Partial<HardConstraints> | undefined): Partial<HardConstraints> | undefined {
+  if (!h) return undefined;
+  const out: Partial<HardConstraints> = {};
+  if (h.diet?.length) out.diet = h.diet;
+  if (h.allergies?.length) out.allergies = h.allergies;
+  if (h.maxBudget !== undefined) out.maxBudget = h.maxBudget;
+  return Object.keys(out).length ? out : undefined;
+}
+
 function makeValidator(optionIds: Set<string>) {
   return (raw: any): Validation<Raw> => {
     const errors: string[] = [];
-    const list = raw?.statements;
-    if (!Array.isArray(list) || list.some((s: any) => typeof s?.text !== "string" || typeof s?.private !== "boolean")) {
-      errors.push('statements must be an array of {"text": string, "private": boolean}.');
-    } else {
-      if (list.length > LIMITS.maxStatementsPerMember) {
-        errors.push(`Keep at most ${LIMITS.maxStatementsPerMember} statements: merge similar ones.`);
-      }
-      list.forEach((s: { text: string }, i: number) => {
-        if (!s.text.trim()) errors.push(`Statement ${i + 1} is empty.`);
-        else if (wordCount(s.text) > 15) errors.push(`Statement ${i + 1} is longer than 15 words.`);
-      });
-    }
+    checkStatements(raw?.statements, errors);
 
     const reactions = raw?.reactions;
     if (reactions !== undefined && reactions !== null) {
@@ -66,17 +90,7 @@ function makeValidator(optionIds: Set<string>) {
 
     if (typeof raw?.reply !== "string" || raw.reply.trim() === "") errors.push("reply must be a non-empty string.");
     else if (raw.reply.length > 400) errors.push("reply is too long: 1-2 sentences.");
-    const h = raw?.hardConstraintsToConfirm;
-    if (h !== undefined && h !== null) {
-      if (typeof h !== "object") errors.push("hardConstraintsToConfirm must be an object.");
-      else {
-        if (h.diet !== undefined && !Array.isArray(h.diet)) errors.push("hardConstraintsToConfirm.diet must be an array.");
-        if (h.allergies !== undefined && !Array.isArray(h.allergies)) errors.push("hardConstraintsToConfirm.allergies must be an array.");
-        if (h.maxBudget !== undefined && (typeof h.maxBudget !== "number" || h.maxBudget <= 0)) {
-          errors.push("hardConstraintsToConfirm.maxBudget must be a positive number.");
-        }
-      }
-    }
+    checkHardConstraints(raw?.hardConstraintsToConfirm, errors);
     return errors.length ? { ok: false, errors } : { ok: true, value: raw as Raw };
   };
 }
@@ -104,8 +118,8 @@ export async function extractPreferences(input: ExtractInput): Promise<ExtractOu
       tool: { name: "save_preferences", description: "Save the member's updated preferences, reactions and reply.", schema: EXTRACT_SCHEMA },
       validate: makeValidator(new Set((currentOptions ?? []).map((o) => o.id))),
     });
-    const h = res.value.hardConstraintsToConfirm;
-    const hasHard = h && ((h.diet?.length ?? 0) > 0 || (h.allergies?.length ?? 0) > 0 || h.maxBudget !== undefined);
+    const h = nonEmptyHard(res.value.hardConstraintsToConfirm);
+    const hasHard = Boolean(h);
     const reactions = (res.value.reactions ?? []).map((r) => ({ optionId: r.option, level: r.level, reason: r.reason.trim() }));
     return {
       preferenceUpdate: {

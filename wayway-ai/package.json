@@ -4,6 +4,8 @@
   "scripts": {
     "try": "tsx --env-file=.env scripts/try-ai.ts",
     "try:mock": "tsx scripts/try-ai.ts --mock",
+    "try:interview": "tsx --env-file=.env scripts/try-interview.ts",
+    "try:interview:mock": "tsx scripts/try-interview.ts --mock",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -15,11 +15,13 @@ Principle: **the LLM proposes and explains, the code checks and decides.**
 | `lib/ai/schemas.ts` | JSON schemas of each output (`reasoning` first = chain of thought, never shown) |
 | `lib/ai/negotiateSlot.ts` | Agrees on the time first: proposes a time window in the group chat, then reads replies (confirm / change / none); code checks trip days, past times, overlaps |
 | `lib/ai/extractPreferences.ts` | Private message → preference statements (+ private flag), reactions to the current options, hard constraints **to confirm** |
+| `lib/ai/interview.ts` | Onboarding interview (private chat, round 0): 6 topics in order, profile update, hard constraints **to confirm**, progress. Same signature as role 1's `Interviewer` |
 | `lib/ai/options.ts` | `generateOptions` (round 1) and `reviseOptions` (rounds 2–3) → validated `Candidate[]` |
 | `lib/ai/writeMessage.ts` | Facts from the code → one chat message (+ fairness note), with fallbacks |
 | `data/spots.ts` | Loads and checks the shared dataset `../data/spots_tokyo.json` (39 Tokyo spots, approximate test data) |
 | `data/scenario2.ts` | Test trip (museum vs shopping), uses the shared spots |
 | `scripts/try-ai.ts` | Runs the whole pipeline on scenario 2 |
+| `scripts/try-interview.ts` | Runs an 8-message onboarding interview (`npm run try:interview`, or `try:interview:mock`) |
 | `scripts/mock.ts` | Fake model for free offline tests (first answer is deliberately wrong) |
 
 ## Run
@@ -62,10 +64,15 @@ In rounds 2–3, `extractPreferences` also returns `reactions` (option, level, n
 talked about. `reviseOptions` gets them (`reactions: MemberReaction[]`) and shows the model its own estimate next to
 each real reaction, so it can correct its picture of each member (per-member evaluation, Papachristou et al.).
 
+## Interface with role 1 (interview page)
+`interview(input)` has the same types as `src/lib/ai/types.ts` on `feature/web-skeleton` (`InterviewInput` →
+`InterviewOutput`). To connect it, in `src/lib/ai/interviewer.ts`: `if (mode === "real") return interview;`.
+Hard constraints are only proposed (`hardConstraintsToConfirm`); role 1's confirmation card applies them.
+
 ## Interface with role 4
 `generateOptions` / `reviseOptions` return `Candidate[]` (no id, no kind, no metrics).
-Role 4's `rankOptions(candidates, credits)` turns them into `Option[]` (A best weighted total, B fairest, C split).
-`scripts/try-ai.ts` contains a **temporary** ranking to replace with role 4's.
+Henry's `buildOptions` (`src/lib/logic`, branch `feature/logic-evaluation`) turns them into `Option[]`
+(A best weighted total, B fairest, C split). `scripts/try-ai.ts` still uses a **temporary** ranking until the merge.
 
 ## Known limits
 - The privacy check is word-based: a paraphrase can pass, and a neutral word like "budget" can be flagged.

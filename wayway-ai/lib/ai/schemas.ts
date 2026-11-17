@@ -102,6 +102,32 @@ export const OPTIONS_SCHEMA: JsonSchema = {
   required: ["reasoning", "candidates"],
 };
 
+export const INTERVIEW_TOPIC_LIST = ["interests", "pace", "sleep", "diet", "allergies", "budget"];
+
+export const INTERVIEW_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    answered: {
+      type: "array",
+      items: { type: "string", enum: INTERVIEW_TOPIC_LIST },
+      description: "Topics this message answers.",
+    },
+    statements: (EXTRACT_SCHEMA.properties as any).statements,
+    profileUpdate: {
+      type: "object",
+      description: "Only what the member stated or clearly implied. Omit otherwise.",
+      properties: {
+        interests: { type: "array", items: { type: "string" }, description: "FULL updated list, short lowercase words, max 8." },
+        pace: { type: "string", enum: ["relaxed", "moderate", "packed"] },
+        sleep: { type: "string", enum: ["early_bird", "night_owl", "flexible"] },
+      },
+    },
+    hardConstraintsToConfirm: (EXTRACT_SCHEMA.properties as any).hardConstraintsToConfirm,
+    reply: { type: "string", description: "Private reply in the member's language, max 3 short sentences, ending with the next question." },
+  },
+  required: ["answered", "statements", "reply"],
+};
+
 export const SLOT_SCHEMA: JsonSchema = {
   type: "object",
   properties: {

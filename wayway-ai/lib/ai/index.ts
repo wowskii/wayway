@@ -1,5 +1,7 @@
 export { extractPreferences } from "./extractPreferences";
 export type { ExtractInput, ExtractOutput } from "./extractPreferences";
+export { interview, progressFrom, INTERVIEW_TOPICS } from "./interview";
+export type { InterviewInput, InterviewOutput, InterviewProgress, InterviewTopic, ProfileUpdate } from "./interview";
 export { generateOptions, keptOptions, pickCandidate, reviseOptions } from "./options";
 export type { Candidate, GenerateInput, ReviseInput, OptionsOutput } from "./options";
 export { writeMessage } from "./writeMessage";

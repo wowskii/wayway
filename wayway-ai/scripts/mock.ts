@@ -7,6 +7,7 @@ import { ProviderError, type LLMClient } from "../lib/ai/llm";
 
 let optionCalls = 0;
 let slotCalls = 0;
+let interviewCalls = 0;
 
 const tool = (name: string, input: unknown) => {
   const id = `call_${Math.random().toString(36).slice(2)}`;
@@ -54,6 +55,41 @@ export const mockClient: LLMClient = {
         hardConstraintsToConfirm: { allergies: ["nuts"] },
         reply: "Got it! Just to be sure: should I always avoid places with nuts for you?",
       });
+    }
+
+    if (name === "save_interview") {
+      const msg = user.slice(user.indexOf("<message>"));
+      const keep = (extra: { text: string; private: boolean }[] = []) => [{ text: "Enjoys museums, temples and food", private: false }, ...extra];
+      if (msg.includes("museums")) {
+        interviewCalls++;
+        // First answer deliberately wrong: no next question in the reply (the validator asks for one).
+        return tool(name, { answered: ["interests"], statements: keep(), profileUpdate: { interests: ["Museums", "temples", "food"] },
+          reply: interviewCalls === 1 ? "Great taste!" : "Great taste! How busy do you like your days: relaxed, in between, or packed?" });
+      }
+      if (msg.includes("whatever")) {
+        return tool(name, { answered: [], statements: keep(), reply: "No problem! If you had to pick: relaxed days with breaks, or packed days?" });
+      }
+      if (msg.includes("relaxed")) {
+        return tool(name, { answered: ["pace"], statements: keep([{ text: "Prefers a relaxed pace", private: false }]), profileUpdate: { pace: "relaxed" },
+          reply: "Relaxed it is. Are you an early bird, a night owl, or flexible?" });
+      }
+      if (msg.includes("morning")) {
+        return tool(name, { answered: ["sleep"], statements: keep(), profileUpdate: { sleep: "early_bird" },
+          reply: "Noted! Do you follow a diet, like vegetarian or halal?" });
+      }
+      if (msg.includes("no diet")) {
+        return tool(name, { answered: ["diet"], statements: keep(), reply: "Got it. Any food allergies I should always avoid? This stays private." });
+      }
+      if (msg.includes("allergic")) {
+        // "answered" forgotten on purpose: the code infers "allergies" from the card.
+        return tool(name, { answered: [], statements: keep(), hardConstraintsToConfirm: { allergies: ["Nuts"] },
+          reply: "Thanks, please check the card below. Roughly how much do you want to spend for the whole trip, in yen? This stays private." });
+      }
+      if (msg.includes("30k")) {
+        return tool(name, { answered: ["budget"], statements: keep([{ text: "Wants low-cost activities", private: true }]), hardConstraintsToConfirm: { maxBudget: 30000 },
+          reply: "Thanks, please check the card below. That's everything I need! Add anything else, or tap Finish." });
+      }
+      return tool(name, { answered: [], statements: keep(), reply: "I can't share anything about other members. Anything else you'd like me to know?" });
     }
 
     if (name === "handle_time") {

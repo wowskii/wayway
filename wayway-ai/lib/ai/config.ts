@@ -17,6 +17,7 @@ export const MODELS = {
 
 export const TEMPERATURE = {
   extract: 0.0,   // stable extraction
+  interview: 0.2, // stable extraction, slightly natural questions
   options: 0.3,   // some variety between candidates, but stable estimates
   message: 0.6,   // natural chat messages
 } as const;
@@ -28,6 +29,7 @@ export const MAX_TOKENS = {
   options: 4000,
   message: 600,
   slot: 500,
+  interview: 1000,
 } as const;
 
 export const LIMITS = {
