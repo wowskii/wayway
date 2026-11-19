@@ -6,6 +6,7 @@ import { dayLegs, type WalkRoute } from "@/lib/itinerary/legs";
 import type { DayPlan } from "@/lib/itinerary/view";
 import { ItineraryPanel } from "./ItineraryPanel";
 import { MapView } from "./MapView";
+import { PlaceCard, type PlaceState } from "./PlaceCard";
 
 interface Props {
   days: DayPlan[];
@@ -38,16 +39,41 @@ export function TripMap({ days, startDate, memberNames, myMemberId, isDemo }: Pr
     }
   }, [legs]);
 
+  // Google details for the place card: asked when a stop is selected (list or pin), once per place
+  // per page. This is the most expensive Google call (30/day), so it never happens without a click.
+  const [places, setPlaces] = useState<Record<string, PlaceState>>({});
+  const askedPlaces = useRef(new Set<string>());
+  const selectStop = (key: string) => {
+    setSelectedKey(key);
+    const placeId = plan?.stops.find((s) => s.key === key)?.spot.placeId;
+    if (!placeId || askedPlaces.current.has(placeId)) return;
+    askedPlaces.current.add(placeId);
+    setPlaces((p) => ({ ...p, [placeId]: { status: "loading" } }));
+    fetch(`/api/places/${encodeURIComponent(placeId)}`)
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        const state: PlaceState = res.ok ? { status: "ok", data: body } : { status: "error", message: body.error ?? "Google details can't load right now." };
+        setPlaces((p) => ({ ...p, [placeId]: state }));
+        if (!res.ok) askedPlaces.current.delete(placeId);   // a later click may try again
+      })
+      .catch(() => {
+        setPlaces((p) => ({ ...p, [placeId]: { status: "error", message: "Google details can't load right now (network)." } }));
+        askedPlaces.current.delete(placeId);
+      });
+  };
+  const selectedStop = plan?.stops.find((s) => s.key === selectedKey);
+
   const changeDay = (d: number) => {
     setDay(d);
     setSelectedKey(null);
   };
-  // "Nov 21": the trip's first date + (day - 1)
-  const dateOf = (d: number) => {
+  const dateOfDay = (d: number) => {
     const date = new Date(`${startDate}T00:00:00Z`);
     date.setUTCDate(date.getUTCDate() + d - 1);
-    return date.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
+    return date;
   };
+  // "Nov 21": the trip's first date + (day - 1)
+  const dateOf = (d: number) => dateOfDay(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
@@ -70,15 +96,24 @@ export function TripMap({ days, startDate, memberNames, myMemberId, isDemo }: Pr
             day={day}
             onDay={changeDay}
             selectedKey={selectedKey}
-            onSelect={setSelectedKey}
+            onSelect={selectStop}
             dateOf={dateOf}
             nameOf={(id) => memberNames[id] ?? "Someone"}
             myMemberId={myMemberId}
             legs={legs}
             walks={walks}
           />
-          <div className="h-[420px] overflow-hidden rounded-2xl border border-line bg-card shadow-sm lg:h-auto">
-            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={setSelectedKey} />
+          <div className="relative h-[420px] overflow-hidden rounded-2xl border border-line bg-card shadow-sm lg:h-auto">
+            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop} />
+            {selectedStop && (
+              <PlaceCard
+                stop={selectedStop}
+                place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
+                tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
+                weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}
+                onClose={() => setSelectedKey(null)}
+              />
+            )}
           </div>
         </div>
       )}

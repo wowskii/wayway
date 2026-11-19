@@ -138,8 +138,13 @@ function PanToSelected({ stops, selectedKey }: { stops: PlanStop[]; selectedKey:
   useEffect(() => {
     const s = stops.find((x) => x.key === selectedKey);
     if (!map || !s) return;
-    map.panTo({ lat: s.spot.lat, lng: s.spot.lng });
     if ((map.getZoom() ?? 0) < STREET_ZOOM) map.setZoom(STREET_ZOOM);
+    map.panTo({ lat: s.spot.lat, lng: s.spot.lng });
+    // The place card covers the bottom-left of the map (the whole bottom on a phone): shift the view so
+    // the pin sits to the right of and above the card. panBy(x, y) moves the CENTER, so the pin moves
+    // the opposite way.
+    const wide = map.getDiv().clientWidth >= 640;
+    map.panBy(wide ? -170 : 0, wide ? 60 : 110);
   }, [map, stops, selectedKey]);
   return null;
 }
