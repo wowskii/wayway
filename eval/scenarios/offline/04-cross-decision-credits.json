@@ -1,0 +1,385 @@
+{
+  "id": "04-cross-decision-credits",
+  "description": "Two compromises bank six credits, weight caps at 1.5, and the third choice resets Mia.",
+  "members": [
+    {
+      "id": "tom",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "ken",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "mia",
+      "hard": {
+        "diet": [
+          "vegetarian"
+        ],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "sarah",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    }
+  ],
+  "spots": {
+    "museum": {
+      "id": "museum",
+      "category": "museum",
+      "price": 800,
+      "dietTags": []
+    },
+    "shops": {
+      "id": "shops",
+      "category": "shopping",
+      "price": 0,
+      "dietTags": []
+    },
+    "park": {
+      "id": "park",
+      "category": "nature",
+      "price": 0,
+      "dietTags": []
+    },
+    "food": {
+      "id": "food",
+      "category": "food",
+      "price": 1800,
+      "dietTags": []
+    },
+    "veg": {
+      "id": "veg",
+      "category": "food",
+      "price": 1200,
+      "dietTags": [
+        "vegetarian"
+      ]
+    },
+    "unknown": {
+      "id": "unknown",
+      "category": "food",
+      "price": null,
+      "dietTags": []
+    }
+  },
+  "decisions": [
+    {
+      "id": "first",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        }
+      ],
+      "votes": {
+        "tom": [
+          "must_go",
+          "definitely_no"
+        ],
+        "ken": [
+          "must_go",
+          "definitely_no"
+        ],
+        "mia": [
+          "definitely_no",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "A",
+      "expectedCredits": {
+        "mia": 3,
+        "sarah": 2
+      }
+    },
+    {
+      "id": "second",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        }
+      ],
+      "votes": {
+        "tom": [
+          "must_go",
+          "definitely_no"
+        ],
+        "ken": [
+          "must_go",
+          "definitely_no"
+        ],
+        "mia": [
+          "definitely_no",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "A",
+      "expectedCredits": {
+        "mia": 6,
+        "sarah": 2
+      }
+    },
+    {
+      "id": "third",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        }
+      ],
+      "votes": {
+        "tom": [
+          "must_go",
+          "lean_not_go"
+        ],
+        "ken": [
+          "want_to_go",
+          "lean_not_go"
+        ],
+        "mia": [
+          "definitely_no",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "B",
+      "expectedCredits": {
+        "mia": 0,
+        "sarah": 2,
+        "tom": 3,
+        "ken": 2
+      },
+      "unweightedWinner": "A"
+    }
+  ],
+  "startingCredits": {
+    "sarah": 2
+  }
+}

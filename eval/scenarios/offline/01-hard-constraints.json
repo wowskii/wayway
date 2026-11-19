@@ -1,0 +1,262 @@
+{
+  "id": "01-hard-constraints",
+  "description": "Budget, dietary checks and unknown cost on synthetic routes.",
+  "members": [
+    {
+      "id": "tom",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "ken",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "mia",
+      "hard": {
+        "diet": [
+          "vegetarian"
+        ],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "sarah",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    }
+  ],
+  "spots": {
+    "museum": {
+      "id": "museum",
+      "category": "museum",
+      "price": 800,
+      "dietTags": []
+    },
+    "shops": {
+      "id": "shops",
+      "category": "shopping",
+      "price": 0,
+      "dietTags": []
+    },
+    "park": {
+      "id": "park",
+      "category": "nature",
+      "price": 0,
+      "dietTags": []
+    },
+    "food": {
+      "id": "food",
+      "category": "food",
+      "price": 1800,
+      "dietTags": []
+    },
+    "veg": {
+      "id": "veg",
+      "category": "food",
+      "price": 1200,
+      "dietTags": [
+        "vegetarian"
+      ]
+    },
+    "unknown": {
+      "id": "unknown",
+      "category": "food",
+      "price": null,
+      "dietTags": []
+    }
+  },
+  "decisions": [
+    {
+      "id": "safe",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        }
+      ],
+      "votes": {
+        "tom": [
+          "must_go",
+          "same"
+        ],
+        "ken": [
+          "must_go",
+          "same"
+        ],
+        "mia": [
+          "same",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "A"
+    }
+  ],
+  "spent": {
+    "mia": 800
+  },
+  "rejectedOptions": [
+    {
+      "id": "A",
+      "kind": "best_total",
+      "title": "Museum route",
+      "spots": [
+        "museum",
+        "food"
+      ],
+      "scores": [
+        {
+          "memberId": "tom",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "ken",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "mia",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "sarah",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        }
+      ],
+      "satisfiedMemberIds": [],
+      "explanation": "Synthetic option card.",
+      "assumptions": []
+    },
+    {
+      "id": "B",
+      "kind": "fairest",
+      "title": "Market and park route",
+      "spots": [
+        "unknown"
+      ],
+      "scores": [
+        {
+          "memberId": "tom",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "ken",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "mia",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        },
+        {
+          "memberId": "sarah",
+          "level": "must_go",
+          "source": "ai_estimate",
+          "reason": "Synthetic"
+        }
+      ],
+      "satisfiedMemberIds": [],
+      "explanation": "Synthetic option card.",
+      "assumptions": []
+    }
+  ],
+  "expectedBlockedCodes": [
+    "diet_mismatch",
+    "over_budget",
+    "unknown_price"
+  ]
+}

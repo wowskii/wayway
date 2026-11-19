@@ -11,7 +11,10 @@
     "db:types": "node --env-file=.env.local scripts/db.mjs types",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "check:privacy": "node --env-file=.env.local scripts/check-privacy.mjs",
-    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs"
+    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs",
+    "test:logic": "tsx --test src/lib/logic/__tests__/*.test.ts",
+    "eval:offline": "tsx eval/offline.ts",
+    "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -30,6 +33,7 @@
     "eslint-config-next": "16.4.3",
     "supabase": "2.122.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
