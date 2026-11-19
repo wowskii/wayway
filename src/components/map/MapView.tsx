@@ -6,7 +6,8 @@
 // Counting here (in the browser, once per page load) rather than in the server page matters: in
 // development the server page re-renders on every file save, which would count loads that never happen.
 import { useEffect, useRef, useState } from "react";
-import { AdvancedMarker, APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, APIProvider, Map, Polyline, useMap } from "@vis.gl/react-google-maps";
+import type { Leg, WalkRoute } from "@/lib/itinerary/legs";
 import type { PlanStop } from "@/lib/itinerary/view";
 import { GROUP_COLOR } from "./colors";
 
@@ -16,6 +17,8 @@ const TOKYO = { lat: 35.6812, lng: 139.7671 };   // Tokyo Station: first view be
 
 interface Props {
   stops: PlanStop[];
+  legs: Leg[];
+  walks: Record<string, WalkRoute | null>;
   selectedKey: string | null;
   onSelect: (key: string) => void;
 }
@@ -52,6 +55,9 @@ export function MapView(props: Props) {
         clickableIcons={false}       // no Google pop-ups on other places: our pins are the content
         className="h-full w-full"
       >
+        {props.legs.map((leg) => (
+          <LegLine key={`${leg.id}-${leg.group}`} leg={leg} walk={props.walks[leg.id]} />
+        ))}
         {props.stops.map((s) => (
           <AdvancedMarker
             key={s.key}
@@ -88,6 +94,22 @@ function StopPin({ stop, selected }: { stop: PlanStop; selected: boolean }) {
         {stop.number}
       </span>
     </div>
+  );
+}
+
+// One trip between two stops:
+//   real walking route from Google -> solid line following the streets
+//   train/subway leg, or walk not loaded (yet) -> dashed straight line ("roughly this way")
+function LegLine({ leg, walk }: { leg: Leg; walk?: WalkRoute | null }) {
+  const color = GROUP_COLOR[leg.group];
+  if (walk) return <Polyline encodedPath={walk.polyline} strokeColor={color} strokeOpacity={0.85} strokeWeight={4} clickable={false} />;
+  return (
+    <Polyline
+      path={[{ lat: leg.from.spot.lat, lng: leg.from.spot.lng }, { lat: leg.to.spot.lat, lng: leg.to.spot.lng }]}
+      strokeOpacity={0}                         // the line itself is invisible: the dashes below draw it
+      icons={[{ icon: { path: "M 0,-1 0,1", strokeOpacity: 0.8, strokeColor: color, scale: 3 }, offset: "0", repeat: "14px" }]}
+      clickable={false}
+    />
   );
 }
 

@@ -1,7 +1,8 @@
 "use client";
 // Left card of the map page: day tabs + the day's plan (shared stops and split cards).
 // Clicking a stop selects it (the map pans to it); a pin click selects it here too.
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { directionsUrl, type Leg, type WalkRoute } from "@/lib/itinerary/legs";
 import { namesLabel, type DayPlan, type PlanStop } from "@/lib/itinerary/view";
 import { GROUP_COLOR } from "./colors";
 
@@ -14,10 +15,27 @@ interface Props {
   dateOf: (day: number) => string;
   nameOf: (memberId: string) => string;
   myMemberId?: string;
+  legs: Leg[];
+  walks: Record<string, WalkRoute | null>;
 }
 
-export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf, nameOf, myMemberId }: Props) {
+export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf, nameOf, myMemberId, legs, walks }: Props) {
   const plan = days.find((d) => d.day === day);
+
+  // The trip shown above each stop = how you get there. The meeting point is reached by both groups:
+  // the list shows your group's way (the map shows both).
+  const arrivals = useMemo(() => {
+    const byStop = new Map<string, Leg>();
+    for (const leg of legs) {
+      const current = byStop.get(leg.to.key);
+      if (!current || (current.group === "other" && leg.group !== "other")) byStop.set(leg.to.key, leg);
+    }
+    return byStop;
+  }, [legs]);
+  const travel = (stop: PlanStop) => {
+    const leg = arrivals.get(stop.key);
+    return leg ? <TravelRow leg={leg} walk={walks[leg.id]} /> : null;
+  };
 
   // When a pin is clicked, bring its line into view in the list.
   useEffect(() => {
@@ -51,6 +69,7 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
         {plan?.entries.map((entry, i) =>
           entry.kind === "stop" ? (
             <li key={entry.stop.key}>
+              {travel(entry.stop)}
               <StopRow stop={entry.stop} selected={selectedKey === entry.stop.key} onSelect={onSelect} />
             </li>
           ) : (
@@ -71,7 +90,10 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
                     </p>
                     <div className="mt-1 space-y-1">
                       {b.stops.map((s) => (
-                        <StopRow key={s.key} stop={s} selected={selectedKey === s.key} onSelect={onSelect} compact />
+                        <div key={s.key}>
+                          {travel(s)}
+                          <StopRow stop={s} selected={selectedKey === s.key} onSelect={onSelect} compact />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -82,6 +104,31 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
         )}
       </ol>
     </section>
+  );
+}
+
+// "Walk · 6 min" (real, from Google) · "Walk · ≈ 10 min" (estimate, route not loaded)
+// "Train or subway · ≈ 25 min · Directions" (estimate + Google Maps link: the API has no transit in Japan)
+function TravelRow({ leg, walk }: { leg: Leg; walk?: WalkRoute | null }) {
+  const text =
+    leg.mode === "walk"
+      ? walk ? `Walk · ${walk.minutes} min` : `Walk · ≈ ${leg.estimateMin} min`
+      : `Train or subway · ≈ ${leg.estimateMin} min`;
+  return (
+    <p className="flex items-center gap-2 py-1 pl-[1.1rem] text-xs text-muted">
+      <span className="h-4 border-l-2 border-dotted" style={{ borderColor: GROUP_COLOR[leg.group] }} aria-hidden />
+      <span className="pl-2">{text}</span>
+      {leg.mode === "transit" && (
+        <a
+          href={directionsUrl(leg.from.spot, leg.to.spot)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand underline-offset-2 hover:underline"
+        >
+          Directions
+        </a>
+      )}
+    </p>
   );
 }
 
