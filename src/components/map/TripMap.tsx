@@ -7,16 +7,20 @@ import type { DayPlan } from "@/lib/itinerary/view";
 import { ItineraryPanel } from "./ItineraryPanel";
 import { MapView } from "./MapView";
 import { PlaceCard, type PlaceState } from "./PlaceCard";
+import { useLocationSharing } from "./useLocationSharing";
 
 interface Props {
+  tripId: string;
   days: DayPlan[];
   startDate: string;                       // trip start "2026-11-21": day 1
   memberNames: Record<string, string>;
   myMemberId?: string;
 }
 
-export function TripMap({ days, startDate, memberNames, myMemberId }: Props) {
+export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Props) {
   const [day, setDay] = useState(days[0]?.day ?? 1);
+  const sharing = useLocationSharing(tripId, myMemberId);
+  const nameOf = (id: string) => memberNames[id] ?? "Someone";
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const plan = days.find((d) => d.day === day);
 
@@ -94,13 +98,14 @@ export function TripMap({ days, startDate, memberNames, myMemberId }: Props) {
             selectedKey={selectedKey}
             onSelect={selectStop}
             dateOf={dateOf}
-            nameOf={(id) => memberNames[id] ?? "Someone"}
+            nameOf={nameOf}
             myMemberId={myMemberId}
             legs={legs}
             walks={walks}
           />
           <div className="relative h-[420px] overflow-hidden rounded-2xl border border-line bg-card shadow-sm lg:h-auto">
-            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop} />
+            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
+              sharing={{ ...sharing, myMemberId, nameOf }} />
             {selectedStop && (
               <PlaceCard
                 stop={selectedStop}

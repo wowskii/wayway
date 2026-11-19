@@ -10,6 +10,8 @@ import { AdvancedMarker, APIProvider, Map, Polyline, useMap } from "@vis.gl/reac
 import type { Leg, WalkRoute } from "@/lib/itinerary/legs";
 import type { PlanStop } from "@/lib/itinerary/view";
 import { GROUP_COLOR } from "./colors";
+import { LocationControl, LocationMarkers } from "./LocationLayer";
+import type { MemberLocation, ShareMode } from "./useLocationSharing";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
@@ -21,6 +23,14 @@ interface Props {
   walks: Record<string, WalkRoute | null>;
   selectedKey: string | null;
   onSelect: (key: string) => void;
+  sharing: {
+    mode: ShareMode;
+    setMode: (m: ShareMode) => void;
+    error: string | null;
+    locations: MemberLocation[];
+    myMemberId?: string;
+    nameOf: (memberId: string) => string;
+  };
 }
 
 export function MapView(props: Props) {
@@ -69,9 +79,12 @@ export function MapView(props: Props) {
             <StopPin stop={s} selected={props.selectedKey === s.key} />
           </AdvancedMarker>
         ))}
+        <LocationMarkers locations={props.sharing.locations} myMemberId={props.sharing.myMemberId} nameOf={props.sharing.nameOf} />
         <FitToStops stops={props.stops} />
         <PanToSelected stops={props.stops} selectedKey={props.selectedKey} />
       </Map>
+      {/* Over the map, top-left (APIProvider adds no element, so this sits in the map's box). */}
+      <LocationControl {...props.sharing} />
     </APIProvider>
   );
 }

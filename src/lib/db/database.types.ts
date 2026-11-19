@@ -129,6 +129,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"member_locations": {
+                  Row: {
+                    "accuracy_m": number | null,"is_demo": boolean,"lat": number,"lng": number,"member_id": string,"trip_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accuracy_m"?: number | null,"is_demo"?: boolean,"lat": number,"lng": number,"member_id": string,"trip_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "accuracy_m"?: number | null,"is_demo"?: boolean,"lat"?: number,"lng"?: number,"member_id"?: string,"trip_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_locations_member_id_fkey"
+      columns: ["member_id"]
+isOneToOne: true
+      referencedRelation: "trip_members"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "member_locations_member_id_trip_id_fkey"
+      columns: ["member_id","trip_id"]
+isOneToOne: false
+      referencedRelation: "trip_members"
+      referencedColumns: ["id","trip_id"]
+    }
+                  ]
                 },"member_private": {
                   Row: {
                     "allergies": (string)[],"interview_topics": (string)[],"max_budget": number | null,"member_id": string,"preference_statements": (string)[],"private_note": string,"updated_at": string
