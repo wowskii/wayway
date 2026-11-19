@@ -11,11 +11,16 @@
     "db:types": "node --env-file=.env.local scripts/db.mjs types",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "check:privacy": "node --env-file=.env.local scripts/check-privacy.mjs",
-    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs"
+    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs",
+    "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
+    "match:places": "node --env-file=.env.local scripts/match-places.mjs",
+    "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",
+    "check:locations": "node --env-file=.env.local scripts/check-locations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
+    "@vis.gl/react-google-maps": "1.10.2",
     "next": "16.4.3",
     "react": "19.2.9",
     "react-dom": "19.2.9",

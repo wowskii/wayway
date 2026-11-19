@@ -1,8 +1,10 @@
 // Translators between database rows (snake_case, split across tables) and contract types (camelCase).
 // The rest of the app should only use contract types; only data-access code touches rows.
 import type {
+  Branch,
   ChatMessage,
   HardConstraints,
+  ItineraryItem,
   MemberProfile,
   PrivateMessage,
   Trip,
@@ -15,6 +17,7 @@ export type MemberPrivateRow = Tables<"member_private">;
 export type MemberStateRow = Tables<"member_state">;
 export type PrivateMessageRow = Tables<"private_messages">;
 export type ChatMessageRow = Tables<"chat_messages">;
+export type ItineraryItemRow = Tables<"itinerary_items">;
 
 /** senderId used in the contract for messages written by the AI */
 export const WAYWAY_SENDER_ID = "wayway";
@@ -111,5 +114,30 @@ export function toChatMessage(row: ChatMessageRow): ChatMessage {
     text: row.text,
     createdAt: row.created_at,
     ...(row.option_set_id ? { optionSetId: row.option_set_id } : {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Itinerary
+// ---------------------------------------------------------------------------
+// Postgres "time" comes back as "09:30:00"; the contract uses "09:30".
+const hhmm = (t: string) => t.slice(0, 5);
+
+// branches is a jsonb column: check its shape instead of trusting it, and drop anything malformed.
+function toBranches(v: unknown): Branch[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const isStrings = (x: unknown): x is string[] => Array.isArray(x) && x.every((s) => typeof s === "string");
+  const branches = v.filter((b): b is Branch => !!b && isStrings(b.memberIds) && isStrings(b.spots));
+  return branches.length ? branches : undefined;
+}
+
+export function toItineraryItem(row: Pick<ItineraryItemRow, "day" | "start_time" | "end_time" | "spot_id" | "branches">): ItineraryItem {
+  const branches = toBranches(row.branches);
+  return {
+    day: row.day,
+    start: hhmm(row.start_time),
+    end: hhmm(row.end_time),
+    ...(row.spot_id ? { spotId: row.spot_id } : {}),
+    ...(branches ? { branches } : {}),
   };
 }
