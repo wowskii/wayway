@@ -43,3 +43,6 @@ next-env.d.ts
 
 # supabase CLI cache
 supabase/.temp/
+
+# Temporary script output (may contain Google content: never commit)
+/scripts/output/

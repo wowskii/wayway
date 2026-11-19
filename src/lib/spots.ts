@@ -9,6 +9,9 @@
 // Not server-only on purpose: the data is public (no private fields) and the map runs in the browser.
 import type { Spot } from "@/contracts/contract";
 import raw from "../../data/spots_tokyo.json";
+// Google Place IDs found by scripts/match-places.mjs ({ spotId: placeId | null }, null = no single place fits).
+// TEMPORARY too: once Henry copies them into spots_tokyo.json (field placeId), delete this file and the merge below.
+import placeIds from "../../data/place_ids.json";
 
 function problems(spots: Record<string, unknown>): string[] {
   const errors: string[] = [];
@@ -29,7 +32,11 @@ function problems(spots: Record<string, unknown>): string[] {
 const errors = problems(raw as Record<string, unknown>);
 if (errors.length) throw new Error(`Invalid data/spots_tokyo.json:\n- ${errors.join("\n- ")}`);
 
-export const SPOTS_BY_ID: Readonly<Record<string, Spot>> = raw as Record<string, Spot>;
+// The dataset's own placeId wins; otherwise take the one from place_ids.json (if any).
+const ids = placeIds as Record<string, string | null>;
+export const SPOTS_BY_ID: Readonly<Record<string, Spot>> = Object.fromEntries(
+  Object.entries(raw as Record<string, Spot>).map(([id, s]) => [id, s.placeId || !ids[id] ? s : { ...s, placeId: ids[id]! }]),
+);
 export const SPOTS: Spot[] = Object.values(SPOTS_BY_ID);
 
 /** The spot for an id, or undefined if the id is unknown (e.g. an old itinerary after a dataset change). */

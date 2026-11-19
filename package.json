@@ -12,7 +12,8 @@
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "check:privacy": "node --env-file=.env.local scripts/check-privacy.mjs",
     "check:interview": "node --env-file=.env.local scripts/check-interview.mjs",
-    "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs"
+    "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
+    "match:places": "node --env-file=.env.local scripts/match-places.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
