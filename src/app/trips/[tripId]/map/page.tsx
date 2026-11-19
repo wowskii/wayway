@@ -37,7 +37,6 @@ export default async function MapPage({ params }: { params: Promise<{ tripId: st
         startDate={trip.start_date}
         memberNames={Object.fromEntries(itinerary.members.map((m) => [m.id, m.name]))}
         myMemberId={itinerary.myMemberId}
-        isDemo={itinerary.isDemo}
       />
     </>
   );

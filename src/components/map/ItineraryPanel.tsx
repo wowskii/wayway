@@ -80,7 +80,7 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
               <div className="mt-2 space-y-3">
                 {entry.branches.map((b, j) => (
                   <div key={j}>
-                    <p className="text-xs font-medium" style={{ color: GROUP_COLOR[b.isMine ? "mine" : "other"] }}>
+                    <p className="text-xs font-medium" style={{ color: GROUP_COLOR[b.group] }}>
                       {b.isMine ? "Your group" : namesLabel(b.memberIds, nameOf)}
                       {b.isMine && b.memberIds.length > 1 && (
                         <span className="font-normal text-muted">

@@ -15,13 +15,19 @@ export interface PlanStop {
   spot: Spot;
   start?: string;         // shared stops only: inside a branch we only know the branch's window
   end?: string;
-  group: "shared" | "mine" | "other";   // pin colour: everyone / my group / the other group
+  group: Group;           // colour of the pin and of the line leading to it
   isRendezvous?: boolean;
 }
+
+// shared = everyone · mine = my group in a split · other = the other group.
+// other2: when the viewer is in NEITHER group (e.g. joined after the vote), the two groups still need
+// two different colours, so the second one is "other2".
+export type Group = "shared" | "mine" | "other" | "other2";
 
 export interface PlanBranch {
   memberIds: string[];
   isMine: boolean;
+  group: Group;
   stops: PlanStop[];
 }
 
@@ -60,8 +66,10 @@ export function buildDayPlans(
       const ordered = [...item.branches].sort(
         (a, b) => Number(b.memberIds.includes(myMemberId ?? "")) - Number(a.memberIds.includes(myMemberId ?? "")),
       );
-      const branches: PlanBranch[] = ordered.map((b) => {
+      const anyMine = !!myMemberId && ordered.some((b) => b.memberIds.includes(myMemberId));
+      const branches: PlanBranch[] = ordered.map((b, j) => {
         const isMine = !!myMemberId && b.memberIds.includes(myMemberId);
+        const group: Group = isMine ? "mine" : !anyMine && j === 1 ? "other2" : "other";
         const stops: PlanStop[] = [];
         for (const id of b.spots) {
           const spot = getSpot(id);
@@ -69,11 +77,11 @@ export function buildDayPlans(
             missing.push(id);
             continue;
           }
-          const stop: PlanStop = { key: `${item.day}-${nextNumber()}`, number: nextNumber(), spot, group: isMine ? "mine" : "other" };
+          const stop: PlanStop = { key: `${item.day}-${nextNumber()}`, number: nextNumber(), spot, group };
           stops.push(stop);
           plan.stops.push(stop);
         }
-        return { memberIds: b.memberIds, isMine, stops };
+        return { memberIds: b.memberIds, isMine, group, stops };
       });
       plan.entries.push({ kind: "split", start: item.start, end: item.end, branches });
       continue;
