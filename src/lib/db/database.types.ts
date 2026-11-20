@@ -37,6 +37,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"chat_reads": {
+                  Row: {
+                    "last_read_at": string,"member_id": string,"trip_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "last_read_at": string,"member_id": string,"trip_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "last_read_at"?: string,"member_id"?: string,"trip_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_reads_member_id_trip_id_fkey"
+      columns: ["member_id","trip_id"]
+isOneToOne: false
+      referencedRelation: "trip_members"
+      referencedColumns: ["id","trip_id"]
+    },{
+      foreignKeyName: "chat_reads_trip_id_fkey"
+      columns: ["trip_id"]
+isOneToOne: false
+      referencedRelation: "trips"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"credit_events": {
                   Row: {
                     "change": number,"created_at": string,"id": string,"member_id": string,"option_set_id": string,"reason": string
@@ -355,6 +381,9 @@ isOneToOne: false
                            },
 "join_trip":
 { Args: { "p_invite_code": string }; Returns: string
+                           },
+"mark_chat_read":
+{ Args: { "p_last_read_at": string,"p_trip_id": string }; Returns: undefined
                            },
 "owns_member":
 { Args: { "p_member_id": string }; Returns: boolean

@@ -32,7 +32,7 @@ export default async function Home() {
           <ul className="flex flex-col gap-3">
             {trips.map((t) => (
               <li key={t.id}>
-                <Link href={`/trips/${t.id}/interview`}>
+                <Link href={`/trips/${t.id}`}>
                   <Card className="flex items-center justify-between transition-colors hover:border-brand">
                     <div>
                       <p className="font-medium">{t.name}</p>

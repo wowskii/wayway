@@ -92,6 +92,25 @@ try {
   const bChatSpoof = await bob.client.from("chat_messages").insert({ trip_id: tripId, sender_member_id: aliceMember, text: "spoof" });
   check("Bob CANNOT post as Alice", !!bChatSpoof.error);
 
+  // --- Read receipts (chat_reads, written only through mark_chat_read)
+  const t1 = "2026-01-01T09:00:00.000Z";   // past times: the database clamps future ones to now()
+  const t2 = "2026-01-01T09:05:00.000Z";
+  const rBob = await bob.client.rpc("mark_chat_read", { p_trip_id: tripId, p_last_read_at: t2 });
+  check("Bob can save his read position", !rBob.error, rBob.error?.message);
+  await bob.client.rpc("mark_chat_read", { p_trip_id: tripId, p_last_read_at: t1 });
+  const bobRead = await alice.client.from("chat_reads").select("member_id, last_read_at").eq("trip_id", tripId);
+  check("Alice sees how far Bob has read", bobRead.data?.length === 1 && bobRead.data[0].member_id === bobMember);
+  check("A read position never moves backwards", Date.parse(bobRead.data?.[0]?.last_read_at) === Date.parse(t2));
+  const rFuture = await bob.client.rpc("mark_chat_read", { p_trip_id: tripId, p_last_read_at: "2099-01-01T00:00:00Z" });
+  const bobFuture = await bob.client.from("chat_reads").select("last_read_at").eq("member_id", bobMember).single();
+  check("A read position never goes into the future", !rFuture.error && Date.parse(bobFuture.data?.last_read_at) <= Date.now() + 60_000);
+  const rSpoof = await bob.client.from("chat_reads").upsert({ trip_id: tripId, member_id: aliceMember, last_read_at: t2 });
+  check("Bob CANNOT write Alice's read position", !!rSpoof.error);
+  const eRead = await eve.client.rpc("mark_chat_read", { p_trip_id: tripId, p_last_read_at: t2 });
+  check("Eve CANNOT mark a trip she is not in as read", !!eRead.error);
+  const eReads = await eve.client.from("chat_reads").select("*").eq("trip_id", tripId);
+  check("Eve CANNOT see who read what", (eReads.data?.length ?? 0) === 0);
+
   // --- Outsider
   const eTrip = await eve.client.from("trips").select("*").eq("id", tripId);
   check("Eve (not in the trip) CANNOT see the trip", (eTrip.data?.length ?? 0) === 0);
