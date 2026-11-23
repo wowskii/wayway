@@ -136,12 +136,22 @@ export function useLocationSharing(tripId: string, myMemberId?: string) {
         { enableHighAccuracy: true, maximumAge: 15_000, timeout: 20_000 },
       );
       heartbeat = setInterval(() => {
-        const prev = last.current;
-        if (prev) void send(prev.lat, prev.lng, null, false);
+        navigator.geolocation.getCurrentPosition(
+          (p) => {
+            if (watchId !== null) {
+              void send(p.coords.latitude, p.coords.longitude, p.coords.accuracy ?? null, false);
+            }
+          },
+          () => {
+            if (watchId !== null) setError("Your location isn't available right now.");
+          },
+          { enableHighAccuracy: true, maximumAge: 15_000, timeout: 20_000 },
+        );
       }, HEARTBEAT_MS);
     }
     return () => {
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      watchId = null;
       clearTimeout(first);
       clearInterval(heartbeat);
     };
