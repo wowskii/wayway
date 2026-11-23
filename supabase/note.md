@@ -33,7 +33,7 @@ To change the schema: **add a new migration file** (never edit one that was alre
 | `trip_members` | public part of `MemberProfile` (name, diet, interests, pace, sleep) | everyone in the trip | `join_trip()`, yourself (some columns) |
 | `member_private` | private part (allergies, max budget, private note, preference statements, interview topics covered) | **only you** | you, API |
 | `member_state` | fairness credits, "definitely no" counter | **nobody** (server only) | API |
-| `private_messages` | `PrivateMessage` (interview + private reactions) | **only you** | you (your own messages), API (WayWay replies) |
+| `private_messages` | `PrivateMessage` (interview + private reactions; `option_set_id` = the decision a message is about, NULL for the interview) | **only you** | you (your own messages), API (WayWay replies) |
 | `chat_messages` | `ChatMessage` (group chat, realtime) | everyone in the trip | members (as themselves), API (WayWay) |
 | `slot_proposals` | `SlotProposal` | everyone in the trip | API |
 | `option_sets` | `OptionSet` (options stored as JSON) | everyone in the trip | API |
