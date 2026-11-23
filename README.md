@@ -9,3 +9,6 @@ cp .env.example .env.local   # then fill in the values
 npm run dev                  # http://localhost:3000
 ```
 Stack: Next.js 16 (App Router, TypeScript, Tailwind) + Supabase. Shared types live in `src/contracts/contract.ts` (import as `@/contracts/contract`).
+
+Docs: [`docs/summary1111.md`](docs/summary1111.md) (web skeleton, accounts, AI interview) ·
+[`docs/map.md`](docs/map.md) (trip map: Google Maps, itinerary, place cards, location sharing).
