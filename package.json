@@ -14,11 +14,16 @@
     "check:interview": "node --env-file=.env.local scripts/check-interview.mjs",
     "test:logic": "tsx --test src/lib/logic/__tests__/*.test.ts",
     "eval:offline": "tsx eval/offline.ts",
-    "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts"
+    "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts",
+    "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
+    "match:places": "node --env-file=.env.local scripts/match-places.mjs",
+    "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",
+    "check:locations": "node --env-file=.env.local scripts/check-locations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
+    "@vis.gl/react-google-maps": "1.10.2",
     "next": "16.4.3",
     "react": "19.2.9",
     "react-dom": "19.2.9",

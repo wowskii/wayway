@@ -9,7 +9,7 @@ export type AuthState = { error?: string; info?: string };
 /** Only allow redirects to our own pages (blocks "//evil.com" style links). */
 function safeNext(value: FormDataEntryValue | null): string {
   const next = typeof value === "string" ? value : "";
-  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next.startsWith("/") && !next.startsWith("//") && !/[\\\u0000-\u0020\u007f]/.test(next) ? next : "/";
 }
 
 export async function signUp(_prev: AuthState, form: FormData): Promise<AuthState> {

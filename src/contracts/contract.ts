@@ -56,6 +56,9 @@ export interface Spot {
   area: string;
   lat: number;
   lng: number;
+  placeId?: string;             // Google Place ID (optional). Links the spot to live Google data
+                                // (photos, rating, reviews) on the map page. Google content itself
+                                // is never stored here: its terms only allow keeping the Place ID.
 }
 
 // ======================================================================
