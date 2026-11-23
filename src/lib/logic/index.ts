@@ -5,7 +5,7 @@ export type { CheckOptions, ConstraintMember, Issue, IssueCode, SafetySpot, Spot
 export { creditWeight, rankOptions, ratingMap, summarize } from "./metrics";
 export type { Balances } from "./metrics";
 export { settleCredits } from "./credits";
-export { buildOptions } from "./options";
+export { buildOptions, pickCandidateId } from "./options";
 export type { BuildMember, BuildResult, CandidateLike } from "./options";
 export { advancePoll, castVote, completeBallots, contractErrorCode, localDay, quorumNeeded, startPoll } from "./voting";
 export type { Attempt, DefinitelyNoCounter, Guard, Outcome, Poll, StoredVote, VoteError } from "./voting";

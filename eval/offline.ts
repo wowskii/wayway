@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import type { Option, OptionSet, SatisfactionLevel } from "@/contracts/contract";
 import { filterOptions } from "@/lib/logic/constraints";
+import { pickCandidateId } from "@/lib/logic/options";
 import type { ConstraintMember, SpotIndex } from "@/lib/logic/constraints";
 import { creditWeight, rankOptions } from "@/lib/logic/metrics";
 import type { Balances } from "@/lib/logic/metrics";
@@ -43,7 +44,7 @@ export function runOffline(example: OfflineScenario) {
     const optionSet: OptionSet = {
       id: round.id, tripId: example.id, round: 3,
       slot: { day: index + 1, start: "13:00", end: "15:00", label: "Afternoon" },
-      options: round.options, candidateOptionId: "A", status: "voting",
+      options: round.options, candidateOptionId: pickCandidateId(round.options) ?? "A", status: "voting",
       roundDeadline: new Date(deadline).toISOString(), voteDeadline: new Date(deadline).toISOString(),
     };
     const ranking = rankOptions(round.options.filter(o => o.kind !== "split"), members.map(m => m.id), before);

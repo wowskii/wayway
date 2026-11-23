@@ -31,7 +31,7 @@ export type BuildMember = Pick<MemberProfile, "id" | "name" | "hard">;
 
 export interface BuildResult {
   options: Option[];
-  candidateOptionId: Option["id"] | null;     // OptionSet.candidateOptionId (best so far = A)
+  candidateOptionId: Option["id"] | null;     // OptionSet.candidateOptionId (highest min, then mean: pickCandidateId)
   dropped: { title: string; issues: Issue[]; reason: string }[];  // server log only
   /** Unverified items (e.g. allergen data missing) to tell ONE member privately. Never public. */
   privateWarnings: { optionId: Option["id"]; memberId: string; spotId?: string; code: string }[];
@@ -120,5 +120,23 @@ export function buildOptions(
   push(best, "A", "best_total", fairnessNote);
   push(fairest, "B", "fairest");
   push(split, "C", "split");
-  return { options, candidateOptionId: options[0]?.id ?? null, dropped, privateWarnings };
+  return { options, candidateOptionId: pickCandidateId(options), dropped, privateWarnings };
+}
+
+const plainMin = (o: Pick<Option, "scores" | "metrics">) =>
+  o.metrics?.min ?? Math.min(...o.scores.map(s => LEVEL_VALUE[s.level]));
+const plainMean = (o: Pick<Option, "scores" | "metrics">) =>
+  o.metrics?.mean ?? o.scores.reduce((sum, s) => sum + LEVEL_VALUE[s.level], 0) / o.scores.length;
+
+/**
+ * The candidate (kept for the next round, wins a second perfect tie): highest min, then highest mean,
+ * then the earlier card (A before B before C). Same rule as `pickCandidate` in the AI module.
+ * min/mean ignore credits (credits only change which route is A).
+ */
+export function pickCandidateId(options: readonly Pick<Option, "id" | "scores" | "metrics">[]): Option["id"] | null {
+  let pick: (typeof options)[number] | undefined;
+  for (const o of options) {
+    if (!pick || plainMin(o) > plainMin(pick) || (plainMin(o) === plainMin(pick) && plainMean(o) > plainMean(pick))) pick = o;
+  }
+  return pick?.id ?? null;
 }

@@ -106,7 +106,7 @@ allergies).
 | Question | Default in the code |
 |---|---|
 | When is B shown if A is also the fairest? | B = fairest among the *other* routes (Simon's suggestion). |
-| Which option is the "candidate" carried to the next round / winning a second tie? | A (best credit-weighted total). |
+| Which option is the "candidate" carried to the next round / winning a second tie? | Highest min, then highest mean, then A before B before C (`pickCandidateId`, same rule as Simon's `pickCandidate`). |
 | When is a split shown? | Only if no shared route keeps everyone at `same` or better. |
 | Allergen data missing for a food stop | Not blocked; that member gets a private reminder. `strictEvidence: true` blocks instead. |
 | Does a ballot count if a member rated only some cards? | No: a member must rate every card of the vote. |

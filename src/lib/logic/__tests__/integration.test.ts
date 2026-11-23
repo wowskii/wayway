@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { MemberScore, OptionSet, SatisfactionLevel } from "@/contracts/contract";
-import { buildOptions } from "@/lib/logic/options";
+import { buildOptions, pickCandidateId } from "@/lib/logic/options";
 import type { BuildMember, CandidateLike } from "@/lib/logic/options";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { SPOTS, SPOTS_BY_ID, SPOT_INDEX, validateDataset } from "@/lib/logic/dataset";
@@ -57,10 +57,19 @@ test("filterSpotsForTrip removes food without everyone's diet, known allergens a
 test("buildOptions: A = best total, B = fairest other, no split while a shared option suits everyone", () => {
   const r = buildOptions([museum, shopping, mixed, split], members, SPOT_INDEX);
   assert.deepEqual(r.options.map(o => [o.id, o.kind, o.title]), [["A", "best_total", "Ueno museums"], ["B", "fairest", "Park and market"]]);
-  assert.equal(r.candidateOptionId, "A");
+  assert.equal(r.candidateOptionId, "B", "candidate = highest min (B keeps everyone at same), not the best total");
   assert.deepEqual(r.options[0].satisfiedMemberIds, ["mia", "sarah", "ken"], "recomputed by code");
   assert.equal(r.options[0].metrics?.min, 2.5);
   assert.equal(r.options[0].fairnessNote, undefined);
+});
+
+test("pickCandidateId: highest min, then highest mean, then the earlier card", () => {
+  const o = (id: "A" | "B" | "C", ...levels: MemberScore["level"][]) =>
+    ({ id, scores: levels.map((level, i): MemberScore => ({ memberId: `m${i}`, level, source: "vote", reason: "" })) });
+  assert.equal(pickCandidateId([o("A", "must_go", "lean_not_go"), o("B", "same", "same")]), "B");          // min 5 > 2.5
+  assert.equal(pickCandidateId([o("A", "same", "same"), o("B", "same", "want_to_go")]), "B");             // same min, mean
+  assert.equal(pickCandidateId([o("A", "same", "want_to_go"), o("B", "want_to_go", "same")]), "A");       // full tie: A
+  assert.equal(pickCandidateId([]), null);
 });
 
 test("buildOptions shows the same route only once (the first one wins, e.g. the kept candidate)", () => {

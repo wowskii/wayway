@@ -13,7 +13,7 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import type { ChatMessage, Option, OptionSet, SatisfactionLevel, Spot, TimeSlot, Trip } from "@/contracts/contract";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { EVIDENCE, SPOTS, SPOTS_BY_ID, SPOT_INDEX } from "@/lib/logic/dataset";
-import { buildOptions } from "@/lib/logic/options";
+import { buildOptions, pickCandidateId } from "@/lib/logic/options";
 import type { CandidateLike } from "@/lib/logic/options";
 import { advancePoll, castVote, startPoll } from "@/lib/logic/voting";
 import { itineraryFromOption, spentFromItinerary, travelMin } from "@/lib/logic/itinerary";
@@ -136,17 +136,21 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
       const built = buildOptions(g.candidates, members, SPOT_INDEX, credits, { spentByMember: spent });
       tally(g, built);
       options = built.options;
+      let candidateId = built.candidateOptionId;
       let setId = `${s.id}-${index + 1}`;
       optionSets.push({ id: setId, round: 1, options });
       for (let round = 2; round <= rounds && gen.revise && options.length; round++) {
         const reactions = options.flatMap(o => members.map(m => ({ memberId: m.id, optionId: o.id, level: rate(o, m.id).level, reason: "persona" })));
         for (const r of reactions) references.push({ tripId: trip.id, optionSetId: setId, round: round - 1, attempt: 1, optionId: r.optionId, memberId: r.memberId, level: r.level });
-        const r = await gen.revise(trip, slot, allowed, chat, options, options[0], reactions);
+        const candidate = options.find(o => o.id === candidateId) ?? options[0];
+        const r = await gen.revise(trip, slot, allowed, chat, options, candidate, reactions);
         total += r.attempts; invalid += Math.max(0, r.attempts - 1);
-        const kept = options[0] as CandidateLike;
-        const rebuilt = buildOptions([kept, ...r.candidates], members, SPOT_INDEX, credits, { spentByMember: spent });
+        // Kept for the next round: the candidate, plus the previous A if different (AI module's keptOptions).
+        const kept = [candidate, ...options.filter(o => o.kind === "best_total" && o.id !== candidate.id)] as CandidateLike[];
+        const rebuilt = buildOptions([...kept, ...r.candidates], members, SPOT_INDEX, credits, { spentByMember: spent });
         tally(r, rebuilt);
         options = rebuilt.options;
+        candidateId = rebuilt.candidateOptionId;
         setId = `${s.id}-${index + 1}`;
         optionSets.push({ id: setId, round, options });
       }
@@ -167,7 +171,7 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
     // Final vote by the personas.
     const start = Date.parse(`${trip.startDate}T00:00:00Z`) + (slot.day - 1) * 86_400_000;
     const deadline = start + 3_600_000 * 2;
-    const set: OptionSet = { id: setId, tripId: trip.id, slot, round: finalRound, options, candidateOptionId: "A",
+    const set: OptionSet = { id: setId, tripId: trip.id, slot, round: finalRound, options, candidateOptionId: pickCandidateId(options) ?? "A",
       status: "voting", roundDeadline: new Date(deadline).toISOString(), voteDeadline: new Date(deadline).toISOString() };
     const guard = { members, spots: SPOT_INDEX, spentByMember: spent };
     let poll = startPoll(set, guard, trip.timezone, credits);
