@@ -46,3 +46,9 @@ supabase/.temp/
 
 # Temporary script output (may contain Google content: never commit)
 /scripts/output/
+
+# wayway-ai (AI module, role 3): its own node_modules and build output, local notes
+node_modules/
+dist/
+Thumbs.db
+WAYWAY_PROJECT_CONTEXT.md
