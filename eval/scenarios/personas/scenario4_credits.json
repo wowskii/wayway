@@ -1,0 +1,262 @@
+{
+  "id": "scenario4_credits",
+  "description": "Four decisions with the same group. Mia (museums, gardens) is opposite to Tom and Ken (shopping) and says so in the chat. When a shopping-heavy option beats her favorite she earns credits, and with enough credits her favorite should win later (balance back to 0). Sarah abstains and keeps her balance.",
+  "expected": [
+    "Mia earns credits after each compromise (max 3 per decision, weight capped at 1.5)",
+    "At some decision her favorite wins and her balance resets to 0",
+    "A fairness sentence without numbers appears when credits change option A",
+    "Sarah (abstains) never earns or loses credits"
+  ],
+  "trip": {
+    "id": "5b2f9e10-0000-4c00-8000-000000000004",
+    "name": "Credits test trip",
+    "city": "Tokyo",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-23",
+    "timezone": "Asia/Tokyo",
+    "goal": "balanced",
+    "members": [
+      {
+        "id": "7c1e0c3a-0001-4a00-9000-000000000001",
+        "name": "Mia",
+        "hard": {
+          "diet": [
+            "vegetarian"
+          ],
+          "allergies": [],
+          "maxBudget": 60000
+        },
+        "interests": [
+          "art",
+          "gardens"
+        ],
+        "pace": "relaxed",
+        "sleep": "flexible",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Loves art museums and gardens",
+          "Dislikes shopping streets"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0002-4a00-9000-000000000002",
+        "name": "Tom",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 80000
+        },
+        "interests": [
+          "shopping",
+          "nightlife"
+        ],
+        "pace": "packed",
+        "sleep": "flexible",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants shopping",
+          "Finds museums boring"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0003-4a00-9000-000000000003",
+        "name": "Sarah",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 60000
+        },
+        "interests": [
+          "anything"
+        ],
+        "pace": "moderate",
+        "sleep": "flexible",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Anything is fine"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0004-4a00-9000-000000000004",
+        "name": "Ken",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 60000
+        },
+        "interests": [
+          "shopping",
+          "souvenirs"
+        ],
+        "pace": "moderate",
+        "sleep": "flexible",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants souvenirs"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      }
+    ]
+  },
+  "canaries": [],
+  "personas": [
+    {
+      "memberId": "7c1e0c3a-0001-4a00-9000-000000000001",
+      "likes": {
+        "museum": "must_go",
+        "nature": "must_go",
+        "temple": "want_to_go",
+        "food": "want_to_go",
+        "shopping": "definitely_no",
+        "nightlife": "lean_not_go"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "7c1e0c3a-0002-4a00-9000-000000000002",
+      "likes": {
+        "shopping": "must_go",
+        "nightlife": "must_go",
+        "food": "want_to_go",
+        "museum": "lean_not_go",
+        "nature": "lean_not_go"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+      "likes": {},
+      "default": "same",
+      "abstains": true
+    },
+    {
+      "memberId": "7c1e0c3a-0004-4a00-9000-000000000004",
+      "likes": {
+        "shopping": "must_go",
+        "food": "want_to_go",
+        "museum": "same",
+        "nature": "lean_not_go"
+      },
+      "default": "same"
+    }
+  ],
+  "slots": [
+    {
+      "slot": {
+        "day": 1,
+        "start": "14:00",
+        "end": "17:30",
+        "label": "Afternoon, day 1"
+      },
+      "chat": [
+        {
+          "id": "c1",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "I'd really love a museum this afternoon",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c2",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "shopping pls",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c3",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "@WayWay plan our afternoon",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    },
+    {
+      "slot": {
+        "day": 2,
+        "start": "12:00",
+        "end": "13:30",
+        "label": "Lunch, day 2"
+      },
+      "chat": [
+        {
+          "id": "c2",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "@WayWay lunch ideas?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    },
+    {
+      "slot": {
+        "day": 2,
+        "start": "14:00",
+        "end": "17:30",
+        "label": "Afternoon, day 2"
+      },
+      "chat": [
+        {
+          "id": "c5",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "Could we do a museum or a quiet garden today?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c6",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "I still need souvenirs",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c7",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "@WayWay and this afternoon?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    },
+    {
+      "slot": {
+        "day": 3,
+        "start": "10:00",
+        "end": "12:30",
+        "label": "Morning, day 3"
+      },
+      "chat": [
+        {
+          "id": "c8",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "last chance for shopping!",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c9",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "I'd prefer a museum",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c10",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000004",
+          "senderId": "7c1e0c3a-0004-4a00-9000-000000000004",
+          "text": "@WayWay last morning plan?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    }
+  ]
+}

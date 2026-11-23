@@ -89,6 +89,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"google_usage": {
+                  Row: {
+                    "api": string,"count": number,"day": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "api": string,"count"?: number,"day": string
+                  }
+                  Update: {
+                    "api"?: string,"count"?: number,"day"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"itinerary_items": {
                   Row: {
                     "branches": Json | null,"created_at": string,"day": number,"end_time": string,"id": string,"option_set_id": string | null,"spot_id": string | null,"start_time": string,"trip_id": string
@@ -113,6 +127,32 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "trips"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"member_locations": {
+                  Row: {
+                    "accuracy_m": number | null,"is_demo": boolean,"lat": number,"lng": number,"member_id": string,"trip_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accuracy_m"?: number | null,"is_demo"?: boolean,"lat": number,"lng": number,"member_id": string,"trip_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "accuracy_m"?: number | null,"is_demo"?: boolean,"lat"?: number,"lng"?: number,"member_id"?: string,"trip_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_locations_member_id_fkey"
+      columns: ["member_id"]
+isOneToOne: true
+      referencedRelation: "trip_members"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "member_locations_member_id_trip_id_fkey"
+      columns: ["member_id","trip_id"]
+isOneToOne: false
+      referencedRelation: "trip_members"
+      referencedColumns: ["id","trip_id"]
     }
                   ]
                 },"member_private": {
@@ -307,7 +347,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "is_trip_member":
+            "google_usage_take":
+{ Args: { "p_api": string,"p_limit": number }; Returns: boolean
+                           },
+"is_trip_member":
 { Args: { "p_trip_id": string }; Returns: boolean
                            },
 "join_trip":

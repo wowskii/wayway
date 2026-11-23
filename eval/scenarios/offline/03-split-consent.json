@@ -1,0 +1,419 @@
+{
+  "id": "03-split-consent",
+  "description": "A popular split loses if consent is missing, then wins when consent is unanimous.",
+  "members": [
+    {
+      "id": "tom",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "ken",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "mia",
+      "hard": {
+        "diet": [
+          "vegetarian"
+        ],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    },
+    {
+      "id": "sarah",
+      "hard": {
+        "diet": [],
+        "allergies": [],
+        "maxBudget": 2500
+      }
+    }
+  ],
+  "spots": {
+    "museum": {
+      "id": "museum",
+      "category": "museum",
+      "price": 800,
+      "dietTags": []
+    },
+    "shops": {
+      "id": "shops",
+      "category": "shopping",
+      "price": 0,
+      "dietTags": []
+    },
+    "park": {
+      "id": "park",
+      "category": "nature",
+      "price": 0,
+      "dietTags": []
+    },
+    "food": {
+      "id": "food",
+      "category": "food",
+      "price": 1800,
+      "dietTags": []
+    },
+    "veg": {
+      "id": "veg",
+      "category": "food",
+      "price": 1200,
+      "dietTags": [
+        "vegetarian"
+      ]
+    },
+    "unknown": {
+      "id": "unknown",
+      "category": "food",
+      "price": null,
+      "dietTags": []
+    }
+  },
+  "decisions": [
+    {
+      "id": "refused",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "C",
+          "kind": "split",
+          "title": "Split and meet at the park",
+          "spots": [],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": [],
+          "branches": [
+            {
+              "memberIds": [
+                "tom",
+                "ken"
+              ],
+              "spots": [
+                "museum"
+              ]
+            },
+            {
+              "memberIds": [
+                "mia",
+                "sarah"
+              ],
+              "spots": [
+                "shops"
+              ]
+            }
+          ],
+          "rendezvous": {
+            "spotId": "park",
+            "time": "14:00"
+          }
+        }
+      ],
+      "votes": {
+        "tom": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ],
+        "ken": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ],
+        "mia": [
+          "lean_not_go",
+          "want_to_go",
+          "must_go"
+        ],
+        "sarah": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "A",
+      "consent": {
+        "tom": true,
+        "ken": true,
+        "mia": true
+      },
+      "expectedResolution": "split_refused"
+    },
+    {
+      "id": "accepted",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "C",
+          "kind": "split",
+          "title": "Split and meet at the park",
+          "spots": [],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": [],
+          "branches": [
+            {
+              "memberIds": [
+                "tom",
+                "ken"
+              ],
+              "spots": [
+                "museum"
+              ]
+            },
+            {
+              "memberIds": [
+                "mia",
+                "sarah"
+              ],
+              "spots": [
+                "shops"
+              ]
+            }
+          ],
+          "rendezvous": {
+            "spotId": "park",
+            "time": "14:00"
+          }
+        }
+      ],
+      "votes": {
+        "tom": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ],
+        "ken": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ],
+        "mia": [
+          "lean_not_go",
+          "want_to_go",
+          "must_go"
+        ],
+        "sarah": [
+          "want_to_go",
+          "same",
+          "must_go"
+        ]
+      },
+      "expectedWinner": "C",
+      "consent": {
+        "tom": true,
+        "ken": true,
+        "mia": true,
+        "sarah": true
+      },
+      "expectedResolution": "vote"
+    }
+  ]
+}

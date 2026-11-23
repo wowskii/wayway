@@ -11,12 +11,20 @@
     "db:types": "node --env-file=.env.local scripts/db.mjs types",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "check:privacy": "node --env-file=.env.local scripts/check-privacy.mjs",
-    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs"
+    "check:interview": "node --env-file=.env.local scripts/check-interview.mjs",
+    "test:logic": "tsx --test src/lib/logic/__tests__/*.test.ts",
+    "eval:offline": "tsx eval/offline.ts",
+    "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts",
+    "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
+    "match:places": "node --env-file=.env.local scripts/match-places.mjs",
+    "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",
+    "check:locations": "node --env-file=.env.local scripts/check-locations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
-    "next": "16.4.3",
+    "@vis.gl/react-google-maps": "1.10.2",
+    "next": "16.4.6",
     "react": "19.2.9",
     "react-dom": "19.2.9",
     "server-only": "0.0.1"
@@ -27,9 +35,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "supabase": "2.122.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

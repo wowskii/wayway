@@ -13,7 +13,7 @@ export function Header({ displayName, children }: { displayName: string; childre
         <div className="flex-1">{children}</div>
         <span className="hidden text-sm text-muted sm:inline">{displayName}</span>
         <form action={logOut}>
-          <button className="rounded-lg px-3 py-1.5 text-sm text-muted hover:bg-page hover:text-ink">Log out</button>
+          <button className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-muted hover:bg-page hover:text-ink">Log out</button>
         </form>
       </div>
     </header>

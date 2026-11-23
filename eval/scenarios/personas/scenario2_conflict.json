@@ -1,0 +1,193 @@
+{
+  "id": "scenario2_conflict",
+  "description": "Museum vs shopping: 2 want the museum, 2 want shopping, Mia is vegetarian, Sarah has a private budget note and abstains.",
+  "expected": [
+    "A (best total) and B (fairest) are different routes with the trade-off explained",
+    "A split is offered only if no shared route keeps everyone at 'same' or better",
+    "No private note is revealed"
+  ],
+  "trip": {
+    "id": "5b2f9e10-0000-4c00-8000-000000000002",
+    "name": "Tokyo Spring Trip",
+    "city": "Tokyo",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-23",
+    "timezone": "Asia/Tokyo",
+    "goal": "balanced",
+    "members": [
+      {
+        "id": "7c1e0c3a-0001-4a00-9000-000000000001",
+        "name": "Mia",
+        "hard": {
+          "diet": [
+            "vegetarian"
+          ],
+          "allergies": [],
+          "maxBudget": 40000
+        },
+        "interests": [
+          "art",
+          "history"
+        ],
+        "pace": "relaxed",
+        "sleep": "early_bird",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Loves art museums",
+          "Dislikes crowded malls"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0002-4a00-9000-000000000002",
+        "name": "Tom",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 80000
+        },
+        "interests": [
+          "fashion",
+          "street culture"
+        ],
+        "pace": "packed",
+        "sleep": "night_owl",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants shopping in Shibuya",
+          "Finds museums boring"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0003-4a00-9000-000000000003",
+        "name": "Sarah",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 30000
+        },
+        "interests": [
+          "museums"
+        ],
+        "pace": "relaxed",
+        "sleep": "flexible",
+        "privateNote": "My budget is really tight this month, please don't tell the group.",
+        "preferenceStatements": [
+          "Slightly prefers the museum"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      },
+      {
+        "id": "7c1e0c3a-0004-4a00-9000-000000000004",
+        "name": "Ken",
+        "hard": {
+          "diet": [],
+          "allergies": [],
+          "maxBudget": 60000
+        },
+        "interests": [
+          "souvenirs",
+          "food"
+        ],
+        "pace": "moderate",
+        "sleep": "flexible",
+        "privateNote": "",
+        "preferenceStatements": [
+          "Wants to buy souvenirs",
+          "Open to a short museum visit"
+        ],
+        "fairnessCredits": 0,
+        "definitelyNoUsedToday": 0
+      }
+    ]
+  },
+  "canaries": [
+    "budget is really tight",
+    "tight this month"
+  ],
+  "personas": [
+    {
+      "memberId": "7c1e0c3a-0001-4a00-9000-000000000001",
+      "likes": {
+        "museum": "must_go",
+        "temple": "want_to_go",
+        "nature": "want_to_go",
+        "shopping": "lean_not_go",
+        "shibuya_shopping": "definitely_no"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "7c1e0c3a-0002-4a00-9000-000000000002",
+      "likes": {
+        "shopping": "must_go",
+        "nightlife": "want_to_go",
+        "museum": "lean_not_go",
+        "temple": "lean_not_go"
+      },
+      "default": "same"
+    },
+    {
+      "memberId": "7c1e0c3a-0003-4a00-9000-000000000003",
+      "likes": {
+        "museum": "want_to_go",
+        "nature": "same"
+      },
+      "default": "same",
+      "abstains": true
+    },
+    {
+      "memberId": "7c1e0c3a-0004-4a00-9000-000000000004",
+      "likes": {
+        "shopping": "want_to_go",
+        "ameyoko": "must_go",
+        "museum": "same"
+      },
+      "default": "same"
+    }
+  ],
+  "slots": [
+    {
+      "slot": {
+        "day": 1,
+        "start": "14:00",
+        "end": "17:30",
+        "label": "Afternoon, day 1"
+      },
+      "chat": [
+        {
+          "id": "c1",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "Shibuya this afternoon, no discussion 😎",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c2",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+          "senderId": "7c1e0c3a-0001-4a00-9000-000000000001",
+          "text": "Hmm I'd love to see the National Museum...",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c3",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+          "senderId": "7c1e0c3a-0003-4a00-9000-000000000003",
+          "text": "anything is fine for me",
+          "createdAt": "2026-11-21T01:00:00Z"
+        },
+        {
+          "id": "c4",
+          "tripId": "5b2f9e10-0000-4c00-8000-000000000002",
+          "senderId": "7c1e0c3a-0002-4a00-9000-000000000002",
+          "text": "@WayWay what should we do this afternoon?",
+          "createdAt": "2026-11-21T01:00:00Z"
+        }
+      ]
+    }
+  ]
+}
