@@ -11,10 +11,10 @@ export { advancePoll, castVote, completeBallots, contractErrorCode, localDay, qu
 export type { Attempt, DefinitelyNoCounter, Guard, Outcome, Poll, StoredVote, VoteError } from "./voting";
 export { itineraryFromOption, spentFromItinerary, travelMin } from "./itinerary";
 export {
-  estimateAccuracy, evaluateRun, literalPrivacyHits, memberPath, personaRating, privateCanaries,
+  AI_ERROR_KINDS, aiErrorKind, estimateAccuracy, evaluateRun, literalPrivacyHits, memberPath, personaRating, privateCanaries,
   publicCardText, publicOptionFacts,
 } from "./evaluation";
-export type { Observation, Persona, RunRecord } from "./evaluation";
+export type { AiErrorKind, Observation, Persona, RunRecord } from "./evaluation";
 export {
   decisionRows, memberStateUpdates, optionSetFromRow, optionSetUpdate, pollFromRows, voteFromRow, voteToRow,
 } from "./persistence";
