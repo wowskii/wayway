@@ -52,8 +52,10 @@ export function checkStatements(list: any, errors: string[]) {
 export function checkHardConstraints(h: any, errors: string[]) {
   if (h === undefined || h === null) return;
   if (typeof h !== "object") return void errors.push("hardConstraintsToConfirm must be an object.");
-  if (h.diet !== undefined && !Array.isArray(h.diet)) errors.push("hardConstraintsToConfirm.diet must be an array.");
-  if (h.allergies !== undefined && !Array.isArray(h.allergies)) errors.push("hardConstraintsToConfirm.allergies must be an array.");
+  // Check the elements too: ["nuts", null] would otherwise reach the confirmation card (or crash cleanWords).
+  const strings = (v: unknown) => Array.isArray(v) && v.every((x) => typeof x === "string" && x.trim() !== "");
+  if (h.diet !== undefined && !strings(h.diet)) errors.push("hardConstraintsToConfirm.diet must be an array of non-empty strings.");
+  if (h.allergies !== undefined && !strings(h.allergies)) errors.push("hardConstraintsToConfirm.allergies must be an array of non-empty strings.");
   if (h.maxBudget !== undefined && (typeof h.maxBudget !== "number" || h.maxBudget <= 0)) {
     errors.push("hardConstraintsToConfirm.maxBudget must be a positive number.");
   }

@@ -43,7 +43,8 @@ export interface ReviseInput extends GenerateInput {
 
 export interface OptionsOutput {
   candidates: Candidate[];
-  kept: Option[];                    // reviseOptions: previous options carried over by code (candidate + previous best_total)
+  kept: Option[];                    // reviseOptions: previous options carried over by code (candidate + previous best_total;
+                                     // all previous options if the revision failed)
   reasoning: string;                 // kept for debugging and the report, never shown
   attempts: number;
   rejected: string[];                // why some candidates were dropped (logged)
@@ -309,7 +310,8 @@ export async function reviseOptions(input: ReviseInput): Promise<OptionsOutput> 
   } catch (e) {
     if (!(e instanceof AIOutputError)) throw e;   // only our own programming errors get through
     console.warn(`[reviseOptions] fallback (${e.kind}):`, e.errors);
-    // Fallback: no better candidate found, keep the previous options.
-    return { candidates: [], kept: keptOptions(input.previousOptions, input.candidate), reasoning: "", attempts: LIMITS.maxRetries + 1, rejected: e.errors };
+    // Fallback: no better candidate found, keep ALL the previous options. keptOptions() alone could
+    // leave a single option (when the candidate is also best_total) and nothing to vote between.
+    return { candidates: [], kept: input.previousOptions, reasoning: "", attempts: LIMITS.maxRetries + 1, rejected: e.errors };
   }
 }

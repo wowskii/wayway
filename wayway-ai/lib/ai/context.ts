@@ -203,6 +203,8 @@ export function formatCritiques(votes: Vote[], a: Aliases): string {
 // MINUS common words and the public vocabulary (spot names, areas, categories, member names,
 // diets, public statements). Matching is on whole words, so "cheap" does not flag "cheaper"
 // and a critique saying "museum" does not block every museum option.
+// Exception: allergy values are exact and often short ("nuts", "egg"), so all their words are
+// protected, whatever the length (only spot names can still be used).
 const COMMON = new Set([
   "about", "after", "again", "being", "could", "doesn", "don't", "every", "group", "other", "please",
   "really", "should", "there", "their", "these", "thing", "think", "those", "would", "month", "today",
@@ -218,6 +220,9 @@ const words = (text: string) =>
 const distinctive = (text: string) =>
   words(text).filter((w) => (/^\d+$/.test(w) ? w.length >= 3 : w.length >= 5) && !COMMON.has(w));
 
+// Words around an allergy value that say nothing about it ("allergic to nuts" -> "nuts").
+const ALLERGY_FILLER = new Set(["a", "an", "and", "or", "of", "to", "the", "allergy", "allergies", "allergic", "intolerance", "intolerant", "free", "mild", "severe"]);
+
 export interface PrivacyExtras {
   critiques?: string[];       // vote critiques (treated as private)
   reactionReasons?: string[]; // private reaction reasons
@@ -229,15 +234,23 @@ export function privateTokens(trip: Trip, spots: Spot[] = [], extras: PrivacyExt
     ...trip.members.flatMap((m) => [m.name, ...m.hard.diet, ...m.interests,
       ...m.preferenceStatements.filter((s) => !isPrivateStatement(s))]),
   ].join(" ")));
+  // Spot vocabulary only: an allergy word stays protected even if a member said it publicly,
+  // but a spot whose name contains it can still be named.
+  const spotWords = new Set(words(spots.flatMap((s) => [s.name, s.area, s.category]).join(" ")));
   const out = new Map<string, string[]>();
   for (const m of trip.members) {
     const sources = [
       m.privateNote,
       ...m.preferenceStatements.filter(isPrivateStatement).map(stripPrivate),
-      ...m.hard.allergies,
       m.hard.maxBudget ? String(m.hard.maxBudget) : "",
     ];
-    out.set(m.id, [...new Set(sources.flatMap(distinctive).filter((w) => !publicWords.has(w)))]);
+    // Allergies are exact values, often short ("nuts", "egg", "soy"): every word counts,
+    // without the >= 5 letters rule used for free-form notes.
+    const allergy = m.hard.allergies.flatMap(words).filter((w) => !ALLERGY_FILLER.has(w) && !spotWords.has(w));
+    out.set(m.id, [...new Set([
+      ...sources.flatMap(distinctive).filter((w) => !publicWords.has(w)),
+      ...allergy,
+    ])]);
   }
   const shared = [...(extras.critiques ?? []), ...(extras.reactionReasons ?? [])]
     .flatMap(distinctive).filter((w) => !publicWords.has(w));

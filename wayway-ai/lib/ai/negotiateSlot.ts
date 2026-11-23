@@ -82,7 +82,8 @@ function checkSlot(raw: any, trip: Trip, cal: ReturnType<typeof tripCalendar>, d
   else if (end - start < 30 || end - start > 600) e.push("A slot lasts between 30 minutes and 10 hours.");
   if (raw.kind === "meal" && !MEAL_WORDS.test(s.label)) e.push('A meal slot label must name the meal, e.g. "Lunch, day 2".');
   if (raw.kind === "activity" && MEAL_WORDS.test(s.label)) e.push('An activity slot label must not name a meal; use kind "meal" instead.');
-  if (cal.today >= 1 && cal.today <= cal.nDays) {
+  // From day 1 on (also AFTER the trip, when every day is past). Before the trip, nothing is past.
+  if (cal.today >= 1) {
     if (s.day < cal.today || (s.day === cal.today && start < toMin(cal.nowTime) - 5)) {
       e.push(`This time is already past (now: day ${cal.today}, ${cal.nowTime}).`);
     }
@@ -102,6 +103,14 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
   const cal = tripCalendar(trip, input.now ?? new Date());
   const sender = trip.members.find((m) => m.id === message.senderId)?.name ?? "Someone";
 
+  // The pending proposal was valid when WayWay posted it, but it may have become past, or another
+  // slot may have been decided over it while the group was answering: check it again now.
+  // (A caller may list the pending slot in `decided` too: it does not overlap itself.)
+  const same = (a: TimeSlot, b: TimeSlot) => a.day === b.day && a.start === b.start && a.end === b.end;
+  const pendingProblems = pending
+    ? checkSlot({ slot: pending, kind: slotKind(pending) }, trip, cal, decided.filter((d) => !same(d, pending)))
+    : [];
+
   const validate = (raw: any): Validation<SlotOutput> => {
     const errors: string[] = [];
     const action = raw?.action;
@@ -112,6 +121,9 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
     // "confirm" of the pending proposal: the code reuses the pending slot, the model's slot is ignored.
     const usesModelSlot = action === "propose" || action === "change" || (action === "confirm" && !pending);
     if (usesModelSlot) errors.push(...checkSlot(raw, trip, cal, decided));
+    if (action === "confirm" && pending && pendingProblems.length) {
+      errors.push(`The pending proposal can no longer be confirmed (${pendingProblems.join(" ")}). Use "propose" with a new time instead.`);
+    }
     if (action === "propose" && (typeof raw?.reply !== "string" || !raw.reply.trim())) {
       errors.push("propose needs a reply that states the time and asks the group to confirm or change it.");
     } else if (typeof raw?.reply === "string" && raw.reply.length > 300) errors.push("reply is too long: 1-2 short sentences.");
@@ -138,7 +150,10 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
             ? `${cal.localDate} ${cal.nowTime}: after the trip`
             : `${cal.localDate} ${cal.nowTime}: day ${cal.today} of the trip`,
         decided: decided.map((d) => `- ${esc(d.label)}: day ${d.day}, ${d.start}-${d.end}`).join("\n"),
-        pending: pending ? `${esc(pending.label)}: day ${pending.day}, ${pending.start}-${pending.end}` : "",
+        pending: pending
+          ? `${esc(pending.label)}: day ${pending.day}, ${pending.start}-${pending.end}` +
+            (pendingProblems.length ? ` (NO LONGER POSSIBLE: ${esc(pendingProblems.join(" "))} Do not confirm it: propose a new time.)` : "")
+          : "",
         chat: formatChat(recentChat.filter((c) => c.id !== message.id), trip),
         message: `${esc(sender)}: ${esc(message.text)}`,
       }),
@@ -149,8 +164,8 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
   } catch (e) {
     if (!(e instanceof AIOutputError)) throw e;   // only our own programming errors get through
     console.warn(`[negotiateSlot] fallback (${e.kind}):`, e.errors);
-    // Fallback: never guess a time. With a pending proposal, do nothing; otherwise ask for the time.
-    if (pending) return { action: "none" };
+    // Fallback: never guess a time. With a still-valid pending proposal, do nothing; otherwise ask for the time.
+    if (pending && !pendingProblems.length) return { action: "none" };
     return { action: "ask", reply: "What time should I plan this for? For example 14:00-17:30, or tell me the meal." };
   }
 }
