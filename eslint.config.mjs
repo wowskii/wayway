@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone AI module (own package.json and `npm run typecheck`), like in tsconfig.json.
+    "wayway-ai/**",
   ]),
 ]);
 
