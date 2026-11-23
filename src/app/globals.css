@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* WayWay colors, taken from the Figma "Simplified" screens.
+   Use them in Tailwind classes: bg-brand, text-brand, bg-brand-soft, bg-page, border-line... */
+@theme inline {
+  --color-brand: #1e7f3c;        /* main green: buttons, WayWay, pins */
+  --color-brand-dark: #17652f;   /* button hover */
+  --color-brand-soft: #e7f3ea;   /* WayWay chat bubbles, selected tabs */
+  --color-page: #f5f6f8;         /* page background */
+  --color-card: #ffffff;         /* cards */
+  --color-ink: #1d1f23;          /* main text */
+  --color-muted: #6b7280;        /* secondary text */
+  --color-line: #e5e7eb;         /* borders */
+
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+}

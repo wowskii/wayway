@@ -1,15 +1,51 @@
-WAYWAY_PROJECT_CONTEXT.md
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Dependencies and build output
-node_modules/
-.next/
-dist/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Secrets: only .env.example is committed
-.env
-.env.*
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
 !.env.example
 
-# OS / editor
-.DS_Store
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# supabase CLI cache
+supabase/.temp/
+
+# wayway-ai (AI module, role 3): its own node_modules and build output, local notes
+node_modules/
+dist/
 Thumbs.db
+WAYWAY_PROJECT_CONTEXT.md
