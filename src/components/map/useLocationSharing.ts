@@ -8,7 +8,7 @@
 //   mode "demo" : a fixed position near Tokyo Station (for testing / the demo video from outside Tokyo),
 //                 flagged is_demo so it's never shown as real
 // Friends' positions arrive live (Supabase Realtime). Positions older than 15 min are hidden.
-// The chosen mode is remembered for this trip in the browser, so a reload keeps sharing on.
+// The chosen mode is remembered for this member and trip in the browser, so a reload keeps sharing on.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,19 +28,20 @@ const MIN_MOVE_M = 25;
 const HEARTBEAT_MS = 5 * 60_000;
 const TOKYO_STATION = { lat: 35.6812, lng: 139.7671 };
 
-const storageKey = (tripId: string) => `wayway:share:${tripId}`;
-function readMode(tripId: string): ShareMode {
+const storageKey = (tripId: string, memberId: string) => `wayway:share:${tripId}:${memberId}`;
+const sharingKey = (tripId: string, memberId: string) => JSON.stringify([tripId, memberId]);
+function readMode(tripId: string, memberId: string): ShareMode {
   try {
-    const v = localStorage.getItem(storageKey(tripId));
+    const v = localStorage.getItem(storageKey(tripId, memberId));
     return v === "live" || v === "demo" ? v : "off";
   } catch {
     return "off";             // storage blocked (private window...): start not sharing
   }
 }
-function saveMode(tripId: string, mode: ShareMode) {
+function saveMode(tripId: string, memberId: string, mode: ShareMode) {
   try {
-    if (mode === "off") localStorage.removeItem(storageKey(tripId));
-    else localStorage.setItem(storageKey(tripId), mode);
+    if (mode === "off") localStorage.removeItem(storageKey(tripId, memberId));
+    else localStorage.setItem(storageKey(tripId, memberId), mode);
   } catch { /* not remembered: fine */ }
 }
 
@@ -58,10 +59,12 @@ const toLocation = (r: Row): MemberLocation => ({
 
 export function useLocationSharing(tripId: string, myMemberId?: string) {
   const [supabase] = useState(createClient);
-  const [mode, setModeState] = useState<ShareMode>("off");
+  const [selection, setSelection] = useState<{ key: string; mode: ShareMode } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<Record<string, MemberLocation>>({});
   const [now, setNow] = useState(() => Date.now());
+  const key = myMemberId ? sharingKey(tripId, myMemberId) : null;
+  const mode = key && selection?.key === key ? selection.mode : "off";
 
   // ---- Everyone's positions: first load, then live changes ----
   useEffect(() => {
@@ -96,6 +99,10 @@ export function useLocationSharing(tripId: string, myMemberId?: string) {
 
   // ---- Sending my position ----
   const last = useRef<{ lat: number; lng: number; at: number } | null>(null);
+  useEffect(() => {
+    last.current = null;
+  }, [tripId, myMemberId]);
+
   const send = useCallback(async (lat: number, lng: number, accuracy: number | null, isDemo: boolean) => {
     if (!myMemberId) return;
     last.current = { lat, lng, at: Date.now() };
@@ -159,21 +166,27 @@ export function useLocationSharing(tripId: string, myMemberId?: string) {
 
   // Resume the remembered choice after a reload.
   useEffect(() => {
-    const saved = readMode(tripId);
-    if (saved !== "off") queueMicrotask(() => setModeState(saved));
-  }, [tripId]);
+    if (!myMemberId || !key) return;
+    let active = true;
+    const saved = readMode(tripId, myMemberId);
+    queueMicrotask(() => {
+      if (active) setSelection({ key, mode: saved });
+    });
+    return () => { active = false; };
+  }, [tripId, myMemberId, key]);
 
   const setMode = useCallback(async (next: ShareMode) => {
-    setModeState(next);
-    saveMode(tripId, next);
+    if (!myMemberId || !key) return;
+    setSelection({ key, mode: next });
+    saveMode(tripId, myMemberId, next);
     setError(null);
-    if (next === "off" && myMemberId) {
+    if (next === "off") {
       last.current = null;
       setRows((r) => { const rest = { ...r }; delete rest[myMemberId]; return rest; });
       // Stop = delete my row: nothing about my position is kept.
       await supabase.from("member_locations").delete().eq("member_id", myMemberId);
     }
-  }, [supabase, tripId, myMemberId]);
+  }, [supabase, tripId, myMemberId, key]);
 
   const visible = Object.values(rows).filter((l) => now - l.updatedAt < FRESH_MS);
   return { mode, setMode, error, locations: visible };
