@@ -3,15 +3,16 @@
 //   npm run try:mock   -> fake model, tests the validation and retry logic for free
 //
 // Steps: negotiateSlot (Tom asks, WayWay proposes a time, Mia changes it) ->
-// extractPreferences (Sarah, onboarding) -> generateOptions (agreed time) -> temporary ranking
-// (placeholder for role 4's rankOptions) -> writeMessage -> extractPreferences (Tom reacts to the
+// extractPreferences (Sarah, onboarding) -> generateOptions (agreed time) -> buildOptions
+// (role 4: A / B / C chosen by code) -> writeMessage -> extractPreferences (Tom reacts to the
 // options) -> reviseOptions (round 2, with real reactions) -> generateOptions (lunch, diet check).
 
-import type { ChatMessage, Option, PrivateMessage, Spot, TimeSlot, Trip } from "@/contracts/contract";
-import { LEVEL_VALUE } from "@/contracts/contract";
+import type { ChatMessage, Option, PrivateMessage, TimeSlot } from "@/contracts/contract";
+import { buildOptions, filterSpotsForTrip, type CandidateLike } from "@/lib/logic";
+import { EVIDENCE, SPOT_INDEX } from "@/lib/logic/dataset";
 import {
   extractPreferences, generateOptions, negotiateSlot, pickCandidate, reviseOptions, setClient, writeMessage, PROMPT_VERSION,
-  type Candidate, type MemberReaction,
+  type MemberReaction,
 } from "../lib/ai";
 import { SPOTS, TRIP } from "../data/scenario2";
 import { mockClient } from "./mock";
@@ -27,36 +28,14 @@ const chat: ChatMessage[] = [
   { id: "c4", tripId: TRIP.id, senderId: tom.id, text: "@WayWay what should we do this afternoon?", createdAt: now() },
 ];
 
-// TEMPORARY hard-constraint filter until role 4 delivers filterHardConstraints.
-// Same rule as planning/wayway-starter/metrics.py: a food spot must carry every member's diet tag.
-// (No allergens field in Spot yet; budget vs prices is still an open rule.)
-function tempFilterHardConstraints(spots: Spot[], trip: Trip): Spot[] {
-  const diets = [...new Set(trip.members.flatMap((m) => m.hard.diet))];
-  return spots.filter((s) => s.category !== "food" || diets.every((d) => s.dietTags.includes(d)));
-}
-
-// TEMPORARY ranking until role 4 delivers rankOptions (no fairness credits here).
-function tempRank(cands: Candidate[]): Option[] {
-  const vals = (c: Candidate) => c.scores.map((s) => LEVEL_VALUE[s.level]);
-  const total = (c: Candidate) => vals(c).reduce((a, b) => a + b, 0);
-  const min = (c: Candidate) => Math.min(...vals(c));
-  const together = cands.filter((c) => !c.branches);
-  const best = [...together].sort((a, b) => total(b) - total(a))[0];
-  // B = fairest among the OTHER candidates (highest minimum, then highest total). When A is also the
-  // fairest overall, this still shows a second card (the team's suggested answer to the open question).
-  const fairest = together.filter((c) => c !== best).sort((a, b) => min(b) - min(a) || total(b) - total(a))[0];
-  const bestMin = Math.max(...together.map(min));
-  // Split only when no shared option keeps everyone at "same" or better
-  const split = bestMin < LEVEL_VALUE.same ? cands.find((c) => c.branches) : undefined;
-  const out: Option[] = [];
-  const push = (c: Candidate | undefined, id: Option["id"], kind: Option["kind"]) => {
-    if (c) out.push({ ...c, id, kind, metrics: { mean: total(c) / c.scores.length, min: min(c), gini: 0, satisfactionRatio: c.satisfiedMemberIds.length / c.scores.length, weightedTotal: total(c) } });
-  };
-  push(best, "A", "best_total");
-  push(fairest, "B", "fairest");
-  push(split, "C", "split");
-  return out;
-}
+// Role 4's logic (src/lib/logic): hard-constraint filter before the AI, then A / B / C chosen by code.
+// No fairness credits in this script (first decision of the trip), nothing spent yet.
+const filterSpots = () => filterSpotsForTrip(SPOTS, TRIP.members, { evidence: EVIDENCE }).allowed;
+const rank = (cands: CandidateLike[]): Option[] => {
+  const built = buildOptions(cands, TRIP.members, SPOT_INDEX);
+  for (const d of built.dropped) console.log(`   dropped by code: ${d.title} (${d.reason}${d.issues.length ? ": " + d.issues.map((i) => i.code).join(", ") : ""})`);
+  return built.options;
+};
 
 function show(options: Option[]) {
   const names = new Map(TRIP.members.map((m) => [m.id, m.name]));
@@ -75,8 +54,8 @@ const privateMsg = (memberId: string, text: string, round: number): PrivateMessa
 
 async function main() {
   console.log(`Prompt version: ${PROMPT_VERSION}`);
-  const allowed = tempFilterHardConstraints(SPOTS, TRIP);
-  console.log(`${allowed.length}/${SPOTS.length} spots left after the temporary hard-constraint filter`);
+  const allowed = filterSpots();
+  console.log(`${allowed.length}/${SPOTS.length} spots left after the hard-constraint filter (role 4)`);
 
   // Day 1 of the trip, 10:00 in Tokyo (fixed so the test does not depend on today's date)
   const tripNow = new Date("2026-11-21T01:00:00Z");
@@ -112,7 +91,7 @@ async function main() {
   const gen = await generateOptions({ trip: TRIP, slot: SLOT, allowedSpots: allowed, recentChat: chat });
   console.log(`   ${gen.candidates.length} valid candidates after ${gen.attempts} attempt(s)`);
   if (gen.rejected.length) console.log("   rejected:", gen.rejected);
-  const options = tempRank(gen.candidates);
+  const options = rank(gen.candidates);
   show(options);
 
   console.log("\n3) writeMessage — options_round");
@@ -156,7 +135,7 @@ async function main() {
     console.log(`   new: ${c.title} [${(c.branches ? c.branches.flatMap((b) => b.spots) : c.spots).join(" > ")}] ${c.scores.map((s) => `${names.get(s.memberId)}=${s.level}`).join(", ")}`);
   }
   console.log(`   kept by code: ${rev.kept.map((o) => `${o.id} (${o.kind})`).join(", ")}`);
-  show(tempRank([...rev.kept, ...rev.candidates]));
+  show(rank([...rev.kept, ...rev.candidates]));
 
   console.log("\n6) generateOptions — lunch (meal slot: one food spot, vegetarian for Mia)");
   const lunch: TimeSlot = { day: 2, start: "12:00", end: "13:30", label: "Lunch, day 2" };
@@ -169,7 +148,7 @@ async function main() {
   const lunchGen = await generateOptions({ trip: TRIP, slot: lunch, allowedSpots: allowed, recentChat: [] });
   console.log(`   ${lunchGen.candidates.length} valid candidates after ${lunchGen.attempts} attempt(s)`);
   if (lunchGen.rejected.length) console.log("   rejected:", lunchGen.rejected);
-  show(tempRank(lunchGen.candidates));
+  show(rank(lunchGen.candidates));
 }
 
 main().catch((e) => {
