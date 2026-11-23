@@ -5,8 +5,8 @@
 //   against the personas, literal privacy leaks in everything the group sees, decisions and credits.
 //
 //   npm run eval:ai -- --baseline          rule-based generator built in here (no AI module, no key)
-//   npm run eval:ai -- --mock              Kuro's AI module with its fake model (needs feature/ai-module merged)
-//   npm run eval:ai                        Kuro's AI module with the real model (needs OPENROUTER_API_KEY)
+//   npm run eval:ai -- --mock              Simon's AI module with its fake model (needs feature/ai-module merged)
+//   npm run eval:ai                        Simon's AI module with the real model (needs OPENROUTER_API_KEY)
 //   options: --scenario scenario3_split    --rounds 1|2    --json
 // Results are saved in eval/results/ (scenario data is synthetic: safe to commit).
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -69,7 +69,7 @@ const baseline: Generator = {
 };
 
 // ------------------------------------------------------------------------------------------------
-// Kuro's AI module (wayway-ai/), loaded only if present so this file also works before the merge.
+// Simon's AI module (wayway-ai/), loaded only if present so this file also works before the merge.
 // ------------------------------------------------------------------------------------------------
 async function aiModule(mock: boolean): Promise<Generator> {
   const path = "../wayway-ai/lib/ai/index.ts";

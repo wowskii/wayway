@@ -27,7 +27,7 @@ npm run eval:ai                 # same with the real model (needs OPENROUTER_API
 | `src/lib/logic/dataset.ts` | Loads and validates `data/spots_tokyo.json` + `data/spots_evidence.json`. |
 | `src/lib/logic/evaluation.ts` | Estimate accuracy, privacy scan, scripted personas, run report. |
 | `eval/` | Offline scenarios, persona scenarios and the evaluation runner. |
-| `supabase/migrations/20261116000001_vote_extension_flag.sql` | One new column, `option_sets.vote_extended`. |
+| `supabase/migrations/20261123000001_vote_extension_flag.sql` | One new column, `option_sets.vote_extended`. |
 
 ## For Simon (AI module): replace the two temporary functions
 
@@ -83,7 +83,7 @@ allergies).
 
 ## For Quentin (database)
 
-- New migration `20261116000001_vote_extension_flag.sql`: `option_sets.vote_extended boolean default false`.
+- New migration `20261123000001_vote_extension_flag.sql`: `option_sets.vote_extended boolean default false`.
   Needed for "extend **once** by 30 min". Please `npm run db:push` and `npm run db:types` when you merge.
   `persistence.ts` already works before the types are regenerated.
 - `max_budget NULL` → mapper gives `maxBudget: 0` → the logic treats 0 as "not known yet" (no budget check).

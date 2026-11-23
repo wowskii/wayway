@@ -10,7 +10,7 @@ import { localDay } from "./voting";
 import type { Attempt, DefinitelyNoCounter, Guard, Poll, StoredVote } from "./voting";
 import { isLevel } from "./metrics";
 
-/** vote_extended comes from migration 20261116000001 (optional until the DB types are regenerated). */
+/** vote_extended comes from migration 20261123000001 (optional until the DB types are regenerated). */
 export type OptionSetRow = Tables<"option_sets"> & { vote_extended?: boolean | null };
 export type VoteRow = Tables<"votes">;
 export type MemberStateRow = Tables<"member_state">;
