@@ -8,8 +8,8 @@ import { LEVEL_VALUE } from "@/contracts/contract";
 import { LIMITS, MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import {
   buildAliases, findLeaks, formatChat, formatCritiques, formatEstimatesVsReactions, formatMembers, formatOptions,
-  formatSpots, hhmm, isOpenDuring, isSatisfied, privateTokens, selectSpots, slotKind, slotMinutes, toMin, travelMin,
-  type Aliases, type MemberReaction, type SlotKind,
+  formatSpots, hhmm, isOpenDuring, isSatisfied, maxStops, privateTokens, selectSpots, slotKind, slotMinutes, toMin, travelMin,
+  type Aliases, type MemberReaction, type PrivateGroups, type SlotKind,
 } from "./context";
 import { AIOutputError, callTool, type Validation } from "./llm";
 import { OPTIONS_SYSTEM, optionsUser } from "./prompts";
@@ -77,8 +77,9 @@ interface Ctx {
   slot: TimeSlot;
   kind: SlotKind;
   minSatisfied: number;              // 0 in round 1
-  leakTokens: Map<string, string[]>;
+  leakTokens: PrivateGroups;
   keptSignatures: Set<string>;       // options already carried over by code (revision only)
+  keptHasSplit: boolean;             // a kept option is already a split (revision only)
 }
 
 // Visits happen in order from `start`, with travel time between spots (travelMin) and, if given,
@@ -230,8 +231,20 @@ function checkCandidate(c: any, i: number, ctx: Ctx): { candidate?: Candidate; e
   };
 }
 
+// A split is worth proposing when no shared candidate keeps everyone at "same" or better
+// (activity slots, 3+ members). Required on the FIRST attempt only: if the retry still has no
+// split, the shared options are accepted (better some options than none).
+const SAME = LEVEL_VALUE.same;
+function needsSplit(valid: Candidate[], ctx: Ctx): boolean {
+  if (ctx.kind !== "activity" || ctx.trip.members.length < 3 || ctx.keptHasSplit) return false;
+  if (valid.some((c) => c.branches)) return false;
+  return valid.length > 0 && !valid.some((c) => c.scores.every((s) => LEVEL_VALUE[s.level] >= SAME));
+}
+
 function makeValidator(ctx: Ctx, minCandidates: number, rejected: string[]) {
+  let calls = 0;
   return (raw: any): Validation<{ candidates: Candidate[]; reasoning: string }> => {
+    calls++;
     if (!Array.isArray(raw?.candidates)) return { ok: false, errors: ["candidates must be an array."] };
     const valid: Candidate[] = [];
     const errors: string[] = [];
@@ -249,6 +262,13 @@ function makeValidator(ctx: Ctx, minCandidates: number, rejected: string[]) {
     if (valid.length < minCandidates) {
       return { ok: false, errors: [`Only ${valid.length} valid candidates, need at least ${minCandidates}.`, ...errors] };
     }
+    if (calls === 1 && needsSplit(valid, ctx)) {
+      return { ok: false, errors: [
+        "No shared candidate keeps every member at 'same' or better, and there is no split. Keep your valid candidates " +
+        "and ADD one split candidate: 2 branches grouped by interest, a rendezvous spot open inside the slot, nobody alone unless they want it.",
+        ...errors,
+      ] };
+    }
     return { ok: true, value: { candidates: valid, reasoning: String(raw.reasoning ?? "") } };
   };
 }
@@ -264,6 +284,7 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
   const ctx: Ctx = {
     trip, aliases, slot, kind, minSatisfied,
     keptSignatures: new Set(kept.map(signature)),
+    keptHasSplit: kept.some((o) => Boolean(o.branches?.length)),
     spots: new Map(spots.map((s) => [s.id, s])),
     leakTokens: privateTokens(trip, input.allowedSpots, {
       critiques: (revise?.critiques ?? []).map((v) => v.critique ?? ""),
@@ -280,9 +301,10 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
     user: optionsUser({
       tripName: trip.name,
       goal: trip.goal,
-      slot: `${slot.label}: day ${slot.day}, ${slot.start}-${slot.end} (${slotMinutes(slot)} min), type: ${kind}`,
+      slot: `${slot.label}: day ${slot.day}, ${slot.start}-${slot.end} (${slotMinutes(slot)} min), type: ${kind}, ` +
+        `about ${maxStops(spots, slot)} stop(s) per path at most`,
       members: formatMembers(trip, aliases, true),
-      spots: formatSpots(spots),
+      spots: formatSpots(spots, slot),
       chat: formatChat(recentChat, trip),
       ...(revise ? {
         previous: formatOptions(revise.previousOptions, aliases),

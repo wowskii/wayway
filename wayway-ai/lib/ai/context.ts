@@ -139,12 +139,26 @@ export function formatMembers(trip: Trip, a: Aliases, includePrivate: boolean): 
     .join("\n");
 }
 
-export function formatSpots(spots: Spot[]): string {
+// With a slot, each spot also shows "start visit by HH:MM": the latest start so the visit ends before
+// the spot closes AND before the slot ends (v6: the model kept placing spots after closing time).
+export function latestStart(spot: Spot, slot: TimeSlot): number {
+  const [, close] = openWindow(spot);
+  return Math.min(close, toMin(slot.end)) - spot.durationMin;
+}
+export function formatSpots(spots: Spot[], slot?: TimeSlot): string {
   return spots
     .map((s) =>
       `- ${s.id}: ${esc(s.name)} (${esc(s.category)}, ${esc(s.area)}) | ${s.price} JPY | ${s.durationMin} min | open ${s.openHours}` +
+      (slot ? ` | start visit by ${hhmm(Math.max(latestStart(s, slot), toMin(slot.start)))}` : "") +
       (s.dietTags.length ? ` | diet: ${esc(s.dietTags.join(", "))}` : ""))
     .join("\n");
+}
+
+// Rough number of stops that fit: visits + travel. Given to the model as a guide, not enforced.
+export function maxStops(spots: Spot[], slot: TimeSlot): number {
+  if (!spots.length) return 1;
+  const typical = [...spots.map((s) => s.durationMin)].sort((a, b) => a - b)[Math.floor(spots.length / 2)];
+  return Math.max(1, Math.floor(slotMinutes(slot) / (typical + 20)));
 }
 
 export function formatChat(chat: ChatMessage[], trip: Trip): string {
@@ -213,6 +227,9 @@ const COMMON = new Set([
   "during", "slightly", "mostly", "rather", "maybe", "enough", "doesn't", "can't", "cannot",
   "where", "which", "while", "something", "anything", "everything", "always", "never", "little",
   "option", "options", "great", "nice", "fine", "better", "worse", "maybe", "first", "later",
+  // Group-planning words that every option uses (v6: "together" from a private note blocked all of scenario 3)
+  "together", "everyone", "everybody", "split", "splits", "separate", "separately", "apart", "whole",
+  "rendezvous", "meeting", "branch", "branches", "shared",
 ]);
 
 const words = (text: string) =>
@@ -228,7 +245,16 @@ export interface PrivacyExtras {
   reactionReasons?: string[]; // private reaction reasons
 }
 
-export function privateTokens(trip: Trip, spots: Spot[] = [], extras: PrivacyExtras = {}): Map<string, string[]> {
+// Private information is checked per GROUP of words (one private sentence = one group):
+// - a group with one word (a budget number, an allergen, "Prefers cheap activities") leaks if that word appears;
+// - a group with several words leaks only if at least 2 of them appear in the same text.
+// So "tight budget" (from "Budget is tight this trip") is flagged, but "a tight schedule" or
+// "visit limited to 90 minutes" is not (v6: these single common words used to block valid options).
+export type PrivateGroups = Map<string, string[][]>;
+
+const sentencesOf = (text: string) => text.split(/[.!?;\n]+/).map((s) => s.trim()).filter(Boolean);
+
+export function privateTokens(trip: Trip, spots: Spot[] = [], extras: PrivacyExtras = {}): PrivateGroups {
   const publicWords = new Set(words([
     ...spots.flatMap((s) => [s.name, s.area, s.category, ...s.dietTags]),
     ...trip.members.flatMap((m) => [m.name, ...m.hard.diet, ...m.interests,
@@ -237,31 +263,34 @@ export function privateTokens(trip: Trip, spots: Spot[] = [], extras: PrivacyExt
   // Spot vocabulary only: an allergy word stays protected even if a member said it publicly,
   // but a spot whose name contains it can still be named.
   const spotWords = new Set(words(spots.flatMap((s) => [s.name, s.area, s.category]).join(" ")));
-  const out = new Map<string, string[]>();
+  const groupsOf = (texts: string[]) =>
+    texts.flatMap(sentencesOf)
+      .map((s) => [...new Set(distinctive(s).filter((w) => !publicWords.has(w)))])
+      .filter((g) => g.length);
+  const out: PrivateGroups = new Map();
   for (const m of trip.members) {
-    const sources = [
-      m.privateNote,
-      ...m.preferenceStatements.filter(isPrivateStatement).map(stripPrivate),
-      m.hard.maxBudget ? String(m.hard.maxBudget) : "",
-    ];
-    // Allergies are exact values, often short ("nuts", "egg", "soy"): every word counts,
+    const groups = groupsOf([m.privateNote, ...m.preferenceStatements.filter(isPrivateStatement).map(stripPrivate)]);
+    // Allergies are exact values, often short ("nuts", "egg", "soy"): every word counts ALONE,
     // without the >= 5 letters rule used for free-form notes.
-    const allergy = m.hard.allergies.flatMap(words).filter((w) => !ALLERGY_FILLER.has(w) && !spotWords.has(w));
-    out.set(m.id, [...new Set([
-      ...sources.flatMap(distinctive).filter((w) => !publicWords.has(w)),
-      ...allergy,
-    ])]);
+    const allergy = new Set(m.hard.allergies.flatMap(words).filter((w) => !ALLERGY_FILLER.has(w) && !spotWords.has(w)));
+    for (const w of allergy) groups.push([w]);
+    if (m.hard.maxBudget) groups.push([String(m.hard.maxBudget)]);
+    out.set(m.id, groups);
   }
-  const shared = [...(extras.critiques ?? []), ...(extras.reactionReasons ?? [])]
-    .flatMap(distinctive).filter((w) => !publicWords.has(w));
-  if (shared.length) out.set("_shared", [...new Set(shared)]);
+  const shared = groupsOf([...(extras.critiques ?? []), ...(extras.reactionReasons ?? [])]);
+  if (shared.length) out.set("_shared", shared);
   return out;
 }
 
 // Returns the private words found (as whole words) in a text meant for the group.
-export function findLeaks(text: string, tokens: Map<string, string[]>): string[] {
+export function findLeaks(text: string, tokens: PrivateGroups): string[] {
   const present = new Set(words(text));
   const found: string[] = [];
-  for (const list of tokens.values()) for (const w of list) if (present.has(w)) found.push(w);
+  for (const groups of tokens.values()) {
+    for (const g of groups) {
+      const hits = g.filter((w) => present.has(w));
+      if (hits.length >= Math.min(2, g.length)) found.push(...hits);
+    }
+  }
   return [...new Set(found)];
 }

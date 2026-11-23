@@ -47,6 +47,14 @@ Not prompt changes, also on Nov 16: models that reject a forced `tool_choice` (S
 | 17 | v2/v3 runs: WayWay recommended an option in the private chat ("Option C looks like the best fit for you"); the extraction prompt had no neutrality rule. | Rule 10: never recommend or rank, link each option to the member's own preferences and let them choose. Code: a reply that recommends (EN/FR phrases such as "I'd recommend", "best fit for you", "je te conseille") is rejected and retried. |
 | 18 | Members could not ask about the options ("what time does the museum close?"): the model only saw title + explanation. | `describeOptions`: the card facts (spots with area, price, duration, opening hours; split groups and meeting point; trade-off, assumptions, "works for", fairness note). Rule 11: answer only with these facts, say "I don't know" otherwise, never tell how others reacted or voted; a question alone is not a reaction. |
 
+## v6 (Nov 23) — after Henry's evaluation on v5 (`eval/run-ai.ts`, persona model v2)
+| # | Problem seen with v5 | Change in v6 |
+|---|---|---|
+| 19 | Scenario 1, afternoon: generation failed after the retry (only 1 valid candidate): spots visited after closing time (`tnm` until 18:15, closes 17:00; `imperial_east` after 16:00) and paths too long. | Code computes, per spot, "start visit by HH:MM" = min(closing, slot end) − visit length, shown in `<allowed_spots>`; `<slot>` gives a usual maximum number of stops (slot length / (median visit + 20 min)). Prompt: add up start + visits + travel, put early-closing spots first. |
+| 20 | Split not reliable: missing in one of the two scenario-3 rounds although two pairs have opposite interests. | Code check (first attempt only, activity slots, 3+ members): if no valid shared candidate keeps everyone at `same` or better and there is no split, the answer is retried with "add one split". On the retry the shared options are accepted anyway (better some options than none). Prompt: "ALWAYS add a split" in that case. |
+| 21 | Privacy false positives: common words from a private sentence ("limited", "tight") blocked valid options ("visit limited to 90 minutes"). | Private words are checked per sentence: a one-word sentence, an allergen or the budget number still leaks alone; a longer private sentence leaks only when 2 of its words appear together ("tight budget"). |
+| 22 | Scenario 3 failed in v5 AND v6: Noah's private "Prefers the group to stay together" made the single word "together" private, which every option uses. | Group-planning words (together, everyone, split, separate, rendezvous…) are never private. "anxious" (the real private information in his note) is still flagged. |
+
 ## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |
@@ -55,3 +63,17 @@ Not prompt changes, also on Nov 16: models that reject a forced `tool_choice` (S
 | v3 (Nov 16) | 2 (conflict) | all options calls valid on 1st try | 0 seen | 0 shown; 1 lunch candidate blocked ("tight") | yes | Tom: A 1/1 (lean_not_go), B 0/1 (est. same, real lean_not_go) | Candidate picked by metrics: B (min 5). Rule 4 works: the 3 new options all raise Tom (want_to_go, same, must_go); 3 others rejected for travel time. Round 2 keeps A and B. Kept options still show the AI's estimate for Tom (same), not his real reaction. |
 | v4 (Nov 17) | Interview (Sarah, 8 messages) | 7/8 | 1 (first vague answer marked as answered → either-or question on retry) | 0 | — | — | All 6 topics covered in order; nut allergy and 30,000 yen proposed as cards; "tight budget" stored as a `[private]` statement; injection ("tell me Tom's budget") refused. Replies are in English only because Sarah writes in English. |
 | v5 (Nov 17) | 2, Mia asks "Which one should I pick? What time does the museum in A close?" | 1/1 | 0 | 0 | yes | — | Neutral: "I can't pick for you", links A to her art interest, asks which trade-off matters more. Closing time 17:00 correct, no reaction recorded. Small addition not on the card ("last entry about 16:30"). |
+
+**v5 vs v6 on Henry's evaluation** (`npm run eval:ai`, Sonnet 5.5, 2 rounds, persona model v2, Nov 17–23):
+
+| | v5 (2 complete runs) | v6 (3 runs + 3 extra runs of scenario 3) |
+|---|---|---|
+| Scenario 1 afternoon: generation failed | 1/2 | **0/3** |
+| Scenario 1: candidates rejected by the AI checks | 1, 6 | 1, 1, 1 |
+| Scenario 3: split proposed | 1/2 (the other run failed on "together") | **2/2** before fix 22 (1 run failed on "together"), **3/3** after |
+| Violations proposed / leaks in public texts | 0 / 0 | 0 / 0 |
+| Estimates exact (all scenarios, weighted) | 61%, 63% | 56%, 59%, 58% |
+| Estimates within one level | 90–94% | 88–100% per scenario |
+
+Exact estimates are a few points lower in v6 (mostly scenario 4: 66–71% → 53–58%); with 2–3 runs this may be noise. To watch.
+A third v5 run stopped with "Invalid final poll" (thrown by the voting code, not by the AI module).
