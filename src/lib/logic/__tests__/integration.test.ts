@@ -7,7 +7,7 @@ import { buildOptions, pickCandidateId } from "@/lib/logic/options";
 import type { BuildMember, CandidateLike } from "@/lib/logic/options";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { SPOTS, SPOTS_BY_ID, SPOT_INDEX, validateDataset } from "@/lib/logic/dataset";
-import { advancePoll, castVote } from "@/lib/logic/voting";
+import { advancePoll, castVote, startPoll } from "@/lib/logic/voting";
 import { decisionRows, memberStateUpdates, optionSetUpdate, pollFromRows, voteFromRow, voteToRow } from "@/lib/logic/persistence";
 import type { OptionSetRow } from "@/lib/logic/persistence";
 import { itineraryFromOption, spentFromItinerary } from "@/lib/logic/itinerary";
@@ -70,6 +70,18 @@ test("pickCandidateId: highest min, then highest mean, then the earlier card", (
   assert.equal(pickCandidateId([o("A", "same", "same"), o("B", "same", "want_to_go")]), "B");             // same min, mean
   assert.equal(pickCandidateId([o("A", "same", "want_to_go"), o("B", "want_to_go", "same")]), "A");       // full tie: A
   assert.equal(pickCandidateId([]), null);
+});
+
+test("only a split survives the filter: the candidate is C and the final poll opens (was 'Invalid final poll')", () => {
+  const { options, candidateOptionId } = buildOptions([split], members, SPOT_INDEX);
+  assert.deepEqual(options.map(o => o.id), ["C"]);
+  assert.equal(candidateOptionId, "C");
+  const set = (candidate: "A" | "C"): OptionSet => ({ id: "os", tripId: "t", round: 2, options, candidateOptionId: candidate,
+    slot: { day: 1, start: "13:00", end: "17:00", label: "Afternoon" }, status: "voting",
+    roundDeadline: "2026-11-21T08:00:00Z", voteDeadline: "2026-11-21T08:00:00Z" });
+  const guard = { members, spots: SPOT_INDEX };
+  assert.throws(() => startPoll(set("A"), guard, "Asia/Tokyo", {}), /Invalid final poll/);   // the old eval runner always passed "A"
+  assert.equal(startPoll(set(candidateOptionId!), guard, "Asia/Tokyo", {}).outcome, "open");
 });
 
 test("buildOptions shows the same route only once (the first one wins, e.g. the kept candidate)", () => {
