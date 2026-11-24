@@ -55,6 +55,9 @@ Not prompt changes, also on Nov 16: models that reject a forced `tool_choice` (S
 | 21 | Privacy false positives: common words from a private sentence ("limited", "tight") blocked valid options ("visit limited to 90 minutes"). | Private words are checked per sentence: a one-word sentence, an allergen or the budget number still leaks alone; a longer private sentence leaks only when 2 of its words appear together ("tight budget"). |
 | 22 | Scenario 3 failed in v5 AND v6: Noah's private "Prefers the group to stay together" made the single word "together" private, which every option uses. | Group-planning words (together, everyone, split, separate, rendezvous…) are never private. "anxious" (the real private information in his note) is still flagged. |
 
+Wording fix (Nov 24, still v6): interview rule 5 "check the card below" -> "check the card above", because the
+app now shows the confirmation card before WayWay's reply. No effect on the measured results, so no new version.
+
 ## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |
