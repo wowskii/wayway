@@ -43,7 +43,7 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
   }, [selectedKey]);
 
   return (
-    <section className="flex min-h-0 flex-col rounded-2xl border border-line bg-card shadow-sm">
+    <section className="flex min-h-0 flex-col bg-card md:w-72 md:shrink-0 md:border-r md:border-line">
       <div className="border-b border-line p-4">
         <div className="flex items-baseline justify-between">
           <h2 className="font-semibold">Proposed itinerary</h2>

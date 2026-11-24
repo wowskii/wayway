@@ -1,5 +1,6 @@
 "use client";
-// The map page's body: itinerary panel (left) + Google map (right), sharing two pieces of state:
+// The map page's body, full screen like the trip page: itinerary panel (left, same width as the trip
+// page's sidebar, so the tabs line up with its edge) + Google map (rest), sharing two pieces of state:
 // the selected day and the selected stop. Data comes ready from the server page (buildDayPlans).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dayLegs, type WalkRoute } from "@/lib/itinerary/legs";
@@ -79,18 +80,16 @@ export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Pr
   const dateOf = (d: number) => dateOfDay(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold">Trip map</h1>
-        <p className="text-sm text-muted">Your daily plan, with room to explore.</p>
-      </div>
-
+    // Phones: map on top (half the screen), the day's plan under it, the page scrolls.
+    // md and up: fills the screen under the header, nothing scrolls but the plan list.
+    <main className="flex flex-col bg-page md:h-[calc(100dvh-4rem-1px)] md:flex-row md:overflow-hidden">
+      <h1 className="sr-only">Trip map</h1>
       {days.length === 0 ? (
-        <p className="rounded-2xl border border-line bg-card p-6 text-sm text-muted">
+        <p className="m-auto max-w-sm px-6 py-16 text-center text-sm text-muted">
           No itinerary yet. Once the group votes on WayWay&apos;s options, the plan appears here.
         </p>
       ) : (
-        <div className="grid gap-4 lg:h-[calc(100vh-11rem)] lg:min-h-[520px] lg:grid-cols-[320px_1fr]">
+        <>
           <ItineraryPanel
             days={days}
             day={day}
@@ -103,7 +102,7 @@ export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Pr
             legs={legs}
             walks={walks}
           />
-          <div className="relative h-[420px] overflow-hidden rounded-2xl border border-line bg-card shadow-sm lg:h-auto">
+          <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
             <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
               sharing={{ ...sharing, myMemberId, nameOf }} />
             {selectedStop && (
@@ -116,7 +115,7 @@ export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Pr
               />
             )}
           </div>
-        </div>
+        </>
       )}
     </main>
   );

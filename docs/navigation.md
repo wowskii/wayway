@@ -11,7 +11,7 @@ How the pages of WayWay fit together (Quentin's pages + Patrick's trip page).
 | `/join/<code>` | Invite link → "Join the trip" |
 | `/trips/<id>/interview` | One-time AI interview (full page). Closed once finished |
 | `/trips/<id>` | **Group chat** (Patrick's trip page: trips list, WayWay tools, group chat). `?panel=private\|suggestions\|itinerary` opens a tool |
-| `/trips/<id>/map` | Trip map |
+| `/trips/<id>/map` | Trip map, full screen (itinerary panel + map). Group chat in a floating window: green button bottom right, closed by default |
 | `/trips/<id>/me` | What WayWay learned about me: "Your group can see" / "Only you can see" |
 
 Every link to a trip points to `/trips/<id>`. A member who has not finished the interview is sent to
@@ -40,6 +40,17 @@ WayWay | Tokyo Spring Trip | Group chat · Map                       Me · Log o
 - `TripTabs` (Group chat | Map) replaces Patrick's `ChatboxTabs`. From md up the tabs start at the trip
   page's sidebar edge, on every page, so they never move. On phones "Group chat" becomes "Chat".
 - The user's name is not shown in the bar.
+
+## Floating group chat (map page)
+
+`components/map/FloatingChat.tsx` wraps Patrick's `<GroupChat>` unchanged. It is mounted only while open
+(GroupChat marks messages as read when visible at the bottom, so a hidden one would mark them read) and
+loads fresh messages when it opens (`openChatWindow` server action → `lib/chat-window.ts`, user's RLS).
+While closed, a small Realtime subscription counts new messages for the red badge. Escape or ✕ closes it;
+on phones it covers the screen. Google's zoom buttons moved to the top right to leave it the corner.
+
+Testing tip: delete a test member's `chat_messages` before deleting the user. Otherwise the messages stay
+with no sender, and no sender means "WayWay" in the chat.
 
 ## AI
 

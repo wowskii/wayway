@@ -6,7 +6,7 @@
 // Counting here (in the browser, once per page load) rather than in the server page matters: in
 // development the server page re-renders on every file save, which would count loads that never happen.
 import { useEffect, useRef, useState } from "react";
-import { AdvancedMarker, APIProvider, Map, Polyline, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, APIProvider, ControlPosition, Map, Polyline, useMap } from "@vis.gl/react-google-maps";
 import type { Leg, WalkRoute } from "@/lib/itinerary/legs";
 import type { PlanStop } from "@/lib/itinerary/view";
 import { GROUP_COLOR } from "./colors";
@@ -62,6 +62,7 @@ export function MapView(props: Props) {
         gestureHandling="greedy"
         disableDefaultUI
         zoomControl
+        zoomControlOptions={{ position: ControlPosition.RIGHT_TOP }}   // bottom right = the group chat button
         clickableIcons={false}       // no Google pop-ups on other places: our pins are the content
         className="h-full w-full"
       >
