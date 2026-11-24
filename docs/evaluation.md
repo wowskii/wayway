@@ -90,6 +90,18 @@ What it shows:
   persona model v2 and with Mia stating her wish in the chat; the credit rule itself is covered by the offline
   scenarios. **Re-run with v2** before reporting final numbers.
 
+## Smoke test of the app's AI flow (no database)
+
+`npm run smoke:ai` calls the app's own AI switches (`src/lib/ai/*`, real mode) with inputs shaped like the API
+services build them, and runs the Role 4 logic on the answers: interview (3 turns) → @WayWay time → options →
+private feedback → round 2 → vote → itinerary → group messages. About 15 AI calls, stops above 40.
+`-- --fake-llm` runs it with no network. Not covered: database, RLS, timers, UI.
+
+November 24 (claude-sonnet-5.5): 18/18 checks, 15 calls, ~37k input / 10k output tokens, 77 s. Generating options
+took ~31 s and revising ~27 s. Finding: in round 2 the kept options keep their round-1 estimates (Tom said
+`lean_not_go` on B, B still showed Tom = `want_to_go`), so the 2 new candidates ranked below them and the cards
+looked the same as round 1.
+
 ## To fill in with the real model (final runs)
 
 Ask Simon before spending on the OpenRouter key (about US$1-1.5 per run). Then:
