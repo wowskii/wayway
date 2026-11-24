@@ -45,7 +45,11 @@ Set `WAYWAY_DEBUG=1` to log every call and validation result.
    estimates they want it (`want_to_go` or better), a rendezvous spot open at a time inside the slot.
 6. No private words (notes, private statements, allergies, budget, critiques, reaction reasons) in group-visible text,
    matched as whole words; public vocabulary (spot names, areas, diets, public statements) is never flagged.
+   Checked per private sentence: allergens, the budget and one-word sentences leak alone; longer sentences leak
+   when 2 of their words appear together ("tight budget" yes, "a tight schedule" no).
 7. Rounds 2–3: a new candidate satisfies at least as many members as the current candidate.
+8. Activity slots with 3+ members: if no shared option keeps everyone at `same` or better, the first answer must
+   include a split (otherwise one retry asks for it).
 
 Invalid candidates are dropped; if too few remain, the model gets **one retry** with the exact errors.
 A cut-off answer (`finish_reason: "length"`), a missing tool call or broken JSON is retried from the clean prompt
