@@ -31,8 +31,10 @@ result files of the same `evalVersion`, currently 2).
 - In a revote the personas vote exactly as before, so a first tie always ends with the candidate option
   (`tie_candidate`). Ties count says how often the AI gave two equally good options, not how people revote.
 - The baseline is weak (every estimate is `same`): it is a floor, not a competitor.
-- Credit rule kept as specified (team decision, 2026-11-23): a member for whom every option is bad has a
-  favorite tied with the winner, so her balance resets instead of growing. Scenario 4 can show 0 credits for her.
+- Credits (changed 2026-11-24, PR #12): a member for whom every option is bad now earns +1 instead of a reset.
+  In a simulation (3,000 trips × 10 decisions) this helps the minority member slightly (satisfaction 0.84 → 0.88)
+  at almost no cost to the others, and voting everything low to earn credits does not pay. A member who rates
+  every option `same` still resets (she lost nothing).
 - Travel times are straight-line estimates.
 
 ## Scenarios
