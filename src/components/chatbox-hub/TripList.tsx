@@ -1,17 +1,17 @@
-// The trip list on the left (the current trip is highlighted), under a "Trip Manager" button that
+// The trip list on the left (the current trip is highlighted), under a "My trips" button that
 // goes back to the trip selection screen (home page "My trips").
 import Link from "next/link";
 import type { HubTrip } from "@/lib/chatbox-trip-hub/types";
 
 export function TripList({ trips, currentId }: { trips: HubTrip[]; currentId: string }) {
   return (
-    <nav aria-label="Trip Manager" className="min-h-0 flex-1 overflow-y-auto p-3">
+    <nav aria-label="My trips" className="min-h-0 flex-1 overflow-y-auto p-3">
       <Link
         href="/"
         title="All my trips"
         className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-line bg-card px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-brand hover:text-brand"
       >
-        Trip Manager
+        My trips
         <span aria-hidden className="text-sm">›</span>
       </Link>
       <ul className="flex flex-col gap-1">

@@ -14,6 +14,18 @@ export interface HubMember {
   name: string;
 }
 
+/** The trip shown on the page. organizerId: the member who created it (only they remove people). */
+export interface HubTripInfo {
+  id: string;
+  name: string;
+  timezone: string;
+  inviteCode: string;
+  organizerId: string | null;
+  city: string;
+  startDate: string;   // YYYY-MM-DD
+  endDate: string;
+}
+
 /** One trip in the "Your trips" list (group selection). */
 export interface HubTrip {
   id: string;

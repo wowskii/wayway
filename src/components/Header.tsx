@@ -3,11 +3,12 @@ import { logOut } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui";
 
 // Top bar: logo (back to my trips), the user's name and a log-out button.
-// wide: full-width bar for the trip page (sidebar + chat), instead of the centered 5xl column.
+// wide: full-width bar for the trip page (sidebar + chat), instead of the centered 5xl column
+// (relative: the trip tabs line up with the sidebar's edge).
 export function Header({ displayName, children, wide = false }: { displayName: string; children?: React.ReactNode; wide?: boolean }) {
   return (
     <header className="border-b border-line bg-card">
-      <div className={`mx-auto flex h-16 items-center gap-4 px-4 ${wide ? "max-w-none" : "max-w-5xl"}`}>
+      <div className={`mx-auto flex h-16 items-center gap-4 px-4 ${wide ? "relative max-w-none" : "max-w-5xl"}`}>
         <Link href="/" aria-label="My trips">
           <Logo />
         </Link>

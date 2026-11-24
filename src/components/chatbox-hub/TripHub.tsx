@@ -20,13 +20,17 @@ import type { InterviewProgress } from "@/lib/ai/types";
 import type { InterviewMessage } from "@/lib/interview/types";
 import type { SuggestionSet } from "@/lib/chatbox-trip-hub/types";
 import { parseSeen, readSeenRaw, unreadCount } from "@/lib/chatbox-trip-hub/seen";
-import type { HubMember, HubTrip, ItineraryData, PanelId, SuggestionsData } from "@/lib/chatbox-trip-hub/types";
+import type { HubMember, HubTrip, HubTripInfo, ItineraryData, PanelId, SuggestionsData } from "@/lib/chatbox-trip-hub/types";
 import { FeatureDock } from "./FeatureDock";
+import { GearIcon } from "./icons";
 import { ItineraryPanel } from "./ItineraryPanel";
+import { NotMember } from "./NotMember";
 import { PanelFrame } from "./PanelFrame";
 import { SuggestionsPanel } from "./SuggestionsPanel";
 import { useRoundAdvance } from "./useRoundAdvance";
 import { TripList } from "./TripList";
+import { TripSettings } from "./TripSettings";
+import { useMemberChanges } from "./useMemberChanges";
 
 const seenKey = (tripId: string) => `wayway:itinerary-seen:${tripId}`;
 const noSubscribe = () => () => {};
@@ -58,7 +62,7 @@ export function TripHub({
   itinerary,
   initialPanel,
 }: {
-  trip: { id: string; name: string; timezone: string };
+  trip: HubTripInfo;
   me: HubMember;
   members: HubMember[];
   trips: HubTrip[];
@@ -151,6 +155,25 @@ export function TripHub({
     [trip.id],
   );
   const close = useCallback(() => setPanel(null), []);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // People added / removed in the settings window, shown at once until the reloaded page data has them
+  const [added, setAdded] = useState<HubMember[]>([]);
+  const [gone, setGone] = useState<string[]>([]);
+  const shownMembers = [...members, ...added.filter((a) => !members.some((m) => m.id === a.id))]
+    .filter((m) => !gone.includes(m.id));
+  // Someone joined or was removed (by anyone, from anywhere): reload the page data.
+  // Removed myself: the page turns into "You're not a member of this trip".
+  const [removed, setRemoved] = useState(false);
+  useMemberChanges({
+    tripId: trip.id,
+    memberIds: shownMembers.map((m) => m.id),
+    onJoined: () => router.refresh(),
+    onLeft: (id) => {
+      if (id === me.id) return setRemoved(true);
+      setGone((ids) => (ids.includes(id) ? ids : [...ids, id]));
+      router.refresh();
+    },
+  });
 
   // Escape closes the open tool
   useEffect(() => {
@@ -161,6 +184,8 @@ export function TripHub({
   }, [panel]);
 
   const show = (id: PanelId) => (panel === id ? "flex" : "hidden");
+
+  if (removed) return <NotMember />;
 
   return (
     <div className="flex h-[calc(100dvh-4rem-1px)] overflow-hidden bg-page">
@@ -225,10 +250,21 @@ export function TripHub({
             tripName={trip.name}
             timezone={trip.timezone}
             me={me}
-            members={members}
+            members={shownMembers}
             initialMessages={messages}
             initialReads={reads}
             onWayWayUpdate={onWayWayUpdate}
+            titleAction={
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Trip settings"
+                title="Trip settings"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted hover:bg-card hover:text-ink"
+              >
+                <GearIcon />
+              </button>
+            }
             headerActions={
               <div className="md:hidden">
                 <FeatureDock compact active={panel} badges={badges} counts={counts} onToggle={toggle} />
@@ -237,6 +273,24 @@ export function TripHub({
           />
         </div>
       </div>
+
+      {settingsOpen && (
+        <TripSettings
+          trip={trip}
+          me={me}
+          members={shownMembers}
+          onAdded={(m) => {
+            setAdded((list) => [...list, m]);
+            setGone((ids) => ids.filter((id) => id !== m.id));
+            router.refresh();
+          }}
+          onRemoved={(id) => {
+            setGone((ids) => [...ids, id]);
+            router.refresh();
+          }}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }

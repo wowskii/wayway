@@ -7,12 +7,12 @@ import { toChatMessage } from "@/lib/db/mappers";
 import { getSpot } from "@/lib/spots";
 import { createClient } from "@/lib/supabase/server";
 import { loadSuggestions } from "./suggestions";
-import type { HubMember, HubTrip, ItineraryData, ItineraryEntry, SuggestionsData } from "./types";
+import type { HubMember, HubTrip, HubTripInfo, ItineraryData, ItineraryEntry, SuggestionsData } from "./types";
 
 const MESSAGE_PAGE = 60;   // latest group messages loaded with the page
 
 export interface HubData {
-  trip: { id: string; name: string; timezone: string };
+  trip: HubTripInfo;
   me: HubMember;
   members: HubMember[];
   trips: HubTrip[];
@@ -41,7 +41,7 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
 
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, name, timezone, start_date, end_date")
+    .select("id, name, city, timezone, start_date, end_date, invite_code, created_by")
     .eq("id", tripId)
     .maybeSingle();
   if (!trip) return null;
@@ -117,7 +117,11 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
   };
 
   return {
-    trip: { id: trip.id, name: trip.name, timezone: trip.timezone },
+    trip: {
+      id: trip.id, name: trip.name, timezone: trip.timezone, inviteCode: trip.invite_code,
+      organizerId: memberRows?.find((m) => m.user_id === trip.created_by)?.id ?? null,
+      city: trip.city, startDate: trip.start_date, endDate: trip.end_date,
+    },
     me: { id: meRow.id, name: meRow.name },
     members,
     trips,

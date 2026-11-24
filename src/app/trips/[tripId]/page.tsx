@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { ChatboxTabs } from "@/components/chatbox-hub/ChatboxTabs";
+import { NotMember } from "@/components/chatbox-hub/NotMember";
 import { TripHub } from "@/components/chatbox-hub/TripHub";
 import { requireUser } from "@/lib/auth";
 import { isUuid } from "@/lib/interview/http";
@@ -27,7 +28,15 @@ export default async function TripPage({
 
   const user = await requireUser(`/trips/${tripId}`);
   const hub = await loadHub(tripId, user.id);
-  if (!hub) notFound();
+  if (!hub) {
+    // Not in this trip (removed by the organizer, trip deleted, or someone else's link): say so
+    return (
+      <>
+        <Header displayName={user.displayName} />
+        <NotMember />
+      </>
+    );
+  }
 
   // The private chat with WayWay (posts WayWay's greeting the first time, like the interview page)
   const privateState = await getInterviewState(tripId);

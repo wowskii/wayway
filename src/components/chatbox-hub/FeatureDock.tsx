@@ -9,7 +9,7 @@ import type { PanelId } from "@/lib/chatbox-trip-hub/types";
 import { ItineraryIcon, PrivateChatIcon, RateIcon } from "./icons";
 
 export const DOCK_ITEMS: { id: PanelId; label: string; title: string; Icon: typeof RateIcon }[] = [
-  { id: "private", label: "WayWay", title: "Private chat with WayWay", Icon: PrivateChatIcon },
+  { id: "private", label: "Profile", title: "Private chat with WayWay", Icon: PrivateChatIcon },
   { id: "suggestions", label: "Suggestions", title: "Spot suggestions: tell WayWay what you think", Icon: RateIcon },
   { id: "itinerary", label: "Itinerary", title: "Proposed itinerary", Icon: ItineraryIcon },
 ];

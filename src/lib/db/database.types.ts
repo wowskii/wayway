@@ -379,7 +379,18 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "google_usage_take":
+            "add_member_to_trip":
+{ Args: { "p_trip_id": string,"p_user_id": string }; Returns: string
+                           },
+"add_trip_member":
+{ Args: { "p_trip_id": string,"p_user_id": string }; Returns: string
+                           },
+"create_trip":
+{ Args: { "p_city": string,"p_end_date": string,"p_friend_ids": (string)[],"p_goal": string,"p_name": string,"p_start_date": string }; Returns: {
+              "invite_code": string,"trip_id": string
+            }[]
+                           },
+"google_usage_take":
 { Args: { "p_api": string,"p_limit": number }; Returns: boolean
                            },
 "is_trip_member":
@@ -394,8 +405,16 @@ isOneToOne: false
 "owns_member":
 { Args: { "p_member_id": string }; Returns: boolean
                            },
+"remove_trip_member":
+{ Args: { "p_member_id": string }; Returns: undefined
+                           },
 "save_decision":
 { Args: { "p_credit_events": Json,"p_decision": Json,"p_itinerary": Json,"p_member_states": Json,"p_option_set": Json,"p_option_set_id": string }; Returns: boolean
+                           },
+"search_users":
+{ Args: { "p_query": string,"p_trip_id"?: string }; Returns: {
+              "display_name": string,"email": string,"user_id": string
+            }[]
                            },
 "trip_preview":
 { Args: { "p_invite_code": string }; Returns: {

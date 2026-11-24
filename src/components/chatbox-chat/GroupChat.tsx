@@ -25,6 +25,7 @@ export function GroupChat({
   initialMessages,
   initialReads,
   headerActions,
+  titleAction,
   onWayWayUpdate,
 }: {
   tripId: string;
@@ -35,11 +36,21 @@ export function GroupChat({
   initialMessages: ChatMessage[];
   initialReads: ReadMap;   // chat_reads: memberId -> read up to this createdAt
   headerActions?: ReactNode;
+  /** Shown right after the title (the trip settings gear). */
+  titleAction?: ReactNode;
   /** WayWay posted about an option set (new options, next round, vote, result): refresh the suggestions. */
   onWayWayUpdate?: () => void;
 }) {
   const [supabase] = useState(createClient);
   const [messages, setMessages] = useState(initialMessages);
+  // Someone was removed from the trip (their messages were deleted with them): hide theirs too
+  const memberKey = members.map((m) => m.id).join();
+  const [shownFor, setShownFor] = useState(memberKey);
+  if (shownFor !== memberKey) {
+    setShownFor(memberKey);
+    const ids = new Set(members.map((m) => m.id));
+    setMessages((list) => list.filter((m) => m.senderId === WAYWAY_SENDER_ID || ids.has(m.senderId)));
+  }
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -196,7 +207,10 @@ export function GroupChat({
     <section className="flex h-full min-h-0 flex-col bg-card" aria-label="Group chat">
       <header className="flex items-center gap-3 border-b border-line bg-brand-soft/60 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-semibold">{tripName} · Group chat</h1>
+          <div className="flex min-w-0 items-center gap-1">
+            <h1 className="truncate font-semibold">{tripName} · Group Chat</h1>
+            {titleAction}
+          </div>
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <span className="h-2 w-2 rounded-full bg-brand" aria-hidden />
             {members.length} {members.length === 1 ? "traveler" : "travelers"} · {onlineCount} online · WayWay assistant
