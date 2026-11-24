@@ -9,7 +9,7 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "types": ["node"],
-    "paths": { "@/contracts/*": ["../src/contracts/*"] }
+    "paths": { "@/*": ["../src/*"] }
   },
   "include": ["lib", "scripts", "data"]
 }
