@@ -67,10 +67,11 @@ const publicText = (o: Option) => [o.title, o.explanation, o.fairnessNote ?? "",
 const route = (o: Option) => (o.branches ? o.branches.flatMap((b) => b.spots) : o.spots).join(" > ");
 
 async function main() {
-  // Trip starting today in Tokyo (the app's negotiate call passes no `now`: the real clock is used)
+  // Trip starting TOMORROW in Tokyo. The app's negotiate call passes no `now` (real clock), and a slot that
+  // already started today is refused, so a trip starting today would make the result depend on the hour.
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(new Date());
-  const end = new Date(Date.parse(today) + 2 * 86_400_000).toISOString().slice(0, 10);
-  const trip: Trip = structuredClone({ ...BASE, startDate: today, endDate: end });
+  const day = (n: number) => new Date(Date.parse(today) + n * 86_400_000).toISOString().slice(0, 10);
+  const trip: Trip = structuredClone({ ...BASE, startDate: day(1), endDate: day(3) });
   const [mia, tom, , ken] = trip.members;
   const names = Object.fromEntries(trip.members.map((m) => [m.id, m.name]));
   const iso = () => new Date().toISOString();
@@ -78,7 +79,7 @@ async function main() {
   const pm = (memberId: string, text: string, round: number, n: number): PrivateMessage =>
     ({ id: `p-${memberId}-${round}-${n}`, tripId: trip.id, memberId, sender: "member", round, createdAt: iso(), text });
   const chat: ChatMessage[] = [
-    say("c1", tom.id, "Shibuya this afternoon, no discussion 😎"),
+    say("c1", tom.id, "Shibuya on the first afternoon, no discussion 😎"),
     say("c2", mia.id, "Hmm I'd love to see the National Museum..."),
   ];
   const showScores = (o: Option) => o.scores.map((s) => `${names[s.memberId]}=${s.level}`).join(", ");
@@ -112,7 +113,7 @@ async function main() {
   // ---------- 2. @WayWay: when? (src/lib/chatbox-wayway/service.ts) ----------
   console.log("\n2) @WayWay negotiates the time");
   const { negotiate, generate } = getWayWayAI();
-  const ask = say("c3", tom.id, "@WayWay what should we do this afternoon?");
+  const ask = say("c3", tom.id, "@WayWay what should we do on the first afternoon?");
   chat.push(ask);
   const p1 = await timed("negotiate", () => negotiate({ trip, message: ask, recentChat: chat, pending: undefined, decided: [] }));
   check("negotiate: first answer", ["ask", "propose", "confirm", "change"].includes(p1.action),
