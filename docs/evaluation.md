@@ -43,12 +43,13 @@ result files of the same `evalVersion`, currently 2).
 | 2 · conflict | Museum vs shopping (same group as the AI module's scenario 2), Sarah abstains |
 | 3 · split | Two pairs with opposite interests; Noah refuses to split → best shared option must win |
 | 4 · credits | Four decisions in a row; Mia's taste is opposite to the majority; Sarah abstains |
-| offline 01-04 | Fixed votes: hard filter, conflict, split consent, credits over three decisions (weight cap 1.5) |
+| offline 01-04 | Fixed votes: hard filter, conflict, split consent, credits over four decisions (weight cap 1.5) |
 
 ## Results so far (November 16, synthetic data)
 
-**Offline decision rules (fixed votes)** — all 4 scenarios pass. Credits scenario: Mia 0 → 3 → 6 → 0, weight capped
-at 1.5; the third decision picks B with credits and A without them; Sarah (abstained) keeps her balance.
+**Offline decision rules (fixed votes)** — all 4 scenarios pass. Credits scenario: Mia 0 → 3 → 6 → 0 → 1, weight capped
+at 1.5; the third decision picks B with credits and A without them; in the fourth every option is bad for Mia and
+she earns 1 instead of a reset; Sarah (abstained) keeps her balance.
 
 **Rule-based baseline** (`npm run eval:ai -- --baseline`, no AI, every estimate = `same`, persona model v2):
 the floor the LLM must beat.

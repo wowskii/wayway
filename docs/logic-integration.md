@@ -20,7 +20,7 @@ npm run eval:ai                 # same with the real model (needs OPENROUTER_API
 | `src/lib/logic/constraints.ts` | Hard constraints. `filterSpotsForTrip` (before the AI) and `checkOption` (each proposed route). |
 | `src/lib/logic/options.ts` | `buildOptions`: AI candidates → option cards A / B / C with metrics and fairness sentence. |
 | `src/lib/logic/metrics.ts` | Satisfaction metrics (mean, min, Gini, satisfied ratio, credit-weighted total). |
-| `src/lib/logic/credits.ts` | Fairness credits at the final decision. |
+| `src/lib/logic/credits.ts` | Fairness credits at the final decision: + levels lost between a voter's favourite and the winner (max 3), reset when the favourite wins, except when the winner is below `same` for that voter (every option bad for them): +1 at least, no reset. |
 | `src/lib/logic/voting.ts` | Final vote: quorum, 30-min extension, tie revote, daily "definitely_no" limit, split consent. |
 | `src/lib/logic/itinerary.ts` | Itinerary items for the chosen option; money already committed per member. |
 | `src/lib/logic/persistence.ts` | Supabase rows ↔ voting state (no DB calls, just translation). |
@@ -113,3 +113,4 @@ allergies).
 | Missing split consent | Counts as "no" → best shared option wins (`split_refused`). |
 | Changing a vote away from "definitely_no" | Does not give the use back (max 2 per member per local day). |
 | Still below quorum after the 30-min extension | No decision (`no_quorum`), WayWay asks the group to try again. |
+| Every option is bad for a member, so her "favourite" ties with the winner | She compromised: +1 credit at least, no reset (only when the winner is below `same` for her). Before: reset to 0, so an always-unhappy member never earned credits. Risk: voting everything low to earn credits gains at most +1 per decision. |

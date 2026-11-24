@@ -1,6 +1,6 @@
 {
   "id": "04-cross-decision-credits",
-  "description": "Two compromises bank six credits, weight caps at 1.5, and the third choice resets Mia.",
+  "description": "Two compromises bank six credits, weight caps at 1.5, the third choice resets Mia, and in the fourth every option is bad for Mia: she earns 1 instead of a reset.",
   "members": [
     {
       "id": "tom",
@@ -377,6 +377,107 @@
         "ken": 2
       },
       "unweightedWinner": "A"
+    },
+    {
+      "id": "fourth",
+      "options": [
+        {
+          "id": "A",
+          "kind": "best_total",
+          "title": "Museum route",
+          "spots": [
+            "museum"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "definitely_no",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "must_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        },
+        {
+          "id": "B",
+          "kind": "fairest",
+          "title": "Market and park route",
+          "spots": [
+            "shops",
+            "veg"
+          ],
+          "scores": [
+            {
+              "memberId": "tom",
+              "level": "same",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "ken",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "mia",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            },
+            {
+              "memberId": "sarah",
+              "level": "want_to_go",
+              "source": "ai_estimate",
+              "reason": "Synthetic"
+            }
+          ],
+          "satisfiedMemberIds": [],
+          "explanation": "Synthetic option card.",
+          "assumptions": []
+        }
+      ],
+      "votes": {
+        "tom": [
+          "must_go",
+          "lean_not_go"
+        ],
+        "ken": [
+          "must_go",
+          "lean_not_go"
+        ],
+        "mia": [
+          "lean_not_go",
+          "lean_not_go"
+        ]
+      },
+      "expectedWinner": "A",
+      "expectedCredits": {
+        "mia": 1,
+        "sarah": 2,
+        "tom": 0,
+        "ken": 0
+      }
     }
   ],
   "startingCredits": {

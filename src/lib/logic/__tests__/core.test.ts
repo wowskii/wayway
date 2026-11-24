@@ -7,6 +7,7 @@ import { creditWeight, rankOptions, ratingMap, summarize } from "@/lib/logic/met
 import { advancePoll, castVote, quorumNeeded, startPoll } from "@/lib/logic/voting";
 import type { Poll } from "@/lib/logic/voting";
 import { estimateAccuracy, literalPrivacyHits, publicOptionFacts } from "@/lib/logic/evaluation";
+import { settleCredits } from "@/lib/logic/credits";
 import { offlineScenarios, runOffline } from "../../../../eval/offline";
 
 const [hard, conflict, split] = offlineScenarios();
@@ -202,3 +203,21 @@ test("privacy scan catches injected leaks; the facts-only card is clean", () => 
 });
 
 void hard;
+
+test("credits: favourite wins -> reset; compromise -> levels lost (max 3); every option bad -> +1, no reset", () => {
+  type L = SatisfactionLevel;
+  const ballot = (a: L, b: L) => new Map([["A", { optionSetId: "os", optionId: "A", memberId: "m", level: a }],
+    ["B", { optionSetId: "os", optionId: "B", memberId: "m", level: b }]] as const);
+  const settle = (a: L, b: L, before = 2) => {
+    const { balances, events } = settleCredits("os", "A", ["A", "B"], new Map([["m", ballot(a, b)]]), { m: before });
+    return [balances.m, events[0]?.reason ?? null];
+  };
+  assert.deepEqual(settle("must_go", "same"), [0, "favorite_chosen"]);                 // unchanged
+  assert.deepEqual(settle("same", "same"), [0, "favorite_chosen"]);                    // tie but the winner is ok for her
+  assert.deepEqual(settle("lean_not_go", "want_to_go"), [4, "compromise"]);            // lost 2 levels
+  assert.deepEqual(settle("definitely_no", "must_go"), [5, "compromise"]);             // lost 4, capped at 3
+  // The gap (team decision 2026-11-23): every option is bad for her, so her "favourite" ties with the winner.
+  assert.deepEqual(settle("lean_not_go", "lean_not_go"), [3, "compromise"]);           // was: reset to 0
+  assert.deepEqual(settle("definitely_no", "definitely_no", 0), [1, "compromise"]);    // was: 0
+  assert.deepEqual(settle("definitely_no", "lean_not_go"), [3, "compromise"]);         // lost 1 level: same as before
+});
