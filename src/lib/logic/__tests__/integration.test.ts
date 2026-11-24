@@ -2,16 +2,16 @@
 // on the real shared dataset. Run: npm run test:logic
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { MemberScore, OptionSet, SatisfactionLevel } from "@/contracts/contract";
+import type { MemberScore, Option, OptionSet, SatisfactionLevel } from "@/contracts/contract";
 import { buildOptions, pickCandidateId } from "@/lib/logic/options";
 import type { BuildMember, CandidateLike } from "@/lib/logic/options";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { SPOTS, SPOTS_BY_ID, SPOT_INDEX, validateDataset } from "@/lib/logic/dataset";
-import { advancePoll, castVote } from "@/lib/logic/voting";
+import { advancePoll, castVote, startPoll } from "@/lib/logic/voting";
 import { decisionRows, memberStateUpdates, optionSetUpdate, pollFromRows, voteFromRow, voteToRow } from "@/lib/logic/persistence";
 import type { OptionSetRow } from "@/lib/logic/persistence";
 import { itineraryFromOption, spentFromItinerary } from "@/lib/logic/itinerary";
-import { evaluateRun, personaRating, privateCanaries } from "@/lib/logic/evaluation";
+import { aiErrorKind, evaluateRun, personaRating, privateCanaries } from "@/lib/logic/evaluation";
 
 const members: BuildMember[] = [
   { id: "mia", name: "Mia", hard: { diet: ["vegetarian"], allergies: [], maxBudget: 40000 } },
@@ -70,6 +70,18 @@ test("pickCandidateId: highest min, then highest mean, then the earlier card", (
   assert.equal(pickCandidateId([o("A", "same", "same"), o("B", "same", "want_to_go")]), "B");             // same min, mean
   assert.equal(pickCandidateId([o("A", "same", "want_to_go"), o("B", "want_to_go", "same")]), "A");       // full tie: A
   assert.equal(pickCandidateId([]), null);
+});
+
+test("only a split survives the filter: the candidate is C and the final poll opens (was 'Invalid final poll')", () => {
+  const { options, candidateOptionId } = buildOptions([split], members, SPOT_INDEX);
+  assert.deepEqual(options.map(o => o.id), ["C"]);
+  assert.equal(candidateOptionId, "C");
+  const set = (candidate: "A" | "C"): OptionSet => ({ id: "os", tripId: "t", round: 2, options, candidateOptionId: candidate,
+    slot: { day: 1, start: "13:00", end: "17:00", label: "Afternoon" }, status: "voting",
+    roundDeadline: "2026-11-21T08:00:00Z", voteDeadline: "2026-11-21T08:00:00Z" });
+  const guard = { members, spots: SPOT_INDEX };
+  assert.throws(() => startPoll(set("A"), guard, "Asia/Tokyo", {}), /Invalid final poll/);   // the old eval runner always passed "A"
+  assert.equal(startPoll(set(candidateOptionId!), guard, "Asia/Tokyo", {}).outcome, "open");
 });
 
 test("buildOptions shows the same route only once (the first one wins, e.g. the kept candidate)", () => {
@@ -182,9 +194,52 @@ test("personas and the run report: violations, estimate accuracy and privacy lea
     publicPayloads: [{ text: "Here are 3 options!" }, { text: "Sarah said money is tight this month" }],
     references: [{ tripId: "t", optionSetId: "os", round: 1, attempt: 1, optionId: "A", memberId: "mia", level: "must_go" }],
   }, SPOT_INDEX);
-  assert.equal(report.proposedRoutes.withViolations, 0);
+  assert.equal(report.shownRoutes.withViolations, 0);
   assert.equal(report.estimateAccuracy.exactMatch, 1);
   assert.equal(report.privacy.payloadsWithLeaks, 1);
+});
+
+test("evaluateRun: AI errors by kind, estimate accuracy per round, carried-over cards counted once", () => {
+  // Messages as written by the AI module's validator (wayway-ai/lib/ai/options.ts).
+  assert.equal(aiErrorKind("Candidate 2: the path ends at 14:15 including travel, too late (limit 13:30). Use closer spots or fewer."), "too_late");
+  assert.equal(aiErrorKind('Candidate 1: unknown spot id "ichiran_shibuya" (use only <allowed_spots>).'), "unknown_spot");
+  assert.equal(aiErrorKind('Candidate 1: "tnm" is closed during its visit (17:00-18:30, open 09:30-17:00). Reorder or replace it.'), "closed");
+  assert.equal(aiErrorKind("Candidate 3: group-visible text reveals private information (budget). Rewrite neutrally."), "privacy_leak");
+  assert.equal(aiErrorKind("Candidate 1: Mia would be alone in a branch without wanting it (needs want_to_go or must_go)."), "lone_member");
+  assert.equal(aiErrorKind("Candidate 2: the path must be exactly one food spot (meal slot)."), "meal_rule");
+  assert.equal(aiErrorKind("Candidate 1: member Tom needs exactly one score (found 0)."), "scores");
+  assert.equal(aiErrorKind("Candidate 2: repeats an option our code already keeps."), "duplicate");
+  assert.equal(aiErrorKind("something new"), "other");
+
+  const { options: [a, b] } = buildOptions([museum, shopping], members, SPOT_INDEX);
+  const est = (o: Option, id: string) => o.scores.find(s => s.memberId === id)!.level;
+  const wrong = (level: SatisfactionLevel): SatisfactionLevel => (level === "must_go" ? "definitely_no" : "must_go");
+  const ref = (round: number, o: Option, memberId: string, level: SatisfactionLevel) =>
+    ({ tripId: "t", optionSetId: "os", round, attempt: 1, optionId: o.id, memberId, level });
+  const trip = { id: "t", name: "T", city: "Tokyo", startDate: "2026-11-21", endDate: "2026-11-23", timezone: "Asia/Tokyo",
+    goal: "balanced" as const, members: members.map(m => ({ ...m, interests: [], pace: "moderate" as const, sleep: "flexible" as const,
+      privateNote: "", preferenceStatements: [], fairnessCredits: 0, definitelyNoUsedToday: 0 })) };
+  const report = evaluateRun({
+    trip, publicPayloads: [],
+    optionSets: [{ id: "os", round: 1, options: [a] }, { id: "os", round: 2, options: [a, b], carriedOver: ["A"] }],
+    references: [
+      ref(1, a, "mia", est(a, "mia")),                 // round 1: right
+      ref(2, a, "mia", wrong(est(a, "mia"))),          // A was carried over: its round-1 estimate is not scored again
+      ref(2, b, "mia", est(b, "mia")),                 // round 2: right
+      ref(2, b, "tom", wrong(est(b, "tom"))),          // round 2: wrong
+    ],
+    aiRejected: ["Candidate 1: \"tnm\" is closed during its visit (x).", "Candidate 2: ends at 14:15 including travel, too late (limit 13:30)."],
+    dropped: [{ reason: "hard_constraint", issues: [{ code: "diet_mismatch" }, { code: "diet_mismatch" }] }, { reason: "duplicate_route", issues: [] }],
+  }, SPOT_INDEX);
+  assert.deepEqual([report.estimateAccuracy.round1.n, report.estimateAccuracy.round1.exactMatch], [1, 1]);
+  assert.deepEqual([report.estimateAccuracy.laterRounds.n, report.estimateAccuracy.laterRounds.exactMatch], [2, 0.5]);
+  assert.equal(report.estimateAccuracy.n, 3);
+  assert.deepEqual(report.aiErrors, {
+    caughtByAiCheck: { total: 2, byKind: { closed: 1, too_late: 1 } },
+    caughtByRole4: { total: 1, byCode: { diet_mismatch: 1 } },
+    duplicateRoutes: 1,
+  });
+  assert.equal(report.shownRoutes.checked, 3);
 });
 
 void ({} as OptionSet);

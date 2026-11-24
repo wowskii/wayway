@@ -15,6 +15,7 @@
     "test:logic": "tsx --test src/lib/logic/__tests__/*.test.ts",
     "eval:offline": "tsx eval/offline.ts",
     "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts",
+    "eval:aggregate": "tsx eval/aggregate.ts",
     "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
     "match:places": "node --env-file=.env.local scripts/match-places.mjs",
     "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",

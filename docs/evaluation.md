@@ -5,10 +5,10 @@
 | Measure | How | Code |
 |---|---|---|
 | Valid structured AI outputs | AI calls whose JSON passed validation the first time / all calls | `eval/run-ai.ts` (from `attempts`) |
-| Candidates thrown away by code | Rejected by the AI module's checks + dropped by the Role 4 hard filter | `buildOptions().dropped` |
-| Constraint violations | Proposed and final routes checked again for budget (per member path), diet, known allergens, unknown spots | `checkOption`, `evaluateRun` |
-| AI estimate accuracy | AI `ai_estimate` level vs the member's rating, same option set / round / option / member: exact match, within one level, mean gap in levels (0-4) | `estimateAccuracy` |
-| Privacy leaks | Every text the group sees (WayWay messages, card title / explanation / assumptions / fairness note) scanned for private markers: budgets, allergies, private note, `[private]` statements, scenario phrases | `privateCanaries`, `literalPrivacyHits` |
+| AI errors caught by code | Every problem the AI module's validator found (grouped by kind: unknown spot, closed during the visit, too late, diet, meal-slot rule, lone member, split shape, scores, privacy leak, duplicate) + candidates the Role 4 filter dropped (by issue code: diet, allergen, budget, unknown spot) | `aiErrorKind`, `buildOptions().dropped` |
+| Unsafe routes shown / decided | Every card shown to the group (all rounds) and every decided route checked again for budget (per member path), diet, known allergens, unknown spots. Expected 0: it shows that the safety net holds, not that the AI never errs (that is the row above) | `checkOption`, `evaluateRun` |
+| AI estimate accuracy | AI `ai_estimate` level vs the member's rating, same option set / round / option / member: exact match, within one level, mean gap in levels (0-4). **Reported per round**: round 1 = cold guess; round 2+ = after the members' reactions were given to the AI. A card carried over from round 1 is scored once (its estimate was made in round 1) | `estimateAccuracy`, `evaluateRun` |
+| Privacy leaks | Every text the group sees **in every round** (WayWay messages, card title / explanation / assumptions / fairness note) scanned for private markers: budgets, allergies, private note, `[private]` statements, scenario phrases | `privateCanaries`, `literalPrivacyHits` |
 | Decision rules | Quorum, extension, tie revote, split consent, credits | `eval/offline.ts`, `npm run test:logic` |
 
 **References.** The four persona scenarios (`eval/scenarios/personas/`) use scripted personas (persona model
@@ -19,8 +19,21 @@ member hates caps the option at `lean_not_go`; a stop that breaks the member's h
 v1 (plain rounded mean) produced too many ties when the AI mixed two kinds of stops, so v1 and v2 numbers are
 not comparable.
 
-**Limits.** The privacy scan is literal: a paraphrase ("someone is short on money") is not caught, so public texts
-of the real runs must also be read by a person. Travel times are straight-line estimates.
+**Several runs.** The model is not deterministic: each configuration is run 3 times and reported as mean and
+range with `npm run eval:aggregate` (pools only runs with the same generator, rounds and persona model, and
+result files of the same `evalVersion`, currently 2).
+
+**Limits (to state in the report).**
+- The privacy scan is literal: a paraphrase ("someone is short on money") is not caught, so public texts of the
+  real runs must also be read by a person.
+- The personas are clean and written by us (no "anything is fine", typos or changes of mind), and they are
+  labels, not human votes. Live test sessions are reported separately.
+- In a revote the personas vote exactly as before, so a first tie always ends with the candidate option
+  (`tie_candidate`). Ties count says how often the AI gave two equally good options, not how people revote.
+- The baseline is weak (every estimate is `same`): it is a floor, not a competitor.
+- Credit rule kept as specified (team decision, 2026-11-23): a member for whom every option is bad has a
+  favorite tied with the winner, so her balance resets instead of growing. Scenario 4 can show 0 credits for her.
+- Travel times are straight-line estimates.
 
 ## Scenarios
 
@@ -47,6 +60,9 @@ the floor the LLM must beat.
 | 3 · split | 0/2 | 0/1 | 50% / 100% / 0.50 (n=8) | 0/3 | 1/1 (0) |
 | 4 · credits | 0/8 | 0/4 | 34% / 63% / 1.03 (n=32) | 0/12 | 4/4 (1) |
 
+*The two tables below use the first version of the measures (eval version 1: violations counted on shown routes
+only, accuracy over all rounds, privacy on the final round only). Final numbers use version 2.*
+
 **First run with the real model** (November 17, `anthropic/claude-sonnet-5.5`, prompt v3, 2 rounds, persona model v1):
 
 | Scenario | Valid outputs (1st try) | Thrown away by AI check / hard filter | Violations proposed / final | Estimate exact / ±1 / gap | Leaks | Decisions (ties) |
@@ -71,20 +87,29 @@ What it shows:
   persona model v2 and with Mia stating her wish in the chat; the credit rule itself is covered by the offline
   scenarios. **Re-run with v2** before reporting final numbers.
 
-## To fill in with the real model (after the OpenRouter key)
+## To fill in with the real model (final runs)
 
-Run `npm run eval:ai` (3 runs, to see the variance), keep the JSON from `eval/results/`, and fill:
+Ask Simon before spending on the OpenRouter key (about US$1-1.5 per run). Then:
 
-Run ID [ ] · Commit [ ] · Model / prompt version [ ] · Date [ ]
+```bash
+npm run eval:ai          # 3 times (real model, 2 rounds); each run writes eval/results/<date>-wayway-ai.json
+npm run eval:aggregate -- --generator wayway-ai --since <date of the first run>
+npm run eval:ai -- --baseline && npm run eval:aggregate -- --generator baseline
+```
 
-| Measure | Value | Notes / failing examples |
+Paste the aggregate tables here, then fill:
+
+Commit [ ] · Model / prompt version [ ] · Dates [ ]
+
+| Measure | Value (mean, range over 3 runs) | Notes / failing examples |
 |---|---|---|
-| Valid structured outputs | [valid / total] | |
-| Candidates thrown away by code | [n (AI check / hard filter)] | |
-| Proposed routes with violations | [n / checked] | should be 0 (code filters them) |
-| Final routes with violations | [n / checked] | must be 0 |
-| Estimate accuracy | [exact / ±1 / gap, n] | compare with the baseline above |
-| Public texts with literal leaks | [n / texts] | |
-| Public texts with paraphrased leaks (read by a person) | [n / texts] | |
-| Decisions reached | [decided / slots] | |
+| Valid AI outputs | [ ] | |
+| AI errors caught by code, by kind | [ ] | which kinds the prompt should fix (Role 3) |
+| Unsafe routes shown to the group | [ ] | must be 0 |
+| Decided routes with violations | [ ] | must be 0 |
+| Estimate exact, round 1 / round 2+ | [ ] | compare with the baseline |
+| Estimate within ±1 level, mean gap | [ ] | |
+| Public texts with literal leaks | [ ] | |
+| Public texts with paraphrased leaks (read by a person) | [ ] | |
+| Ties settled by the candidate / credit changes | [ ] | see limits |
 | Live test sessions (4 people) | [summary] | separate from personas |

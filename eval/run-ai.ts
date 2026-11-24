@@ -1,15 +1,16 @@
 // AI evaluation runner (Role 4, report section 1.4).
-// Runs every persona scenario through: hard filter -> options generator -> buildOptions -> (revision round)
-// -> scripted persona votes -> decision -> credits -> itinerary, and measures:
-//   valid structured responses, constraint violations (proposed / final), AI estimate accuracy
-//   against the personas, literal privacy leaks in everything the group sees, decisions and credits.
+// Runs every persona scenario through: hard filter -> options generator -> buildOptions -> WayWay message
+// -> (revision round -> buildOptions -> message) -> scripted persona votes -> decision -> credits -> itinerary,
+// and measures: valid structured responses, AI errors caught by code (by kind), unsafe routes shown / decided,
+// AI estimate accuracy against the personas per round, literal privacy leaks in everything the group sees in
+// every round, decisions and credits. Several runs: npm run eval:aggregate (mean and range).
 //
 //   npm run eval:ai -- --baseline          rule-based generator built in here (no AI module, no key)
 //   npm run eval:ai -- --mock              Simon's AI module with its fake model (needs feature/ai-module merged)
 //   npm run eval:ai                        Simon's AI module with the real model (needs OPENROUTER_API_KEY)
 //   options: --scenario scenario3_split    --rounds 1|2    --json
 // Results are saved in eval/results/ (scenario data is synthetic: safe to commit).
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import type { ChatMessage, Option, OptionSet, SatisfactionLevel, Spot, TimeSlot, Trip } from "@/contracts/contract";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { EVIDENCE, SPOTS, SPOTS_BY_ID, SPOT_INDEX } from "@/lib/logic/dataset";
@@ -20,6 +21,12 @@ import { itineraryFromOption, spentFromItinerary, travelMin } from "@/lib/logic/
 import { PERSONA_MODEL, evaluateRun, personaRating, publicCardText } from "@/lib/logic/evaluation";
 import type { Observation, Persona } from "@/lib/logic/evaluation";
 import type { Balances } from "@/lib/logic/metrics";
+import { METRICS, breakdown, countsOf, fmt } from "./summary";
+
+/** Bump when what a result file measures changes (aggregate.ts only pools files of the same version). */
+const EVAL_VERSION = 2;
+/** Same stops (or same branches) = same route, whatever its title or id. */
+const routeKey = (o: Pick<Option, "spots" | "branches">) => JSON.stringify(o.branches?.length ? o.branches.map(b => b.spots) : o.spots);
 
 type Scenario = {
   id: string; description: string; expected: string[]; trip: Trip; canaries: string[];
@@ -109,19 +116,18 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
   const name = new Map(members.map(m => [m.id, m.name]));
   let credits: Balances = {};
   const itinerary: ReturnType<typeof itineraryFromOption> = [];
-  const optionSets: { id: string; round: number; options: Option[] }[] = [];
+  const optionSets: { id: string; round: number; options: Option[]; carriedOver?: Option["id"][] }[] = [];
   const publicPayloads: unknown[] = [];
   const references: Observation[] = [];
   const finalOptions: Option[] = [];
   const decisions: Record<string, unknown>[] = [];
   let total = 0, invalid = 0;
-  // Candidates the AI produced that code had to throw away (AI validator + Role 4 hard filter).
-  const candidates = { kept: 0, rejectedByAiValidator: 0, droppedByLogic: 0, duplicates: 0 };
+  // What code had to throw away: AI module validator messages + Role 4 buildOptions().dropped.
+  const aiRejected: string[] = [];
+  const dropped: ReturnType<typeof buildOptions>["dropped"] = [];
   const tally = (g: Generated, built: ReturnType<typeof buildOptions>) => {
-    candidates.rejectedByAiValidator += g.rejected?.length ?? 0;
-    candidates.duplicates += built.dropped.filter(d => d.reason === "duplicate_route").length;
-    candidates.droppedByLogic += built.dropped.filter(d => d.reason !== "duplicate_route").length;
-    candidates.kept += built.options.length;
+    aiRejected.push(...(g.rejected ?? []));
+    dropped.push(...built.dropped);
   };
 
   for (const [index, { slot, chat }] of s.slots.entries()) {
@@ -130,6 +136,13 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
     const allowed = filterSpotsForTrip(SPOTS, members, { evidence: EVIDENCE, spentByMember: spent }).allowed;
     const rate = (o: Option, memberId: string) => personaRating(o, persona.get(memberId)!, members.find(m => m.id === memberId)!, SPOT_INDEX);
     let options: Option[] = [];
+    let text = "";
+    // Every round is posted to the group: its cards and a WayWay message (all scanned for privacy).
+    const announce = async () => {
+      const favored = options[0].fairnessNote ? members.find(m => options[0].fairnessNote!.startsWith(m.name))?.name : undefined;
+      text = await gen.message(trip, slot, options, chat, favored);
+      publicPayloads.push({ text }, ...options.map(publicCardText));
+    };
     try {
       const g = await gen.generate(trip, slot, allowed, chat);
       total += g.attempts; invalid += g.attempts - 1;
@@ -139,6 +152,7 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
       let candidateId = built.candidateOptionId;
       let setId = `${s.id}-${index + 1}`;
       optionSets.push({ id: setId, round: 1, options });
+      if (options.length) await announce();
       for (let round = 2; round <= rounds && gen.revise && options.length; round++) {
         const reactions = options.flatMap(o => members.map(m => ({ memberId: m.id, optionId: o.id, level: rate(o, m.id).level, reason: "persona" })));
         for (const r of reactions) references.push({ tripId: trip.id, optionSetId: setId, round: round - 1, attempt: 1, optionId: r.optionId, memberId: r.memberId, level: r.level });
@@ -152,7 +166,9 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
         options = rebuilt.options;
         candidateId = rebuilt.candidateOptionId;
         setId = `${s.id}-${index + 1}`;
-        optionSets.push({ id: setId, round, options });
+        const keptKeys = new Set(kept.map(routeKey));
+        optionSets.push({ id: setId, round, options, carriedOver: options.filter(o => keptKeys.has(routeKey(o))).map(o => o.id) });
+        if (options.length) await announce();
       }
     } catch (error) {
       decisions.push({ slot: label, error: (error as Error).message });
@@ -164,9 +180,6 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
     for (const o of options) for (const m of members) {
       references.push({ tripId: trip.id, optionSetId: setId, round: finalRound, attempt: 1, optionId: o.id, memberId: m.id, level: rate(o, m.id).level });
     }
-    const favored = options[0].fairnessNote ? members.find(m => options[0].fairnessNote!.startsWith(m.name))?.name : undefined;
-    const text = await gen.message(trip, slot, options, chat, favored);
-    publicPayloads.push({ text }, ...options.map(publicCardText));
 
     // Final vote by the personas.
     const start = Date.parse(`${trip.startDate}T00:00:00Z`) + (slot.day - 1) * 86_400_000;
@@ -212,12 +225,10 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
     });
   }
   const report = evaluateRun({ trip: s.trip, optionSets, publicPayloads, references, finalOptions,
-    invalidResponses: invalid, totalResponses: total, extraCanaries: s.canaries }, SPOT_INDEX);
-  return { scenario: s.id, description: s.description, expected: s.expected, report: { ...report, candidates }, decisions,
+    invalidResponses: invalid, totalResponses: total, extraCanaries: s.canaries, aiRejected, dropped }, SPOT_INDEX);
+  return { scenario: s.id, description: s.description, expected: s.expected, report, aiRejected, decisions,
     itinerary: itinerary.map(i => ({ ...i, branches: i.branches?.map(b => ({ members: b.memberIds.map(id => name.get(id)), spots: b.spots })) })) };
 }
-
-const pct = (x: number | null | undefined) => (x === null || x === undefined ? "n/a" : `${Math.round(x * 100)}%`);
 
 async function main() {
   const args = process.argv.slice(2);
@@ -230,26 +241,27 @@ async function main() {
     .filter(s => !value("--scenario") || s.id === value("--scenario"));
   const results = [];
   for (const s of scenarios) results.push(await runScenario(s, gen, rounds));
-  const run = { generator: gen.name, rounds, personaModel: PERSONA_MODEL, date: new Date().toISOString(), results };
+  const run = { evalVersion: EVAL_VERSION, generator: gen.name, rounds, personaModel: PERSONA_MODEL, date: new Date().toISOString(), results };
   mkdirSync(new URL("./results/", import.meta.url), { recursive: true });
-  const file = new URL(`./results/${run.date.slice(0, 16).replace(/[:T]/g, "-")}-${gen.name.split(" ")[0]}.json`, import.meta.url);
+  const stem = `./results/${run.date.slice(0, 19).replace(/[:T]/g, "-")}-${gen.name.split(" ")[0]}`;
+  let file = new URL(`${stem}.json`, import.meta.url);
+  for (let k = 2; existsSync(file); k++) file = new URL(`${stem}-${k}.json`, import.meta.url);   // never overwrite a run
   writeFileSync(file, JSON.stringify(run, null, 2) + "\n");
   if (args.includes("--json")) return console.log(JSON.stringify(run, null, 2));
 
   console.log(`Generator: ${gen.name} · rounds: ${rounds} · persona model ${PERSONA_MODEL}\n`);
-  console.log("| Scenario | Valid AI outputs | Candidates thrown away by code | Proposed routes with violations | Final routes with violations | Estimate exact / ±1 level / mean gap | Public texts with leaks | Decisions (ties) | Credit changes |");
-  console.log("|---|---|---|---|---|---|---|---|---|");
+  console.log(`| Scenario | ${METRICS.map(m => m.label).join(" | ")} |`);
+  console.log(`|---|${METRICS.map(() => "---").join("|")}|`);
   for (const r of results) {
-    const e = r.report.estimateAccuracy;
-    const j = r.report.jsonValidity;
-    const decided = r.decisions.filter(d => d.winner).length;
-    const ties = r.decisions.filter(d => d.resolvedBy === "tie_candidate").length;
-    const creditChanges = r.decisions.reduce((n, d) => n + Object.values((d.credits ?? {}) as Record<string, string>)
-      .filter(v => v.split("→")[0] !== v.split("→")[1]).length, 0);
-    const c = r.report.candidates;
-    console.log(`| ${r.scenario} | ${j ? `${j.valid}/${j.total}` : "n/a"} | ${c.rejectedByAiValidator + c.droppedByLogic} (AI check ${c.rejectedByAiValidator}, hard filter ${c.droppedByLogic}) | ${r.report.proposedRoutes.withViolations}/${r.report.proposedRoutes.checked} | ` +
-      `${r.report.finalRoutes.withViolations}/${r.report.finalRoutes.checked} | ${pct(e.exactMatch)} / ${pct(e.withinOneLevel)} / ${e.meanLevelGap?.toFixed(2) ?? "n/a"} (n=${e.n}) | ` +
-      `${r.report.privacy.payloadsWithLeaks}/${r.report.privacy.publicPayloads} | ${decided}/${r.decisions.length} (${ties}) | ${creditChanges} |`);
+    const c = countsOf(r);
+    console.log(`| ${r.scenario} | ${METRICS.map(m => fmt(m.kind, m.of(c))).join(" | ")} |`);
+  }
+  console.log("\nAI errors caught, by kind:");
+  for (const r of results) {
+    const a = r.report.aiErrors;
+    console.log(`  ${r.scenario}: AI check ${a.caughtByAiCheck.total}${a.caughtByAiCheck.total ? ` (${breakdown(a.caughtByAiCheck.byKind)})` : ""}` +
+      ` · Role 4 filter ${a.caughtByRole4.total}${a.caughtByRole4.total ? ` (${breakdown(a.caughtByRole4.byCode)})` : ""}` +
+      ` · duplicate routes ${a.duplicateRoutes}`);
   }
   for (const r of results) {
     console.log(`\n${r.scenario}`);

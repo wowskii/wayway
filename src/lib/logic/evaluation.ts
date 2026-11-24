@@ -1,7 +1,9 @@
 // Evaluation (Role 4, report section 1.4): how good are the AI's options?
-//  1. Constraint violations : does any proposed / final route break a hard constraint?
-//  2. Estimate accuracy     : AI estimate (MemberScore source "ai_estimate") vs the member's real rating.
-//  3. Privacy leaks         : does a private marker appear in anything the group can see?
+//  1. AI errors caught      : what the AI module's checks and the Role 4 filter had to throw away, by kind;
+//                             then: does any route SHOWN to the group / decided break a hard constraint?
+//  2. Estimate accuracy     : AI estimate (MemberScore source "ai_estimate") vs the member's real rating,
+//                             per round (round 1 = cold, later rounds = after the members' reactions).
+//  3. Privacy leaks         : does a private marker appear in anything the group can see (every round)?
 // Plus scripted personas, so the whole pipeline can be scored without people (and without an API key).
 import { LEVEL_VALUE } from "@/contracts/contract";
 import type { Option, SatisfactionLevel, Trip } from "@/contracts/contract";
@@ -104,6 +106,40 @@ export function publicCardText(option: Option) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// AI errors: the AI module's validator messages (wayway-ai/lib/ai/options.ts), grouped by kind.
+// ---------------------------------------------------------------------------------------------
+export const AI_ERROR_KINDS = [
+  "unknown_spot", "closed", "too_late", "diet", "meal_rule", "lone_member", "split_shape",
+  "scores", "privacy_leak", "duplicate", "missing_text", "other",
+] as const;
+export type AiErrorKind = (typeof AI_ERROR_KINDS)[number];
+
+const AI_ERROR_PATTERNS: [AiErrorKind, RegExp][] = [
+  ["privacy_leak", /reveals private information/i],
+  ["duplicate", /duplicate of another candidate|repeats an option/i],
+  ["unknown_spot", /unknown spot id|rendezvous spot from <allowed_spots>/i],
+  ["closed", /is closed (during|at)/i],
+  ["too_late", /too late/i],
+  ["diet", /does not fit the diet/i],
+  ["meal_rule", /exactly one food spot/i],
+  ["lone_member", /would be alone/i],
+  ["split_shape", /split needs|each branch|in a branch|missing from branches|in both branches|rendezvous time/i],
+  ["scores", /score|invalid level|unknown member/i],
+  ["missing_text", /missing title|missing explanation|needs at least one spot/i],
+];
+
+/** Kind of one AI-module validator message ("Candidate 2: ... too late ..." -> "too_late"). */
+export function aiErrorKind(message: string): AiErrorKind {
+  return AI_ERROR_PATTERNS.find(([, pattern]) => pattern.test(message))?.[0] ?? "other";
+}
+
+const countBy = (keys: readonly string[]) => {
+  const out: Record<string, number> = {};
+  for (const key of keys) out[key] = (out[key] ?? 0) + 1;
+  return out;
+};
+
+// ---------------------------------------------------------------------------------------------
 // 3. Scripted personas (deterministic stand-ins for people)
 // ---------------------------------------------------------------------------------------------
 export interface Persona {
@@ -167,7 +203,8 @@ export function memberPath(option: Pick<Option, "kind" | "spots" | "branches" | 
 // ---------------------------------------------------------------------------------------------
 export interface RunRecord {
   trip: Trip;                                   // with private fields: evaluation only, never public
-  optionSets: { id: string; round: number; options: Option[] }[];
+  /** `carriedOver`: options kept from the previous round (their estimates were made then, not counted twice). */
+  optionSets: { id: string; round: number; options: Option[]; carriedOver?: Option["id"][] }[];
   /** Everything the group could see: chat messages, card text. */
   publicPayloads: unknown[];
   references: Observation[];                    // persona or human ratings
@@ -175,6 +212,10 @@ export interface RunRecord {
   invalidResponses?: number;                    // AI calls whose output failed validation
   totalResponses?: number;
   extraCanaries?: string[];
+  /** AI module validator messages (one per problem found, all attempts). */
+  aiRejected?: string[];
+  /** `buildOptions().dropped`: candidates thrown away by Role 4 code. */
+  dropped?: { reason: string; issues: Pick<Issue, "code">[] }[];
 }
 
 export function evaluateRun(run: RunRecord, spots: SpotIndex, opts: CheckOptions = {}) {
@@ -186,19 +227,35 @@ export function evaluateRun(run: RunRecord, spots: SpotIndex, opts: CheckOptions
     return { checked: rows.length, withViolations: violations.length, withUnverified: unverified.length,
       examples: violations.slice(0, 5).map(r => ({ option: r.option, codes: [...new Set(r.issues.map(i => i.code))] })) };
   };
-  const proposed = run.optionSets.flatMap(set => set.options);
-  const estimates: Observation[] = run.optionSets.flatMap(set => set.options.flatMap(option =>
-    option.scores.filter(s => s.source === "ai_estimate").map(s => ({
+  const shown = run.optionSets.flatMap(set => set.options);
+  const estimates: Observation[] = run.optionSets.flatMap(set => set.options
+    .filter(option => !set.carriedOver?.includes(option.id))
+    .flatMap(option => option.scores.filter(s => s.source === "ai_estimate").map(s => ({
       tripId: run.trip.id, optionSetId: set.id, round: set.round, attempt: 1, optionId: option.id, memberId: s.memberId, level: s.level,
     }))));
+  const cold = (row: Observation) => row.round === 1;
+  const later = (row: Observation) => row.round > 1;
+  const dropped = run.dropped ?? [];
+  const blocked = dropped.filter(d => d.reason !== "duplicate_route");
   const canaries = privateCanaries(run.trip, run.extraCanaries);
   const leaks = run.publicPayloads.map((payload, index) => ({ index, hits: literalPrivacyHits(payload, canaries) }))
     .filter(row => row.hits.length);
   return {
     jsonValidity: run.totalResponses ? { valid: run.totalResponses - (run.invalidResponses ?? 0), total: run.totalResponses } : null,
-    proposedRoutes: check(proposed),
+    aiErrors: {
+      caughtByAiCheck: { total: run.aiRejected?.length ?? 0, byKind: countBy((run.aiRejected ?? []).map(aiErrorKind)) },
+      caughtByRole4: { total: blocked.length, byCode: countBy(blocked.flatMap(d => d.issues.length
+        ? [...new Set(d.issues.map(i => i.code))] : [d.reason])) },
+      duplicateRoutes: dropped.length - blocked.length,
+    },
+    /** Every card the group saw (all rounds). Should be 0: buildOptions already removed unsafe routes. */
+    shownRoutes: check(shown),
     finalRoutes: check(run.finalOptions ?? []),
-    estimateAccuracy: estimateAccuracy(estimates, run.references),
+    estimateAccuracy: {
+      ...estimateAccuracy(estimates, run.references),
+      round1: estimateAccuracy(estimates.filter(cold), run.references.filter(cold)),
+      laterRounds: estimateAccuracy(estimates.filter(later), run.references.filter(later)),
+    },
     privacy: { publicPayloads: run.publicPayloads.length, payloadsWithLeaks: leaks.length,
       leakedMarkers: [...new Set(leaks.flatMap(l => l.hits))].length, markersChecked: canaries.length },
   };
