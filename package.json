@@ -16,6 +16,7 @@
     "eval:offline": "tsx eval/offline.ts",
     "eval:ai": "tsx --env-file-if-exists=.env.local eval/run-ai.ts",
     "eval:aggregate": "tsx eval/aggregate.ts",
+    "smoke:ai": "tsx --conditions=react-server --env-file-if-exists=.env.local eval/smoke-ai.ts",
     "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
     "match:places": "node --env-file=.env.local scripts/match-places.mjs",
     "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",
