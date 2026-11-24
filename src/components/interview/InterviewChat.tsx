@@ -33,12 +33,18 @@ export function InterviewChat({
   initialMessages,
   initialProgress,
   initiallyFinished,
+  embedded = false,
+  onStatusChange,
 }: {
   tripId: string;
   memberId: string;
   initialMessages: InterviewMessage[];
   initialProgress: InterviewProgress;
   initiallyFinished: boolean;
+  /** Shown inside the trip page's panel: fills its parent, no page title, no "back" link. */
+  embedded?: boolean;
+  /** Tells the parent what is still waiting (used for the dock badge). */
+  onStatusChange?: (status: { pendingCards: number; finished: boolean }) => void;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [progress, setProgress] = useState(initialProgress);
@@ -49,8 +55,13 @@ export function InterviewChat({
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const pendingCards = messages.some((m) => m.constraintsStatus === "pending");
+  const pendingCount = messages.filter((m) => m.constraintsStatus === "pending").length;
+  const pendingCards = pendingCount > 0;
   const canFinish = progress.done && !pendingCards && !finished;
+
+  useEffect(() => {
+    onStatusChange?.({ pendingCards: pendingCount, finished });
+  }, [pendingCount, finished, onStatusChange]);
 
   // Keep the latest message in view
   useEffect(() => {
@@ -118,13 +129,13 @@ export function InterviewChat({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem-1px)] flex-col">
+    <div className={embedded ? "flex h-full min-h-0 flex-col" : "flex h-[calc(100dvh-4rem-1px)] flex-col"}>
       {/* Top: what this screen is + progress */}
       <div className="border-b border-line bg-card">
         <div className="mx-auto flex max-w-2xl flex-col gap-3 px-4 py-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-lg font-semibold">Get to know you</h1>
+              {!embedded && <h1 className="text-lg font-semibold">Get to know you</h1>}
               <p className="text-sm text-muted">🔒 Only WayWay sees this chat, never your group.</p>
             </div>
             {canFinish && <Button onClick={finish} className="h-9 shrink-0">Finish</Button>}
@@ -134,7 +145,7 @@ export function InterviewChat({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto" aria-live="polite">
+      <div className="min-h-0 flex-1 overflow-y-auto" aria-live="polite">
         <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
           {messages.map((m) => (
             <div key={m.id} className="flex flex-col gap-2">
@@ -157,9 +168,11 @@ export function InterviewChat({
               <p className="mt-1">
                 WayWay will use this to suggest plans for your group. You can keep chatting here anytime to add more.
               </p>
-              <Link href="/" className="mt-3 inline-block font-medium text-brand hover:underline">
-                Back to my trips →
-              </Link>
+              {!embedded && (
+                <Link href={`/trips/${tripId}`} className="mt-3 inline-block font-medium text-brand hover:underline">
+                  Go to the group chat →
+                </Link>
+              )}
             </div>
           )}
           <div ref={bottomRef} />

@@ -127,7 +127,7 @@ test("database round trip: rows -> poll -> votes -> decision -> rows", () => {
   const row: OptionSetRow = {
     id: "os-1", trip_id: "trip-1", slot, round: 3, options: options as never, candidate_option_id: "A",
     status: "voting", round_deadline: "2026-11-21T06:00:00Z", vote_deadline: "2026-11-21T06:30:00Z",
-    voter_ids: [], vote_attempt: 1, chosen_option_id: null, created_at: "2026-11-21T05:00:00Z",
+    voter_ids: [], vote_attempt: 1, chosen_option_id: null, created_at: "2026-11-21T05:00:00Z", vote_extended: false,
   };
   const states = members.map(m => ({ member_id: m.id, fairness_credits: m.id === "mia" ? 2 : 0,
     definitely_no_used_today: m.id === "tom" ? 1 : 0, definitely_no_day: m.id === "tom" ? "2026-11-21" : null }));

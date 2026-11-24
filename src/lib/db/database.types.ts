@@ -37,6 +37,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"chat_reads": {
+                  Row: {
+                    "last_read_at": string,"member_id": string,"trip_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "last_read_at": string,"member_id": string,"trip_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "last_read_at"?: string,"member_id"?: string,"trip_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_reads_member_id_trip_id_fkey"
+      columns: ["member_id","trip_id"]
+isOneToOne: false
+      referencedRelation: "trip_members"
+      referencedColumns: ["id","trip_id"]
+    },{
+      foreignKeyName: "chat_reads_trip_id_fkey"
+      columns: ["trip_id"]
+isOneToOne: false
+      referencedRelation: "trips"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"credit_events": {
                   Row: {
                     "change": number,"created_at": string,"id": string,"member_id": string,"option_set_id": string,"reason": string
@@ -197,14 +223,14 @@ isOneToOne: true
                   ]
                 },"option_sets": {
                   Row: {
-                    "candidate_option_id": string,"chosen_option_id": string | null,"created_at": string,"id": string,"options": NonNullable<Json>,"round": number,"round_deadline": string,"slot": NonNullable<Json>,"status": string,"trip_id": string,"vote_attempt": number | null,"vote_deadline": string | null,"voter_ids": (string)[]
+                    "candidate_option_id": string,"chosen_option_id": string | null,"created_at": string,"id": string,"options": NonNullable<Json>,"round": number,"round_deadline": string,"slot": NonNullable<Json>,"status": string,"trip_id": string,"vote_attempt": number | null,"vote_deadline": string | null,"vote_extended": boolean,"voter_ids": (string)[]
                   }
                   ComputedFields: never
                   Insert: {
-                    "candidate_option_id": string,"chosen_option_id"?: string | null,"created_at"?: string,"id"?: string,"options"?: NonNullable<Json>,"round"?: number,"round_deadline": string,"slot": NonNullable<Json>,"status"?: string,"trip_id": string,"vote_attempt"?: number | null,"vote_deadline"?: string | null,"voter_ids"?: (string)[]
+                    "candidate_option_id": string,"chosen_option_id"?: string | null,"created_at"?: string,"id"?: string,"options"?: NonNullable<Json>,"round"?: number,"round_deadline": string,"slot": NonNullable<Json>,"status"?: string,"trip_id": string,"vote_attempt"?: number | null,"vote_deadline"?: string | null,"vote_extended"?: boolean,"voter_ids"?: (string)[]
                   }
                   Update: {
-                    "candidate_option_id"?: string,"chosen_option_id"?: string | null,"created_at"?: string,"id"?: string,"options"?: NonNullable<Json>,"round"?: number,"round_deadline"?: string,"slot"?: NonNullable<Json>,"status"?: string,"trip_id"?: string,"vote_attempt"?: number | null,"vote_deadline"?: string | null,"voter_ids"?: (string)[]
+                    "candidate_option_id"?: string,"chosen_option_id"?: string | null,"created_at"?: string,"id"?: string,"options"?: NonNullable<Json>,"round"?: number,"round_deadline"?: string,"slot"?: NonNullable<Json>,"status"?: string,"trip_id"?: string,"vote_attempt"?: number | null,"vote_deadline"?: string | null,"vote_extended"?: boolean,"voter_ids"?: (string)[]
                   }
                   Relationships: [
                     {
@@ -217,14 +243,14 @@ isOneToOne: false
                   ]
                 },"private_messages": {
                   Row: {
-                    "constraints_status": string | null,"constraints_to_confirm": Json | null,"created_at": string,"id": string,"member_id": string,"round": number | null,"sender": string,"text": string,"trip_id": string
+                    "constraints_status": string | null,"constraints_to_confirm": Json | null,"created_at": string,"id": string,"member_id": string,"option_set_id": string | null,"reactions": Json | null,"round": number | null,"sender": string,"text": string,"trip_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id": string,"round"?: number | null,"sender": string,"text": string,"trip_id": string
+                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id": string,"option_set_id"?: string | null,"reactions"?: Json | null,"round"?: number | null,"sender": string,"text": string,"trip_id": string
                   }
                   Update: {
-                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id"?: string,"round"?: number | null,"sender"?: string,"text"?: string,"trip_id"?: string
+                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id"?: string,"option_set_id"?: string | null,"reactions"?: Json | null,"round"?: number | null,"sender"?: string,"text"?: string,"trip_id"?: string
                   }
                   Relationships: [
                     {
@@ -232,6 +258,12 @@ isOneToOne: false
       columns: ["member_id","trip_id"]
 isOneToOne: false
       referencedRelation: "trip_members"
+      referencedColumns: ["id","trip_id"]
+    },{
+      foreignKeyName: "private_messages_option_set_fk"
+      columns: ["option_set_id","trip_id"]
+isOneToOne: false
+      referencedRelation: "option_sets"
       referencedColumns: ["id","trip_id"]
     }
                   ]
@@ -347,7 +379,18 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "google_usage_take":
+            "add_member_to_trip":
+{ Args: { "p_trip_id": string,"p_user_id": string }; Returns: string
+                           },
+"add_trip_member":
+{ Args: { "p_trip_id": string,"p_user_id": string }; Returns: string
+                           },
+"create_trip":
+{ Args: { "p_city": string,"p_end_date": string,"p_friend_ids": (string)[],"p_goal": string,"p_name": string,"p_start_date": string }; Returns: {
+              "invite_code": string,"trip_id": string
+            }[]
+                           },
+"google_usage_take":
 { Args: { "p_api": string,"p_limit": number }; Returns: boolean
                            },
 "is_trip_member":
@@ -356,8 +399,22 @@ isOneToOne: false
 "join_trip":
 { Args: { "p_invite_code": string }; Returns: string
                            },
+"mark_chat_read":
+{ Args: { "p_last_read_at": string,"p_trip_id": string }; Returns: undefined
+                           },
 "owns_member":
 { Args: { "p_member_id": string }; Returns: boolean
+                           },
+"remove_trip_member":
+{ Args: { "p_member_id": string }; Returns: undefined
+                           },
+"save_decision":
+{ Args: { "p_credit_events": Json,"p_decision": Json,"p_itinerary": Json,"p_member_states": Json,"p_option_set": Json,"p_option_set_id": string }; Returns: boolean
+                           },
+"search_users":
+{ Args: { "p_query": string,"p_trip_id"?: string }; Returns: {
+              "display_name": string,"email": string,"user_id": string
+            }[]
                            },
 "trip_preview":
 { Args: { "p_invite_code": string }; Returns: {

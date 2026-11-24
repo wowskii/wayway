@@ -11,6 +11,18 @@ The tables are created by the SQL files in `migrations/` (run in order). They fo
 | `npm run check:privacy` | Automatic test that one member cannot read another member's private data |
 | `npm run check:interview` | Plays a full mock interview through the API and checks what was saved (app must be running) |
 
+## Local database (Docker)
+Work on schema changes locally first, push to the cloud only when they are done.
+| Command | What it does |
+|---|---|
+| `npm run local:start` / `local:stop` | Starts / stops a local Supabase in Docker (Studio: http://127.0.0.1:54323) |
+| `npm run local:reset` | Wipes the local database and re-applies every migration |
+| `npm run local:types` | Regenerates `database.types.ts` from the LOCAL database |
+| `npm run local:seed` / `local:check:privacy` | Same as `seed` / `check:privacy`, against the local database |
+
+`npm run dev` uses the local database when `.env.development.local` exists (local URL and keys; not committed).
+A migration may be edited freely until it is pushed to the cloud.
+
 To change the schema: **add a new migration file** (never edit one that was already pushed), tell the team, push, regenerate types.
 
 ## Tables
@@ -21,7 +33,7 @@ To change the schema: **add a new migration file** (never edit one that was alre
 | `trip_members` | public part of `MemberProfile` (name, diet, interests, pace, sleep) | everyone in the trip | `join_trip()`, yourself (some columns) |
 | `member_private` | private part (allergies, max budget, private note, preference statements, interview topics covered) | **only you** | you, API |
 | `member_state` | fairness credits, "definitely no" counter | **nobody** (server only) | API |
-| `private_messages` | `PrivateMessage` (interview + private reactions) | **only you** | you (your own messages), API (WayWay replies) |
+| `private_messages` | `PrivateMessage` (interview + private reactions; `option_set_id` = the decision a message is about, NULL for the interview) | **only you** | you (your own messages), API (WayWay replies) |
 | `chat_messages` | `ChatMessage` (group chat, realtime) | everyone in the trip | members (as themselves), API (WayWay) |
 | `slot_proposals` | `SlotProposal` | everyone in the trip | API |
 | `option_sets` | `OptionSet` (options stored as JSON) | everyone in the trip | API |
@@ -29,6 +41,7 @@ To change the schema: **add a new migration file** (never edit one that was alre
 | `decisions` | `Decision` | everyone in the trip | API |
 | `credit_events` | `CreditEvent` | **nobody** (server only) | API |
 | `itinerary_items` | `ItineraryItem` | everyone in the trip | API |
+| `chat_reads` | read receipts: how far each member has read the group chat (one row per member) | everyone in the trip | `mark_chat_read()` (yourself, forward only) |
 
 ## Why this design
 - **Privacy by the database, not just the UI.** A person's data is split by who may read it
@@ -45,4 +58,5 @@ To change the schema: **add a new migration file** (never edit one that was alre
 ## Database functions
 - `join_trip(invite_code)` → joins the trip (creates the 3 member rows) and returns the member id. Safe to call twice.
 - `trip_preview(invite_code)` → name, city, dates and member count, shown on the join page before joining.
+- `mark_chat_read(trip_id, last_read_at)` → saves how far you have read the group chat (only yours, never backwards).
 - `is_trip_member(trip_id)`, `owns_member(member_id)` → helpers used by the RLS rules.

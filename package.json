@@ -19,7 +19,14 @@
     "check:google": "node --env-file=.env.local scripts/check-google-usage.mjs",
     "match:places": "node --env-file=.env.local scripts/match-places.mjs",
     "seed:itinerary": "node --env-file=.env.local scripts/seed-itinerary.mjs",
-    "check:locations": "node --env-file=.env.local scripts/check-locations.mjs"
+    "check:locations": "node --env-file=.env.local scripts/check-locations.mjs",
+    "local:start": "supabase start",
+    "local:stop": "supabase stop",
+    "local:reset": "supabase db reset",
+    "local:types": "node --env-file=.env.development.local scripts/db.mjs types",
+    "local:seed": "node --env-file=.env.local --env-file=.env.development.local scripts/seed.mjs",
+    "local:check:privacy": "node --env-file=.env.local --env-file=.env.development.local scripts/check-privacy.mjs",
+    "local:seed:options": "node --env-file=.env.local --env-file=.env.development.local scripts/seed-options.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
