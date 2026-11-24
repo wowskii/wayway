@@ -154,7 +154,7 @@ export const mockInterviewer: Interviewer = async (input) => {
   // Reply = short reaction + next question (or a closing line when everything is covered).
   // If the current topic is still not answered, "next" is that same topic, so it is asked again.
   const reaction = hasHard
-    ? "Thanks! Please check the card below."
+    ? "Thanks! Please check the card above."
     : current && !covered.has(current)
       ? "Sorry, I didn't quite get that."
       : ["Nice!", "Got it.", "Noted, thanks!"][progress.covered.length % 3];

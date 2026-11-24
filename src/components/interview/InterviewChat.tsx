@@ -149,9 +149,8 @@ export function InterviewChat({
         <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
           {messages.map((m) => (
             <div key={m.id} className="flex flex-col gap-2">
-              <MessageBubble sender={m.sender} pending={m.id.startsWith("temp-")}>
-                {m.text}
-              </MessageBubble>
+              {/* The card is about what the member just said, and WayWay's text already moves on to the
+                  next question: card first, so the chat reads in order (answer -> card -> next question). */}
               {m.constraintsToConfirm && m.constraintsStatus && (
                 <ConstraintCard
                   constraints={m.constraintsToConfirm}
@@ -159,6 +158,9 @@ export function InterviewChat({
                   onAnswer={(decision, edited) => answerCard(m.id, decision, edited)}
                 />
               )}
+              <MessageBubble sender={m.sender} pending={m.id.startsWith("temp-")}>
+                {m.text}
+              </MessageBubble>
             </div>
           ))}
           {sending && <TypingBubble />}
