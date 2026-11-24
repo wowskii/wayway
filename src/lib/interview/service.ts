@@ -41,7 +41,7 @@ export function toInterviewMessage(row: PrivateMessageRow): InterviewMessage {
  * Loads the member that belongs to the logged-in user in this trip.
  * Uses the user's own client, so RLS guarantees they can only load THEMSELVES.
  */
-async function loadOwnMember(tripId: string, memberId?: string) {
+export async function loadOwnMember(tripId: string, memberId?: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,10 +62,12 @@ export async function getInterviewState(tripId: string): Promise<InterviewState>
   const { supabase, member, priv } = await loadOwnMember(tripId);
   const admin = createAdminClient();
 
+  // Only the interview thread: messages about an option set live in the Spot Suggestions panel.
   let { data: rows } = await supabase
     .from("private_messages")
     .select("*")
     .eq("member_id", member.id)
+    .is("option_set_id", null)
     .order("created_at", { ascending: true });
 
   if (!rows?.length) {
@@ -110,6 +112,7 @@ export async function sendInterviewMessage(tripId: string, memberId: string, tex
     .from("private_messages")
     .select("*")
     .eq("member_id", member.id)
+    .is("option_set_id", null)
     .order("created_at", { ascending: false })
     .limit(HISTORY_SIZE + 1);
   const history = (recent ?? []).filter((r) => r.id !== mine.id).reverse().map(toPrivateMessage);

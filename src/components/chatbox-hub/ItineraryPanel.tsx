@@ -1,7 +1,7 @@
 "use client";
 // The proposed itinerary, one tab per trip day (contract: ItineraryItem).
 import { useState } from "react";
-import type { ItineraryData } from "@/lib/trip-hub/types";
+import type { ItineraryData } from "@/lib/chatbox-trip-hub/types";
 import { PanelFrame } from "./PanelFrame";
 
 export function ItineraryPanel({ data, onClose }: { data: ItineraryData; onClose: () => void }) {
@@ -13,7 +13,6 @@ export function ItineraryPanel({ data, onClose }: { data: ItineraryData; onClose
     <PanelFrame
       title="Proposed itinerary"
       subtitle={`${data.days.length} ${data.days.length === 1 ? "day" : "days"} · ${total} ${total === 1 ? "stop" : "stops"} · from group decisions`}
-      preview={data.source === "preview"}
       onClose={onClose}
     >
       <div className="flex flex-col gap-4 p-4">

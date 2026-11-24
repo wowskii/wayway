@@ -15,7 +15,7 @@ import type { ChatMessage } from "@/contracts/contract";
 import { toChatMessage, type ChatMessageRow } from "@/lib/db/mappers";
 import type { Tables } from "@/lib/db/database.types";
 import type { createClient } from "@/lib/supabase/client";
-import type { HubMember } from "@/lib/trip-hub/types";
+import type { HubMember } from "@/lib/chatbox-trip-hub/types";
 
 const TYPING_TTL_MS = 4000;       // a typing signal shows for 4 s unless renewed
 const TYPING_THROTTLE_MS = 2500;  // send at most one signal every 2.5 s while typing

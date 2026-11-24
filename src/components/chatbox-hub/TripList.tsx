@@ -1,11 +1,19 @@
-// "Your trips": the group selection on the left. The current trip is highlighted.
+// The trip list on the left (the current trip is highlighted), under a "Trip Manager" button that
+// goes back to the trip selection screen (home page "My trips").
 import Link from "next/link";
-import type { HubTrip } from "@/lib/trip-hub/types";
+import type { HubTrip } from "@/lib/chatbox-trip-hub/types";
 
 export function TripList({ trips, currentId }: { trips: HubTrip[]; currentId: string }) {
   return (
-    <nav aria-label="Your trips" className="min-h-0 flex-1 overflow-y-auto p-3">
-      <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-muted">Your trips</p>
+    <nav aria-label="Trip Manager" className="min-h-0 flex-1 overflow-y-auto p-3">
+      <Link
+        href="/"
+        title="All my trips"
+        className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-line bg-card px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-brand hover:text-brand"
+      >
+        Trip Manager
+        <span aria-hidden className="text-sm">›</span>
+      </Link>
       <ul className="flex flex-col gap-1">
         {trips.map((t) => {
           const current = t.id === currentId;

@@ -243,14 +243,14 @@ isOneToOne: false
                   ]
                 },"private_messages": {
                   Row: {
-                    "constraints_status": string | null,"constraints_to_confirm": Json | null,"created_at": string,"id": string,"member_id": string,"option_set_id": string | null,"round": number | null,"sender": string,"text": string,"trip_id": string
+                    "constraints_status": string | null,"constraints_to_confirm": Json | null,"created_at": string,"id": string,"member_id": string,"option_set_id": string | null,"reactions": Json | null,"round": number | null,"sender": string,"text": string,"trip_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id": string,"option_set_id"?: string | null,"round"?: number | null,"sender": string,"text": string,"trip_id": string
+                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id": string,"option_set_id"?: string | null,"reactions"?: Json | null,"round"?: number | null,"sender": string,"text": string,"trip_id": string
                   }
                   Update: {
-                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id"?: string,"option_set_id"?: string | null,"round"?: number | null,"sender"?: string,"text"?: string,"trip_id"?: string
+                    "constraints_status"?: string | null,"constraints_to_confirm"?: Json | null,"created_at"?: string,"id"?: string,"member_id"?: string,"option_set_id"?: string | null,"reactions"?: Json | null,"round"?: number | null,"sender"?: string,"text"?: string,"trip_id"?: string
                   }
                   Relationships: [
                     {
@@ -393,6 +393,9 @@ isOneToOne: false
                            },
 "owns_member":
 { Args: { "p_member_id": string }; Returns: boolean
+                           },
+"save_decision":
+{ Args: { "p_credit_events": Json,"p_decision": Json,"p_itinerary": Json,"p_member_states": Json,"p_option_set": Json,"p_option_set_id": string }; Returns: boolean
                            },
 "trip_preview":
 { Args: { "p_invite_code": string }; Returns: {

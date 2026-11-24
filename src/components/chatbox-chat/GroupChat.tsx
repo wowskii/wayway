@@ -3,10 +3,10 @@
 // "Read by N of M" under every message, and @WayWay mentions.
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import type { ChatMessage } from "@/contracts/contract";
-import { MAX_CHAT_LENGTH, sendGroupMessage } from "@/lib/chat/client";
+import { MAX_CHAT_LENGTH, mentionsWayWay, sendGroupMessage, sendToWayWay } from "@/lib/chatbox-chat/client";
 import { WAYWAY_SENDER_ID } from "@/lib/db/mappers";
 import { createClient } from "@/lib/supabase/client";
-import type { HubMember } from "@/lib/trip-hub/types";
+import type { HubMember } from "@/lib/chatbox-trip-hub/types";
 import { DaySeparator, GroupMessage, TypingRow } from "./ChatParts";
 import { useTripChannel, type ReadMap } from "./useTripChannel";
 
@@ -25,6 +25,7 @@ export function GroupChat({
   initialMessages,
   initialReads,
   headerActions,
+  onWayWayUpdate,
 }: {
   tripId: string;
   tripName: string;
@@ -34,6 +35,8 @@ export function GroupChat({
   initialMessages: ChatMessage[];
   initialReads: ReadMap;   // chat_reads: memberId -> read up to this createdAt
   headerActions?: ReactNode;
+  /** WayWay posted about an option set (new options, next round, vote, result): refresh the suggestions. */
+  onWayWayUpdate?: () => void;
 }) {
   const [supabase] = useState(createClient);
   const [messages, setMessages] = useState(initialMessages);
@@ -43,8 +46,15 @@ export function GroupChat({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const atBottomRef = useRef(true);
 
+  const [waywayThinking, setWaywayThinking] = useState(false);
+  const updateRef = useRef(onWayWayUpdate);
+  useEffect(() => {
+    updateRef.current = onWayWayUpdate;
+  }, [onWayWayUpdate]);
+
   const addMessage = useCallback((m: ChatMessage) => {
     setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m].sort(byTime)));
+    if (m.senderId === WAYWAY_SENDER_ID && m.optionSetId) updateRef.current?.();
   }, []);
 
   const { online, typists, reads, sendTyping, markRead } = useTripChannel({ supabase, tripId, me, initialReads, onMessage: addMessage });
@@ -113,34 +123,44 @@ export function GroupChat({
     setDraft("");
     setError(null);
     atBottomRef.current = true;
+    const forWayWay = mentionsWayWay(text);
+    if (forWayWay) setWaywayThinking(true);   // "WayWay is typing…" while the server works
     try {
-      const saved = await sendGroupMessage(supabase, tripId, me.id, text);
+      const saved = forWayWay ? await sendToWayWay(tripId, text) : { message: await sendGroupMessage(supabase, tripId, me.id, text), replies: [] };
       setMessages((list) => {
         const rest = list.filter((x) => x.id !== temp.id);
-        return rest.some((x) => x.id === saved.id) ? rest : [...rest, saved].sort(byTime);
+        return rest.some((x) => x.id === saved.message.id) ? rest : [...rest, saved.message].sort(byTime);
       });
+      saved.replies.forEach(addMessage);   // also arrive through Realtime: addMessage ignores duplicates
     } catch (err) {
       setMessages((list) => list.filter((x) => x.id !== temp.id));
       setDraft(text);
       setError((err as Error).message);
     } finally {
+      setWaywayThinking(false);
       inputRef.current?.focus();
     }
   }
 
-  function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      void send();
-    }
-  }
-
-  // @-mention helper: typing "@" or "@wa…" at the end offers @WayWay
+  // @-mention helper: typing "@" or "@wa…" at the end offers @WayWay (click it, or press Tab)
   const mention = draft.match(/(^|\s)@(\w*)$/);
   const offerWayWay = !!mention && "wayway".startsWith(mention[2].toLowerCase());
   function insertWayWay() {
     setDraft((d) => d.replace(/@(\w*)$/, "@WayWay "));
     inputRef.current?.focus();
+  }
+
+  function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.nativeEvent.isComposing) return;   // typing Chinese / Japanese: the keys belong to the IME
+    if (e.key === "Tab" && !e.shiftKey && offerWayWay) {
+      e.preventDefault();                   // complete the mention instead of leaving the box
+      insertWayWay();
+      return;
+    }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void send();
+    }
   }
 
   // ----- Rendering with day separators and sender groups
@@ -169,6 +189,7 @@ export function GroupChat({
   }
 
   const typingNames = typists.map((t) => (t.id === WAYWAY_SENDER_ID ? "WayWay" : t.name));
+  if (waywayThinking && !typingNames.includes("WayWay")) typingNames.push("WayWay");
   const onlineCount = online.length || 1;
 
   return (
@@ -193,7 +214,7 @@ export function GroupChat({
         ) : (
           rows
         )}
-        <TypingRow names={typingNames} wayway={typists.some((t) => t.id === WAYWAY_SENDER_ID)} />
+        <TypingRow names={typingNames} wayway={waywayThinking || typists.some((t) => t.id === WAYWAY_SENDER_ID)} />
       </div>
 
       <form onSubmit={send} className="border-t border-line px-3 py-3">
@@ -210,6 +231,7 @@ export function GroupChat({
           >
             <span className="grid h-5 w-5 place-items-center rounded-full bg-brand text-[10px] font-semibold text-white">W</span>
             @WayWay <span className="text-xs text-muted">AI assistant</span>
+            <kbd className="rounded border border-line bg-page px-1.5 text-[10px] font-medium text-muted">Tab</kbd>
           </button>
         )}
         <div className="flex items-end gap-2">

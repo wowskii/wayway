@@ -4,9 +4,10 @@ import "server-only";
 import type { Branch, ChatMessage } from "@/contracts/contract";
 import { formatTripDates } from "@/lib/auth";
 import { toChatMessage } from "@/lib/db/mappers";
+import { getSpot } from "@/lib/spots";
 import { createClient } from "@/lib/supabase/server";
-import { previewItinerary, previewRate } from "./preview";
-import type { HubMember, HubTrip, ItineraryData, ItineraryEntry, RateData } from "./types";
+import { loadSuggestions } from "./suggestions";
+import type { HubMember, HubTrip, ItineraryData, ItineraryEntry, SuggestionsData } from "./types";
 
 const MESSAGE_PAGE = 60;   // latest group messages loaded with the page
 
@@ -17,13 +18,13 @@ export interface HubData {
   trips: HubTrip[];
   messages: ChatMessage[];
   reads: Record<string, string>;   // chat_reads: memberId -> read up to this createdAt
-  rate: RateData;
+  suggestions: SuggestionsData;
   itinerary: ItineraryData;
 }
 
 const hhmm = (t: string) => t.slice(0, 5);
-// Spots are not in the database yet (still a JSON file). Until then the id is shown as-is.
-const spotName = (id: string) => id;
+// Spots are not in the database (they come from data/spots_tokyo.json): show their name, or the id
+const spotName = (id: string) => getSpot(id)?.name ?? id;
 
 function tripDays(start: string, end: string) {
   const first = Date.parse(`${start}T00:00:00Z`);
@@ -59,10 +60,13 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
         .eq("trip_id", tripId)
         .order("created_at", { ascending: false })
         .limit(MESSAGE_PAGE),
+      // Only stops written by a group decision (they carry their option set). Demo rows written by
+      // `npm run seed:itinerary` for the map page have none and are not shown here.
       supabase
         .from("itinerary_items")
         .select("id, day, start_time, end_time, spot_id, branches, created_at")
         .eq("trip_id", tripId)
+        .not("option_set_id", "is", null)
         .order("day")
         .order("start_time"),
       supabase.from("chat_reads").select("member_id, last_read_at").eq("trip_id", tripId),
@@ -86,36 +90,31 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
       : [],
   );
 
-  // ----- Rate panel: spot ratings are not stored anywhere yet (needs the spot_ratings table),
-  // so the panel shows sample spots until then.
-  const rate: RateData = previewRate();
+  // ----- Spot Suggestions panel: option sets still being decided, my private feedback on them and
+  // my final votes (only MY rows come back: RLS)
+  const suggestions = await loadSuggestions(supabase, tripId, meRow.id);
 
-  // ----- Itinerary panel
-  const days = tripDays(trip.start_date, trip.end_date);
-  let itinerary: ItineraryData = previewItinerary(days);
-  if (itemRows?.length) {
-    itinerary = {
-      source: "live",
-      days: days.map((d) => ({
-        ...d,
-        entries: itemRows
-          .filter((r) => r.day === d.day)
-          .map((r): ItineraryEntry => {
-            const branches = (r.branches as unknown as Branch[] | null) ?? undefined;
-            return {
-              id: r.id,
-              start: hhmm(r.start_time),
-              end: hhmm(r.end_time),
-              title: r.spot_id ? spotName(r.spot_id) : `Split into ${branches?.length ?? 2} groups`,
-              createdAt: r.created_at,
-              ...(branches
-                ? { branches: branches.map((b) => ({ members: b.memberIds.map(nameOf), spots: b.spots.map(spotName) })) }
-                : {}),
-            };
-          }),
-      })),
-    };
-  }
+  // ----- Itinerary panel: one tab per trip day, only what the group decided (empty days stay empty)
+  const itinerary: ItineraryData = {
+    days: tripDays(trip.start_date, trip.end_date).map((d) => ({
+      ...d,
+      entries: (itemRows ?? [])
+        .filter((r) => r.day === d.day)
+        .map((r): ItineraryEntry => {
+          const branches = (r.branches as unknown as Branch[] | null) ?? undefined;
+          return {
+            id: r.id,
+            start: hhmm(r.start_time),
+            end: hhmm(r.end_time),
+            title: r.spot_id ? spotName(r.spot_id) : `Split into ${branches?.length ?? 2} groups`,
+            createdAt: r.created_at,
+            ...(branches
+              ? { branches: branches.map((b) => ({ members: b.memberIds.map(nameOf), spots: b.spots.map(spotName) })) }
+              : {}),
+          };
+        }),
+    })),
+  };
 
   return {
     trip: { id: trip.id, name: trip.name, timezone: trip.timezone },
@@ -124,7 +123,7 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
     trips,
     messages: (messageRows ?? []).reverse().map(toChatMessage),
     reads: Object.fromEntries((readRows ?? []).map((r) => [r.member_id, r.last_read_at])),
-    rate,
+    suggestions,
     itinerary,
   };
 }
