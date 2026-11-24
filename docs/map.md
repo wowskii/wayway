@@ -90,7 +90,7 @@ visible while sharing. Browsers only give the location on `localhost` or HTTPS.
   and import `travelMin` from `@/lib/logic/itinerary` in `legs.ts`.
 - **Decision step** (Simon's `/api/chat`): when a vote decides, write the `itinerary_items` rows with their
   `option_set_id` (Henry's `itineraryFromOption` builds them). The map then shows them with no change.
-- **Group chat** (Patrick): the "Group chat" tab links to `/trips/<id>/chat`, which doesn't exist yet.
+- **Group chat** (Patrick): the "Group chat" tab links to the trip page `/trips/<id>` (see `docs/navigation.md`).
 
 ## Known limits
 - Routes from Google's walking path start at the place's entrance (Place ID), so a line can start a little

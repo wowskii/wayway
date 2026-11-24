@@ -1,7 +1,7 @@
 "use client";
 // The three WayWay tools in the bottom-left corner, in one row:
 //   WayWay   Suggestions   Itinerary     <- panels: tap = open in the middle, tap again = close
-// (The trip map is a tab at the top of the page: ChatboxTabs.)
+// (The trip map is a tab at the top of the page: TripTabs.)
 // A panel icon can show two numbers:
 //   top left  (red, phone-style)   = things waiting for you (e.g. unread option sets)
 //   top right (quiet, white/green) = how many there are in total (e.g. option sets in progress)
@@ -9,7 +9,7 @@ import type { PanelId } from "@/lib/chatbox-trip-hub/types";
 import { ItineraryIcon, PrivateChatIcon, RateIcon } from "./icons";
 
 export const DOCK_ITEMS: { id: PanelId; label: string; title: string; Icon: typeof RateIcon }[] = [
-  { id: "private", label: "Profile", title: "Private chat with WayWay", Icon: PrivateChatIcon },
+  { id: "private", label: "WayWay", title: "Private chat with WayWay", Icon: PrivateChatIcon },
   { id: "suggestions", label: "Suggestions", title: "Spot suggestions: tell WayWay what you think", Icon: RateIcon },
   { id: "itinerary", label: "Itinerary", title: "Proposed itinerary", Icon: ItineraryIcon },
 ];

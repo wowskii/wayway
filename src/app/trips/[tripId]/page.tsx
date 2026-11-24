@@ -1,10 +1,10 @@
 // The trip page: /trips/<tripId>
 // Group chat in the middle, "Your trips" + WayWay tools on the left. ?panel=private|suggestions|itinerary
-// opens a tool directly. Members who have not finished the interview land on the private chat.
+// opens a tool directly ("Me" -> "Update with WayWay" uses ?panel=private).
+// Members who have not finished the interview are sent to the one-time interview page first.
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
-import { ChatboxTabs } from "@/components/chatbox-hub/ChatboxTabs";
+import { notFound, redirect } from "next/navigation";
+import { Header, TripHeader } from "@/components/Header";
 import { NotMember } from "@/components/chatbox-hub/NotMember";
 import { TripHub } from "@/components/chatbox-hub/TripHub";
 import { requireUser } from "@/lib/auth";
@@ -12,6 +12,7 @@ import { isUuid } from "@/lib/interview/http";
 import { getInterviewState } from "@/lib/interview/service";
 import { loadHub } from "@/lib/chatbox-trip-hub/load";
 import { isPanelId } from "@/lib/chatbox-trip-hub/types";
+import { interviewPath } from "@/lib/trip";
 
 export const metadata: Metadata = { title: "Group chat · WayWay" };
 
@@ -32,27 +33,24 @@ export default async function TripPage({
     // Not in this trip (removed by the organizer, trip deleted, or someone else's link): say so
     return (
       <>
-        <Header displayName={user.displayName} />
+        <Header />
         <NotMember />
       </>
     );
   }
 
-  // The private chat with WayWay (posts WayWay's greeting the first time, like the interview page)
+  // Interview not finished: the rest of the trip opens after it (same rule as src/lib/trip.ts)
+  const current = hub.trips.find((t) => t.id === hub.trip.id);
+  if (!current || current.needsProfile) redirect(interviewPath(tripId));
+
+  // The private chat with WayWay, still open after the interview: what you add there updates your profile
   const privateState = await getInterviewState(tripId);
   const finished = privateState.onboardingStatus === "done";
-  const initialPanel = isPanelId(panel) ? panel : finished ? null : "private";
+  const initialPanel = isPanelId(panel) ? panel : null;
 
   return (
     <>
-      <Header displayName={user.displayName} wide>
-        <ChatboxTabs
-          tripId={hub.trip.id}
-          tripName={hub.trip.name}
-          dates={hub.trips.find((t) => t.id === hub.trip.id)?.dates}
-          active="chat"
-        />
-      </Header>
+      <TripHeader tripId={hub.trip.id} tripName={hub.trip.name} dates={current.dates} active="chat" />
       <TripHub
         trip={hub.trip}
         me={hub.me}

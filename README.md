@@ -11,7 +11,8 @@ npm run dev                  # http://localhost:3000
 Stack: Next.js 16 (App Router, TypeScript, Tailwind) + Supabase. Shared types live in `src/contracts/contract.ts` (import as `@/contracts/contract`).
 
 Docs: [`docs/summary1111.md`](docs/summary1111.md) (web skeleton, accounts, AI interview) ·
-[`docs/map.md`](docs/map.md) (trip map: Google Maps, itinerary, place cards, location sharing).
+[`docs/map.md`](docs/map.md) (trip map: Google Maps, itinerary, place cards, location sharing) ·
+[`docs/navigation.md`](docs/navigation.md) (how the pages fit together: header, interview-first rule, AI switch).
 
 ## Logic & evaluation (Role 4)
 Pure TypeScript in `src/lib/logic/` (import as `@/lib/logic`): hard constraints, option ranking A/B/C, fairness

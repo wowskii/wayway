@@ -13,7 +13,7 @@ export default async function NewTripPage() {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tokyo" });
   return (
     <>
-      <Header displayName={user.displayName} />
+      <Header />
       <main className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-10">
         <TripForm today={today} hostName={user.displayName} />
       </main>

@@ -166,7 +166,9 @@ export function InterviewChat({
             <div className="rounded-2xl border border-brand/30 bg-brand-soft p-4 text-sm">
               <p className="font-medium text-brand">You&apos;re all set!</p>
               <p className="mt-1">
-                WayWay will use this to suggest plans for your group. You can keep chatting here anytime to add more.
+                {embedded
+                  ? "WayWay will use this to suggest plans for your group. You can keep chatting here anytime to add more."
+                  : "WayWay will use this to suggest plans for your group. You can see what it learned on your Me page."}
               </p>
               {!embedded && (
                 <Link href={`/trips/${tripId}`} className="mt-3 inline-block font-medium text-brand hover:underline">

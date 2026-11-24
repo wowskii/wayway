@@ -77,7 +77,20 @@ export async function getInterviewState(tripId: string): Promise<InterviewState>
       .select("*")
       .single();
     if (error) throw new InterviewError(500, "Could not start the interview.");
-    rows = [first];
+    // Two loads at the same moment (a redirect makes the browser fetch the page twice) can both see an
+    // empty chat and both post the greeting. Keep only the oldest one, so both loads end the same way.
+    const { data: greetings } = await admin
+      .from("private_messages")
+      .select("*")
+      .eq("member_id", member.id)
+      .is("option_set_id", null)
+      .eq("sender", "wayway")
+      .eq("round", ONBOARDING_ROUND)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
+    const extra = (greetings ?? []).slice(1).filter((g) => g.text === first.text).map((g) => g.id);
+    if (extra.length) await admin.from("private_messages").delete().in("id", extra);
+    rows = greetings?.length ? [greetings[0]] : [first];
   }
 
   return {

@@ -1,27 +1,19 @@
 // The trip map page: /trips/<tripId>/map  (Figma 288:2015 "Trip map · Simplified", decluttered)
 // The server checks the user and the trip, prepares the day plans, then the browser draws the map.
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
-import { TripTabs } from "@/components/TripTabs";
+import { TripHeader } from "@/components/Header";
 import { TripMap } from "@/components/map/TripMap";
-import { formatTripDates, requireUser } from "@/lib/auth";
+import { formatTripDates } from "@/lib/auth";
 import { getTripItinerary } from "@/lib/itinerary/source";
 import { buildDayPlans } from "@/lib/itinerary/view";
 import { getSpot } from "@/lib/spots";
-import { createClient } from "@/lib/supabase/server";
+import { loadTripPage } from "@/lib/trip";
 
 export const metadata: Metadata = { title: "Trip map · WayWay" };
 
 export default async function MapPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = await params;
-  const user = await requireUser(`/trips/${tripId}/map`);
-
-  // RLS only returns the trip if the user is a member (or its creator)
-  const supabase = await createClient();
-  const { data: trip } = await supabase
-    .from("trips").select("id, name, start_date, end_date").eq("id", tripId).maybeSingle();
-  if (!trip) notFound();
+  const { trip } = await loadTripPage(tripId, "map");   // login, membership, interview done
 
   const itinerary = await getTripItinerary(tripId);
   const { days, missing } = buildDayPlans(itinerary.items, getSpot, itinerary.myMemberId);
@@ -29,9 +21,7 @@ export default async function MapPage({ params }: { params: Promise<{ tripId: st
 
   return (
     <>
-      <Header displayName={user.displayName}>
-        <TripTabs tripId={tripId} tripName={trip.name} dates={formatTripDates(trip.start_date, trip.end_date)} active="map" />
-      </Header>
+      <TripHeader tripId={tripId} tripName={trip.name} dates={formatTripDates(trip.start_date, trip.end_date)} active="map" />
       <TripMap
         tripId={tripId}
         days={days}

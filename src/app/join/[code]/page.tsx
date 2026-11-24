@@ -22,7 +22,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   if (!trip) {
     return (
       <>
-        <Header displayName={user.displayName} />
+        <Header />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
           <h1 className="text-xl font-semibold">This invite link doesn&apos;t work</h1>
           <p className="mt-2 text-sm text-muted">Ask your friend to send it again.</p>
@@ -40,14 +40,14 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
     .eq("trip_id", trip.trip_id)
     .eq("user_id", user.id)
     .maybeSingle();
-  if (membership) redirect(`/trips/${trip.trip_id}/interview`);
+  if (membership) redirect(`/trips/${trip.trip_id}`);
 
   const join = joinTrip.bind(null, code, trip.trip_id);
   const others = trip.member_count;
 
   return (
     <>
-      <Header displayName={user.displayName} />
+      <Header />
       <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
         <p className="text-sm text-muted">You&apos;re invited to</p>
         <Card className="flex flex-col gap-5">

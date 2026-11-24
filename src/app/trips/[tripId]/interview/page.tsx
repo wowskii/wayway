@@ -1,24 +1,19 @@
-// The onboarding interview page: /trips/<tripId>/interview
+// The onboarding interview page: /trips/<tripId>/interview — a one-time step: the rest of the trip
+// opens once it is finished, and then this page sends you to the group chat (src/lib/trip.ts).
 // The server loads the chat (and posts WayWay's greeting the first time), then hands it to
 // the InterviewChat component which runs in the browser.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { InterviewChat } from "@/components/interview/InterviewChat";
-import { requireUser } from "@/lib/auth";
 import { getInterviewState, InterviewError } from "@/lib/interview/service";
-import { createClient } from "@/lib/supabase/server";
+import { loadTripPage } from "@/lib/trip";
 
 export const metadata: Metadata = { title: "Get to know you · WayWay" };
 
 export default async function InterviewPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = await params;
-  const user = await requireUser(`/trips/${tripId}/interview`);
-
-  // RLS only returns the trip if the user is a member (or its creator)
-  const supabase = await createClient();
-  const { data: trip } = await supabase.from("trips").select("id, name").eq("id", tripId).maybeSingle();
-  if (!trip) notFound();
+  const { trip } = await loadTripPage(tripId, "interview");   // login, membership, not finished yet
 
   let state;
   try {
@@ -30,8 +25,8 @@ export default async function InterviewPage({ params }: { params: Promise<{ trip
 
   return (
     <>
-      <Header displayName={user.displayName}>
-        <span className="text-sm font-medium">{trip.name}</span>
+      <Header wide>
+        <span className="border-l border-line pl-4 text-sm font-medium">{trip.name}</span>
       </Header>
       <InterviewChat
         tripId={tripId}

@@ -128,13 +128,10 @@ function Created({ tripId, inviteCode, name, friends, city, startDate, endDate, 
       </div>
       <InviteLink code={inviteCode} host={host} tripName={name} city={city} startDate={startDate} endDate={endDate} />
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Link href={`/trips/${tripId}/interview`}
-          className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-brand px-5 text-sm font-medium text-white hover:bg-brand-dark">
-          Tell WayWay what you enjoy
-        </Link>
+        {/* One next step: the trip page sends a new member to the interview first, then to the chat */}
         <Link href={`/trips/${tripId}`}
-          className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line bg-card px-5 text-sm font-medium hover:bg-page">
-          Open the trip
+          className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-brand px-5 text-sm font-medium text-white hover:bg-brand-dark">
+          Next: tell WayWay what you enjoy
         </Link>
       </div>
     </Card>
