@@ -27,6 +27,7 @@ import { InterviewError, loadOwnMember } from "@/lib/interview/service";
 import { buildOptions } from "@/lib/logic";
 import { SPOT_INDEX } from "@/lib/logic/dataset";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAiLimit } from "@/lib/ai/limit";
 import { AIOutputError, mentionsWayWay } from "../../../wayway-ai/lib/ai";
 import type { WayWayMessageResponse } from "./types";
 
@@ -39,6 +40,7 @@ export async function sendWayWayMessage(tripId: string, text: string): Promise<W
 
   // ① My message, saved as me
   const { supabase, member } = await loadOwnMember(tripId);
+  if (mentionsWayWay(clean)) await checkAiLimit(createAdminClient(), "chat", member.id);   // before saving: a refused message is not posted
   const { data: mine, error } = await supabase
     .from("chat_messages")
     .insert({ trip_id: tripId, sender_member_id: member.id, text: clean })

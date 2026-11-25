@@ -58,6 +58,22 @@ Not prompt changes, also on Nov 16: models that reject a forced `tool_choice` (S
 Wording fix (Nov 24, still v6): interview rule 5 "check the card below" -> "check the card above", because the
 app now shows the confirmation card before WayWay's reply. No effect on the measured results, so no new version.
 
+## v7 (Nov 25) — after the end-to-end tests in the app (Henry, with Simon's OK)
+- **Round 2+ (code, `withReactions`)**: a member's own reaction now replaces the AI's guess on the options kept
+  from the previous round (level only, the private reason is never copied). Before, kept options kept their
+  round-1 estimates, ranked above the new ones, and the cards looked the same in every round.
+- **Time (code, `negotiateSlot`)**: a "confirm" is refused when the message gives another day or time than the
+  pending proposal ("day 1 evening 18:00-21:00" was read as a yes to day 2 15:00-18:00); the retry answers
+  "change". WayWay's proposal is posted only if it states the proposed times and has no link; otherwise a fixed
+  sentence built by code (an injected message cannot make WayWay say something else in the group).
+- **Messages**: `voting_open` gets the fact `hasSplit` and mentions splitting only when an option is a split;
+  vote messages say to vote in Spot Suggestions; the code refuses "reply with A or B" and a split mention when
+  there is none (retry, then the template).
+- **Injection guard**: also lists `<current_statements>`, `<profile>`, `<members>` and trip / member names.
+- **App (not a prompt)**: per-member limit on messages that call the AI (`src/lib/ai/limit.ts`).
+- `npm run smoke:ai` (real model): 19/19, 15 calls; round 2 now shows a new option first and the kept one
+  with the members' reactions.
+
 ## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |

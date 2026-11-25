@@ -15,6 +15,7 @@ import {
   type PrivateMessageRow,
 } from "@/lib/db/mappers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAiLimit } from "@/lib/ai/limit";
 import { createClient } from "@/lib/supabase/server";
 import type { ConfirmResponse, InterviewMessage, InterviewState, InterviewTurnResponse } from "./types";
 
@@ -23,7 +24,7 @@ const HISTORY_SIZE = 12;
 export const MAX_MESSAGE_LENGTH = 1000;
 
 export class InterviewError extends Error {
-  constructor(public status: 400 | 401 | 403 | 404 | 409 | 500, message: string) {
+  constructor(public status: 400 | 401 | 403 | 404 | 409 | 429 | 500, message: string) {
     super(message);
   }
 }
@@ -110,6 +111,7 @@ export async function sendInterviewMessage(tripId: string, memberId: string, tex
 
   const { supabase, member, priv } = await loadOwnMember(tripId, memberId);
   const admin = createAdminClient();
+  await checkAiLimit(admin, "private", member.id);
 
   // 1. Save the member's message (as the user: RLS checks it is really theirs)
   const { data: mine, error: e1 } = await supabase

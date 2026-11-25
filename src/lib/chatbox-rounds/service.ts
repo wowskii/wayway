@@ -41,7 +41,7 @@ import {
 import { EVIDENCE, SPOT_INDEX, SPOTS, SPOTS_BY_ID } from "@/lib/logic/dataset";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRoundResult } from "./types";
-import { pickCandidate, type MemberReaction, type MessageKind } from "../../../wayway-ai/lib/ai";
+import { pickCandidate, withReactions, type MemberReaction, type MessageKind } from "../../../wayway-ai/lib/ai";
 
 // How long things last. ONE switch for everything: WAYWAY_AI_MODE in .env.local.
 //   real (contract SETTINGS)                       mock (local testing)
@@ -164,12 +164,15 @@ export type Context = Awaited<ReturnType<typeof loadContext>>;
 // Round 1 or 2 -> next round
 // ---------------------------------------------------------------------------
 async function nextRound(admin: Admin, ctx: Context, row: OptionSetRow, now: number): Promise<boolean> {
-  const previousOptions = toOptions(row.options);
+  const shown = toOptions(row.options);
   const slot = toSlot(row.slot);
-  if (!previousOptions.length || !slot) throw new Error("Option set has no options or no slot");
+  if (!shown.length || !slot) throw new Error("Option set has no options or no slot");
 
-  // ② What members said privately this round, and critiques attached to votes (none before the vote yet)
+  // ② What members said privately this round, and critiques attached to votes (none before the vote yet).
+  //    A member's own reaction replaces the AI's guess on that option, so the kept options and the
+  //    candidate reflect what people said (withReactions: levels only, never the private reasons).
   const [reactions, critiques] = await Promise.all([loadReactions(admin, row.id, row.round), loadCritiques(admin, row.id)]);
+  const previousOptions = withReactions(shown, reactions);
 
   // ③ Revise: Simon's AI proposes, Henry's code checks and ranks
   const ai = getRoundAI();
@@ -238,6 +241,7 @@ async function openVote(admin: Admin, ctx: Context, row: OptionSetRow, now: numb
 
   await postMessage(admin, ctx, row.id, "voting_open", {
     slot: slot?.label ?? "", options: voting.options.map((o) => `${o.id}: ${o.title}`), deadline: localTime(voteDeadline, ctx.timezone),
+    hasSplit: voting.options.some((o) => Boolean(o.branches?.length)),
   });
   return true;
 }

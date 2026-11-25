@@ -17,7 +17,7 @@ import type { InterviewTopic } from "@/lib/ai/types";
 import { getWayWayAI } from "@/lib/ai/wayway";
 import { advancePoll, buildOptions, castVote, filterSpotsForTrip, itineraryFromOption, startPoll } from "@/lib/logic";
 import { EVIDENCE, SPOT_INDEX, SPOTS, SPOTS_BY_ID } from "@/lib/logic/dataset";
-import { AIOutputError, pickCandidate, setClient, type MemberReaction, type OptionsOutput } from "../wayway-ai/lib/ai";
+import { AIOutputError, pickCandidate, setClient, withReactions, type MemberReaction, type OptionsOutput } from "../wayway-ai/lib/ai";
 import { TRIP as BASE } from "../wayway-ai/data/scenario2";
 import { mockClient } from "../wayway-ai/scripts/mock";
 
@@ -185,17 +185,24 @@ async function main() {
 
   // ---------- 5. Next round (nextRound) ----------
   console.log("\n5) reviseOptions -> buildOptions (round 2)");
-  const previous = built.options;
+  const shown = built.options;
+  const previous = withReactions(shown, reactions);   // same as nextRound: reactions replace the AI's guesses
   const rev = await timed("revise", () => revise({ trip, slot: s, allowedSpots: allowed, recentChat: chat,
     previousOptions: previous, candidate: pickCandidate(previous), reactions, critiques: [] }));
   const kept = rev.kept.length ? rev.kept : previous;
   let b2 = buildOptions([...kept, ...rev.candidates], trip.members, SPOT_INDEX, {}, { spentByMember: {} });
   if (!b2.options.length) b2 = buildOptions(previous, trip.members, SPOT_INDEX, {}, { spentByMember: {} });
-  const unchanged = b2.options.map(route).join("|") === previous.map(route).join("|");
+  const unchanged = b2.options.map(route).join("|") === shown.map(route).join("|");
   check("revise + buildOptions", b2.options.length > 0,
     `${rev.candidates.length} new, kept [${rev.kept.map((o) => o.id).join(",")}], ${b2.options.length} cards, candidate ${b2.candidateOptionId}` +
     (unchanged ? " (same cards as round 1)" : ""));
   for (const o of b2.options) console.log(`    ${o.id} ${o.title} [${route(o)}] ${showScores(o)}`);
+  // A card kept from round 1 must show what members said about it, not the round-1 guess.
+  const stale = reactions.filter((r) => {
+    const card = b2.options.find((o) => route(o) === route(shown.find((p) => p.id === r.optionId)!));
+    return card && card.scores.find((x) => x.memberId === r.memberId)?.level !== r.level;
+  });
+  check("kept cards use the members' reactions", stale.length === 0, stale.length ? `${stale.length} still show the old guess` : "");
   check("round 2 cards: no private words", b2.options.every((o) => !PRIVATE.test(publicText(o))));
   const m2 = await timed("writeMessage", () => write({ trip, kind: "next_round", recentChat: chat,
     facts: { slot: s.label, round: 2, options: b2.options.map((o) => `${o.id}: ${o.title}`), deadline: "16:00" } }));

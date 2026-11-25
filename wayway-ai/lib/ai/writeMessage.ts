@@ -39,14 +39,16 @@ export interface MessageOutput {
 const FALLBACK: Record<MessageKind, string> = {
   options_round: "Here are a few options for this slot. Tell me privately what you think, then we'll refine them!",
   next_round: "Thanks for your feedback! Here are the updated options.",
-  voting_open: "Time to vote on the final options!",
+  voting_open: "Time to vote on the final options in Spot Suggestions!",
   reminder: "A few of you haven't answered yet, your opinion counts!",
   no_quorum: "Not enough votes yet, so I'm giving everyone 30 more minutes.",
-  tie_revote: "It's a perfect tie! Let's vote one more time.",
+  tie_revote: "It's a perfect tie! Let's vote one more time in Spot Suggestions.",
   decision: "Decision made, the itinerary has been updated!",
   split_refused: "Not everyone wanted to split up, so I kept the best option for the whole group.",
   answer_question: "Good question! Each option card shows who it works for and why.",
 };
+
+const VOTE_KINDS = new Set<MessageKind>(["voting_open", "no_quorum", "tie_revote", "reminder"]);
 
 export async function writeMessage(input: MessageInput): Promise<MessageOutput> {
   const tokens = privateTokens(input.trip);
@@ -59,6 +61,12 @@ export async function writeMessage(input: MessageInput): Promise<MessageOutput> 
     const leaks = findLeaks(visible, tokens);
     if (leaks.length) errors.push(`The message reveals private information (${leaks.join(", ")}). Rewrite neutrally.`);
     if (/\b\d+(\.\d+)?\s*(credit|credits|points?)\b/i.test(visible)) errors.push("Never show fairness numbers.");
+    // Votes happen in the Spot Suggestions panel, never by replying in the chat ("just reply with A or B").
+    if (VOTE_KINDS.has(input.kind) && /\b([Rr]eply|[Rr]eplying|[Aa]nswer|[Tt]ype|[Ww]rite|[Tt]ext)\b[^.!?]*\b(A|B|C)\b/.test(raw?.text ?? "")) {
+      errors.push("Members vote in the Spot Suggestions panel: never ask them to reply or type their choice in the chat.");
+    }
+    // A split is mentioned only when one of the options really is a split.
+    if (input.facts.hasSplit === false && /\bsplit/i.test(visible)) errors.push("No option is a split: do not mention splitting up.");
     if (!input.favoredMemberName && raw?.fairnessNote) raw.fairnessNote = "";
     return errors.length ? { ok: false, errors } : { ok: true, value: raw };
   };
