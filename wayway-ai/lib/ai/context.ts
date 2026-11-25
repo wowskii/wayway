@@ -1,6 +1,6 @@
 // Context engineering: select and format only what the model needs.
 
-import type { ChatMessage, MemberProfile, Option, SatisfactionLevel, Spot, TimeSlot, Trip, Vote } from "@/contracts/contract";
+import type { ChatMessage, MemberProfile, Option, SatisfactionLevel, Spot, TimeSlot, Trip, Vote, Weekday } from "@/contracts/contract";
 import { LEVEL_VALUE, SETTINGS } from "@/contracts/contract";
 import { LIMITS } from "./config";
 
@@ -56,15 +56,27 @@ export const hhmm = (min: number) =>
   `${String(Math.floor(min / 60) % 24).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 export const slotMinutes = (slot: TimeSlot) => toMin(slot.end) - toMin(slot.start);
 
-// Opening window in minutes; a window crossing midnight ("18:00-02:00") ends after 1440.
-export function openWindow(spot: Spot): [number, number] {
-  const [open, close] = spot.openHours.split("-").map(toMin);
+// ---------- Opening hours (per weekday when the dataset has them) ----------
+const WEEK: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+/** Weekday of trip day N (day 1 = startDate). Undefined if the date is not a valid YYYY-MM-DD. */
+export function weekdayOf(trip: Pick<Trip, "startDate">, day: number): Weekday | undefined {
+  const t = Date.parse(`${trip.startDate}T12:00:00Z`);
+  return Number.isNaN(t) ? undefined : WEEK[new Date(t + (day - 1) * 86_400_000).getUTCDay()];
+}
+/** The hours of a spot on that weekday ("HH:MM-HH:MM"), or "closed". openHoursByDay wins over openHours. */
+export const hoursOn = (spot: Spot, weekday?: Weekday): string =>
+  (weekday && spot.openHoursByDay?.[weekday]) || spot.openHours;
+/** [open, close] in minutes (close can pass midnight), or undefined when closed that day. */
+export function openWindow(spot: Spot, weekday?: Weekday): [number, number] | undefined {
+  const h = hoursOn(spot, weekday);
+  if (h === "closed") return undefined;
+  const [open, close] = h.split("-").map(toMin);
   return [open, close <= open ? close + 1440 : close];
 }
-
-// True if the spot is open for the whole visit [start, end] (minutes since midnight).
-export function isOpenDuring(spot: Spot, start: number, end: number): boolean {
-  const [open, close] = openWindow(spot);
+export function isOpenDuring(spot: Spot, start: number, end: number, weekday?: Weekday): boolean {
+  const w = openWindow(spot, weekday);
+  if (!w) return false;
+  const [open, close] = w;
   return (start >= open && end <= close) || (start + 1440 >= open && end + 1440 <= close);
 }
 
@@ -96,18 +108,58 @@ export function travelMin(a: Spot, b: Spot): number {
 // Keep spots that fit in the slot, can be visited at some point inside it, and match the slot kind
 // (meal slot: food only; activity slot: no food). Hard constraints are filtered BEFORE this by
 // role 4's filterHardConstraints.
-export function selectSpots(allowed: Spot[], slot: TimeSlot): Spot[] {
+export interface SelectOptions {
+  weekday?: Weekday;                 // the slot's weekday: per-day opening hours (e.g. a museum closed on Tuesday)
+  trip?: Trip;                       // for the relevance cap: members' interests and the trip's base point
+  max?: number;                      // most spots sent to the model (default LIMITS.maxSpotsInPrompt)
+}
+
+// Interests -> spot categories, for the relevance cap below (unknown interests count for nothing).
+const INTEREST_CATS: [RegExp, Spot["category"][]][] = [
+  [/art|museum|galler|painting|science/i, ["museum"]],
+  [/histor|architect|monument|landmark|sightsee/i, ["landmark", "museum", "temple"]],
+  [/temple|shrine|church|cathedral|spiritual/i, ["temple"]],
+  [/shop|fashion|souvenir|market|street/i, ["shopping"]],
+  [/nature|park|garden|hik|walk/i, ["nature"]],
+  [/night|bar|club|karaoke/i, ["nightlife"]],
+  [/food|eat|restaurant|cafe|coffee/i, ["food"]],
+];
+const kmTo = (s: Spot, p: { lat: number; lng: number }) =>
+  Math.hypot((s.lat - p.lat) * 111, (s.lng - p.lng) * 111 * Math.cos((p.lat * Math.PI) / 180));
+
+export function selectSpots(allowed: Spot[], slot: TimeSlot, opts: SelectOptions = {}): Spot[] {
   const s = toMin(slot.start);
   const e = toMin(slot.end);
   const meal = slotKind(slot) === "meal";
-  return allowed.filter((spot) => {
+  const pool = allowed.filter((spot) => {
     if ((spot.category === "food") !== meal) return false;
+    if (spot.category === "nightlife" && !meal && s < 17 * 60) return false;   // no bars in a daytime slot
     const d = Math.min(spot.durationMin, e - s);
     if (spot.durationMin > e - s + LIMITS.slotSlackMin) return false;
-    // Try every start time in the slot (15 min steps): is there one where the spot is open?
-    for (let t = s; t + d <= e; t += 15) if (isOpenDuring(spot, t, t + d)) return true;
+    // Try every start time in the slot (15 min steps): is there one where the spot is open (that weekday)?
+    for (let t = s; t + d <= e; t += 15) if (isOpenDuring(spot, t, t + d, opts.weekday)) return true;
     return false;
   });
+  const max = opts.max ?? LIMITS.maxSpotsInPrompt;
+  if (pool.length <= max) return pool;   // small datasets (Tokyo): everything, as before
+
+  // Big city files (OpenStreetMap): keep the most relevant. Spots far from the base go last; each category
+  // gets a quota from the members' interests (landmarks always count: they are what visitors come for);
+  // inside a category the file order is kept (the city script writes the best known places first).
+  const base = opts.trip?.base;
+  const near = base ? [...pool].sort((x, y) => Number(kmTo(x, base) > 4) - Number(kmTo(y, base) > 4)) : pool;
+  const weight: Partial<Record<Spot["category"], number>> = { landmark: 2, nature: 1 };
+  for (const m of opts.trip?.members ?? []) {
+    for (const i of m.interests) for (const [re, cats] of INTEREST_CATS) if (re.test(i)) for (const c of cats) weight[c] = (weight[c] ?? 0) + 1;
+  }
+  const cats = [...new Set(near.map((x) => x.category))];
+  const total = cats.reduce((sum, c) => sum + (weight[c] ?? 0.5), 0);
+  const out: Spot[] = [];
+  for (const c of cats) {
+    const quota = Math.max(2, Math.round((max * (weight[c] ?? 0.5)) / total));
+    out.push(...near.filter((x) => x.category === c).slice(0, quota));
+  }
+  return out.slice(0, max);
 }
 
 // ---------- Formatting ----------
@@ -127,7 +179,7 @@ export function formatMembers(trip: Trip, a: Aliases, includePrivate: boolean): 
       if (includePrivate) {
         const constraints = [
           m.hard.allergies.length ? `allergies: ${m.hard.allergies.join(", ")}` : "",
-          m.hard.maxBudget ? `max budget for the whole trip: ${m.hard.maxBudget} JPY` : "",
+          m.hard.maxBudget ? `max budget for the whole trip: ${m.hard.maxBudget} ${trip.currency ?? "JPY"}` : "",
         ].filter(Boolean).join("; ");
         if (constraints) lines.push(`  <private_constraints>${esc(constraints)}</private_constraints>`);
         if (priv.length) lines.push(`  <private_preferences>${esc(priv.join(" | "))}</private_preferences>`);
@@ -141,15 +193,15 @@ export function formatMembers(trip: Trip, a: Aliases, includePrivate: boolean): 
 
 // With a slot, each spot also shows "start visit by HH:MM": the latest start so the visit ends before
 // the spot closes AND before the slot ends (v6: the model kept placing spots after closing time).
-export function latestStart(spot: Spot, slot: TimeSlot): number {
-  const [, close] = openWindow(spot);
+export function latestStart(spot: Spot, slot: TimeSlot, weekday?: Weekday): number {
+  const close = openWindow(spot, weekday)?.[1] ?? toMin(slot.start);
   return Math.min(close, toMin(slot.end)) - spot.durationMin;
 }
-export function formatSpots(spots: Spot[], slot?: TimeSlot): string {
+export function formatSpots(spots: Spot[], slot?: TimeSlot, opts: { weekday?: Weekday; currency?: string } = {}): string {
   return spots
     .map((s) =>
-      `- ${s.id}: ${esc(s.name)} (${esc(s.category)}, ${esc(s.area)}) | ${s.price} JPY | ${s.durationMin} min | open ${s.openHours}` +
-      (slot ? ` | start visit by ${hhmm(Math.max(latestStart(s, slot), toMin(slot.start)))}` : "") +
+      `- ${s.id}: ${esc(s.name)} (${esc(s.category)}, ${esc(s.area)}) | ${s.price} ${opts.currency ?? "JPY"} | ${s.durationMin} min | open ${hoursOn(s, opts.weekday)}` +
+      (slot ? ` | start visit by ${hhmm(Math.max(latestStart(s, slot, opts.weekday), toMin(slot.start)))}` : "") +
       (s.dietTags.length ? ` | diet: ${esc(s.dietTags.join(", "))}` : ""))
     .join("\n");
 }

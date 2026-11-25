@@ -38,7 +38,8 @@ import {
   advancePoll, buildOptions, decisionRows, filterSpotsForTrip, itineraryFromOption, memberStateUpdates, optionSetFromRow,
   optionSetUpdate, pollFromRows, spentFromItinerary, startPoll,
 } from "@/lib/logic";
-import { EVIDENCE, SPOT_INDEX, SPOTS, SPOTS_BY_ID } from "@/lib/logic/dataset";
+import { spotsForCity } from "@/lib/cities";
+import { EVIDENCE, SPOT_INDEX, SPOTS_BY_ID } from "@/lib/logic/dataset";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRoundResult } from "./types";
 import { pickCandidate, withReactions, type MemberReaction, type MessageKind } from "../../../wayway-ai/lib/ai";
@@ -155,7 +156,8 @@ export async function loadContext(admin: Admin, tripId: string) {
     recentChat: (chatRows ?? []).reverse().map(toChatMessage),
     credits: Object.fromEntries((stateRows ?? []).map((s) => [s.member_id, s.fairness_credits])),
     spentByMember,
-    allowedSpots: filterSpotsForTrip(SPOTS, members, { evidence: EVIDENCE, spentByMember }).allowed,
+    // Only the spots of the trip's city (src/lib/cities.ts): Tokyo by default.
+    allowedSpots: filterSpotsForTrip(spotsForCity(tripRow.city), members, { evidence: EVIDENCE, spentByMember }).allowed,
   };
 }
 export type Context = Awaited<ReturnType<typeof loadContext>>;

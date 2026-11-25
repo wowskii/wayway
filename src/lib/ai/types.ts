@@ -16,6 +16,7 @@ export interface ExtractInput {
   history: PrivateMessage[];          // recent private messages of this member
   round: number;                      // 0 = onboarding
   currentOptions?: Option[];          // options the member is reacting to
+  currency?: string;                  // trip currency ("JPY" by default): budgets and prices
 }
 
 export interface ExtractOutput {

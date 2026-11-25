@@ -2,6 +2,7 @@
 // opens once it is finished, and then this page sends you to the group chat (src/lib/trip.ts).
 // The server loads the chat (and posts WayWay's greeting the first time), then hands it to
 // the InterviewChat component which runs in the browser.
+import { currencyOf } from "@/lib/cities";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
@@ -29,6 +30,7 @@ export default async function InterviewPage({ params }: { params: Promise<{ trip
         <span className="border-l border-line pl-4 text-sm font-medium">{trip.name}</span>
       </Header>
       <InterviewChat
+        currency={currencyOf(trip.city)}
         tripId={tripId}
         memberId={state.memberId}
         initialMessages={state.messages}

@@ -40,7 +40,7 @@ export const EXTRACT_SCHEMA: JsonSchema = {
       properties: {
         diet: { type: "array", items: { type: "string" } },
         allergies: { type: "array", items: { type: "string" } },
-        maxBudget: { type: "number", description: "Per person for the whole trip, JPY" },
+        maxBudget: { type: "number", description: "Per person for the whole trip, in the trip currency" },
       },
     },
     reply: { type: "string", description: "Private reply to the member, 1-2 sentences, in their language." },

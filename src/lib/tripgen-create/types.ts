@@ -1,7 +1,9 @@
 // Shapes shared by the trip creation page (/trips/new) and its server action.
 
-/** Cities WayWay has spots for (the spot dataset is Tokyo only for now). */
-export const CITIES = ["Tokyo"];
+import { CITY_NAMES } from "@/lib/cities";
+
+/** Cities WayWay has spots for: data/cities.json (Tokyo hand-made, others from OpenStreetMap snapshots). */
+export const CITIES: string[] = CITY_NAMES;
 
 /** trips.goal: how full the days should be. */
 export const GOALS = [

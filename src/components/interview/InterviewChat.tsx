@@ -35,7 +35,10 @@ export function InterviewChat({
   initiallyFinished,
   embedded = false,
   onStatusChange,
+  currency = "JPY",
 }: {
+  /** The trip's currency, for the budget on the confirmation card. */
+  currency?: string;
   tripId: string;
   memberId: string;
   initialMessages: InterviewMessage[];
@@ -153,6 +156,7 @@ export function InterviewChat({
                   next question: card first, so the chat reads in order (answer -> card -> next question). */}
               {m.constraintsToConfirm && m.constraintsStatus && (
                 <ConstraintCard
+                  currency={currency}
                   constraints={m.constraintsToConfirm}
                   status={m.constraintsStatus}
                   onAnswer={(decision, edited) => answerCard(m.id, decision, edited)}

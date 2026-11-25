@@ -39,6 +39,7 @@ export const LIMITS = {
   minCandidates: 2,            // fewer valid candidates than this triggers a retry
   maxCandidates: 5,
   maxRetries: 1,               // one retry with the validation errors, then fallback
+  maxSpotsInPrompt: 40,        // big city files (OpenStreetMap): the most relevant spots only (Tokyo has fewer)
   slotSlackMin: 15,            // tolerance when checking that visits fit the time slot
 } as const;
 

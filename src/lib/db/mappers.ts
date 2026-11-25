@@ -9,6 +9,7 @@ import type {
   PrivateMessage,
   Trip,
 } from "@/contracts/contract";
+import { withCityDefaults } from "@/lib/cities";
 import type { Tables } from "./database.types";
 
 export type TripRow = Tables<"trips">;
@@ -69,9 +70,9 @@ export function toMemberProfile(
   };
 }
 
-/** Builds the contract Trip from its row and its members. */
+/** Builds the contract Trip from its row and its members (+ its city's currency and starting point). */
 export function toTrip(trip: TripRow, members: MemberProfile[]): Trip {
-  return {
+  return withCityDefaults({
     id: trip.id,
     name: trip.name,
     city: trip.city,
@@ -80,7 +81,7 @@ export function toTrip(trip: TripRow, members: MemberProfile[]): Trip {
     timezone: trip.timezone,
     goal: trip.goal as Trip["goal"],
     members,
-  };
+  });
 }
 
 // ---------------------------------------------------------------------------

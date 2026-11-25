@@ -7,6 +7,7 @@ import { buildOptions, pickCandidateId } from "@/lib/logic/options";
 import type { BuildMember, CandidateLike } from "@/lib/logic/options";
 import { filterSpotsForTrip } from "@/lib/logic/constraints";
 import { SPOTS, SPOTS_BY_ID, SPOT_INDEX, validateDataset } from "@/lib/logic/dataset";
+import { CITY_CONFIG, cityFile } from "@/lib/cities";
 import { advancePoll, castVote, startPoll } from "@/lib/logic/voting";
 import { decisionRows, memberStateUpdates, optionSetUpdate, pollFromRows, voteFromRow, voteToRow } from "@/lib/logic/persistence";
 import type { OptionSetRow } from "@/lib/logic/persistence";
@@ -34,7 +35,9 @@ const split = cand("Split and meet", [], scores("must_go", "must_go", "want_to_g
 });
 
 test("the shared dataset is valid and the evidence file only refers to existing spots", () => {
-  assert.deepEqual(validateDataset(SPOTS_BY_ID as Record<string, unknown>), []);
+  // Every city file (data/cities.json) is valid against its own area; SPOTS stays the Tokyo list.
+  for (const c of Object.values(CITY_CONFIG)) assert.deepEqual(validateDataset(cityFile(c), {}, c), [], c.name);
+  assert.ok(Object.keys(SPOTS_BY_ID).length > SPOTS.length, "lookups by id cover every city");
   assert.ok(SPOTS.length >= 30 && SPOTS.length <= 50, "30-50 spots (milestone 3)");
   assert.ok(SPOTS.filter(s => s.category === "food").length >= 5, "enough food spots for meal slots");
   assert.deepEqual(SPOT_INDEX.ts_tantan.allergens, ["sesame"]);

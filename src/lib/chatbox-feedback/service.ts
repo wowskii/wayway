@@ -5,6 +5,7 @@ import "server-only";
 //   (Simon's extractPreferences, or the mock) -> save what it learned -> save WayWay's reply.
 // Every message is tagged with the option set and its round, so each set has its own thread.
 // Hard constraints are only PROPOSED (confirmation card, answered with /api/private/confirm).
+import { currencyOf } from "@/lib/cities";
 import type { Json } from "@/lib/db/database.types";
 import { getFeedbackHandler } from "@/lib/ai/feedback";
 import { toMemberProfile, toPrivateMessage } from "@/lib/db/mappers";
@@ -36,6 +37,7 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
   if (!set) throw new InterviewError(404, "These suggestions were not found.");
   if (set.status !== "collecting_feedback") throw new InterviewError(409, "Feedback for this round is closed.");
   const options = toOptions(set.options);
+  const { data: tripRow } = await admin.from("trips").select("city").eq("id", tripId).maybeSingle();
 
   // 2. Save the member's message (as the user: RLS checks it is really theirs)
   const { data: mine, error: e1 } = await supabase
@@ -66,7 +68,8 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
     history,
     round: set.round,
     currentOptions: options,
-    spots: SPOTS,
+    spots: SPOTS,                            // every city: the cards' spots are looked up by id
+    currency: currencyOf(tripRow?.city),     // prices and budgets in the trip's currency
     memberNames: Object.fromEntries((memberRows ?? []).map((m) => [m.id, m.name])),
   });
 

@@ -18,6 +18,7 @@ export interface ExtractInput {
   currentOptions?: Option[];          // options the member is reacting to
   spots?: Spot[];                     // to describe the option cards (names, areas, prices, hours)
   memberNames?: Record<string, string>; // member id -> name, for split groups and "works for"
+  currency?: string;                  // trip currency ("JPY" by default): budgets and prices
 }
 
 export interface ExtractOutput {
@@ -83,11 +84,11 @@ const RECOMMEND = new RegExp([
 ].join("|"), "i");
 
 // The facts shown on each card: the only things WayWay may say about an option.
-export function describeOptions(options: Option[], spots: Spot[] = [], names: Record<string, string> = {}): string {
+export function describeOptions(options: Option[], spots: Spot[] = [], names: Record<string, string> = {}, currency = "JPY"): string {
   const byId = new Map(spots.map((s) => [s.id, s]));
   const spot = (id: string) => {
     const s = byId.get(id);
-    return s ? `${s.name} (${s.area}, about ${s.price} yen, ~${s.durationMin} min, open ${s.openHours})` : id;
+    return s ? `${s.name} (${s.area}, about ${s.price} ${currency}, ~${s.durationMin} min, usual hours ${s.openHours})` : id;
   };
   const who = (ids: string[]) => ids.map((id) => names[id] ?? id).join(", ");
   return options.map((o) => {
@@ -139,7 +140,7 @@ export async function extractPreferences(input: ExtractInput): Promise<ExtractOu
   const { member, message, history, round, currentOptions, spots, memberNames } = input;
   const context = currentOptions?.length
     ? `Round ${round}. The member is reacting privately to these options (card facts):\n` +
-      describeOptions(currentOptions, spots, memberNames)
+      describeOptions(currentOptions, spots, memberNames, input.currency)
     : "Onboarding: the member is telling WayWay about themselves before the trip. No options yet.";
 
   try {

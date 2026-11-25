@@ -10,6 +10,7 @@
 //
 // Tapping a dock icon opens its tool in the middle and pushes the chat to the right;
 // tapping it again (or the ✕) closes it. On phones the tool covers the chat instead.
+import { currencyOf } from "@/lib/cities";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ChatMessage } from "@/contracts/contract";
@@ -211,6 +212,7 @@ export function TripHub({
               <PanelFrame title="WayWay · private chat" subtitle="Only WayWay sees this chat, never your group." onClose={close}>
                 <InterviewChat
                   embedded
+                  currency={currencyOf(trip.city)}
                   tripId={trip.id}
                   memberId={me.id}
                   initialMessages={privateChat.messages}
@@ -224,6 +226,7 @@ export function TripHub({
           {mounted.has("suggestions") && (
             <div className={`${show("suggestions")} h-full min-h-0 flex-col`}>
               <SuggestionsPanel
+                currency={currencyOf(trip.city)}
                 sets={suggestionSets}
                 waiting={roundsWaiting}
                 visible={panel === "suggestions"}

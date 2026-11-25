@@ -1,0 +1,2345 @@
+{
+ "source": "© OpenStreetMap contributors (ODbL)",
+ "currency": "EUR",
+ "spots": {
+  "angelina": {
+   "osm": "node/3980096134",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "richer": {
+   "osm": "node/4418773893",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bouillon_racine": {
+   "osm": "node/1695642573",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_petit_cambodge": {
+   "osm": "node/2143923399",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "luks_kebab": {
+   "osm": "node/3519439132",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_berthillon": {
+   "osm": "node/4126621093",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_as_du_fallafel": {
+   "osm": "node/4413941090",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_esprit_nouveau": {
+   "osm": "node/13119162048",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pavillon_des_canaux": {
+   "osm": "way/63971361",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "poulette": {
+   "osm": "node/3889206259",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_campana": {
+   "osm": "node/11027800758",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_arpege": {
+   "osm": "node/11817329876",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "a_la_folie": {
+   "osm": "node/3881811459",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_dome": {
+   "osm": "node/1678007548",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_closerie_des_lilas": {
+   "osm": "node/2013749517",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_tour_d_argent": {
+   "osm": "node/251474108",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_escargot_montorgueil": {
+   "osm": "node/681294130",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_procope": {
+   "osm": "node/2386622236",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "polidor": {
+   "osm": "node/251671404",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bistrot_paul_bert": {
+   "osm": "node/589485658",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_petit_bouillon_pharamond": {
+   "osm": "node/681283199",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_choupinet": {
+   "osm": "node/783272359",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_coupole": {
+   "osm": "node/790498231",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "brasserie_bofinger": {
+   "osm": "node/968153548",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_opera_restaurant": {
+   "osm": "node/1393155090",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_grand_vefour": {
+   "osm": "node/1454687141",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "vagenende": {
+   "osm": "node/1695637600",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_cochon_a_l_oreille": {
+   "osm": "node/2478201177",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_relais_de_venise": {
+   "osm": "node/2733983772",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "derya": {
+   "osm": "node/2757768985",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_jules_verne": {
+   "osm": "node/3135278479",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "allard": {
+   "osm": "node/3351637400",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "moulin_de_la_galette": {
+   "osm": "node/3379363204",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_chateaubriand": {
+   "osm": "node/5076884173",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_bonne_franquette": {
+   "osm": "node/5331770655",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_eugene": {
+   "osm": "node/5331770657",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "ogata": {
+   "osm": "node/9146817448",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cantine_de_la_maison_de_la_c": {
+   "osm": "node/9781734723",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "nobisan": {
+   "osm": "node/13387377102",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_train_bleu": {
+   "osm": "way/406429774",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_des_2_moulins": {
+   "osm": "node/408952536",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "traiteur_de_la_gare": {
+   "osm": "node/534916361",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "restaurants_l_alsace": {
+   "osm": "node/843477435",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pages": {
+   "osm": "node/3337964214",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_rotonde": {
+   "osm": "node/3427711993",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bouillon_julien": {
+   "osm": "node/251851388",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "clown_bar": {
+   "osm": "node/252214032",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "les_pipos": {
+   "osm": "node/390266577",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "madame_guan": {
+   "osm": "node/700256907",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "au_pied_de_cochon": {
+   "osm": "node/1678050141",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "brasserie_balzar": {
+   "osm": "node/2897679727",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bouillon_chartier_montparnas": {
+   "osm": "node/2917495131",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "hotel_du_nord": {
+   "osm": "node/3089609526",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_mere_catherine": {
+   "osm": "node/3229495399",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "sushirama": {
+   "osm": "node/3421390898",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "septime": {
+   "osm": "node/3602657896",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_renard_cafe": {
+   "osm": "node/3864619662",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "yam_tcha": {
+   "osm": "node/3980676684",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_poule_au_pot": {
+   "osm": "node/4542752703",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "clover_grill": {
+   "osm": "node/4728771718",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_l_ami_louis": {
+   "osm": "node/5002835638",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "restaurant_lasserre": {
+   "osm": "node/5030300522",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_clarence": {
+   "osm": "node/5030306022",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "restaurant_david_toutain": {
+   "osm": "node/5030309125",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_cinq": {
+   "osm": "node/5030422821",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_des_phares": {
+   "osm": "node/251125927",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "guinga": {
+   "osm": "node/726567941",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_celeste_gourmand": {
+   "osm": "node/1143736503",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "au_ciel": {
+   "osm": "node/1519809386",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_cremieux": {
+   "osm": "node/3656895852",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "joe_burger": {
+   "osm": "node/4451419889",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_republique": {
+   "osm": "node/293982742",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "columbus_cafe_and_co": {
+   "osm": "node/589495688",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_cafe_saint_medard": {
+   "osm": "node/1144591712",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "ten_belles": {
+   "osm": "node/2769238610",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_nanchang": {
+   "osm": "node/2875240650",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_rempart": {
+   "osm": "node/2919342401",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_gladines_batignolles": {
+   "osm": "node/3033091336",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "malongo_cafe": {
+   "osm": "node/3351630836",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "creperie_des_pecheurs": {
+   "osm": "node/3351649038",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_creperie": {
+   "osm": "node/3457465793",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "primerose": {
+   "osm": "node/4424859189",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cafe_dose": {
+   "osm": "node/4624297501",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "blanc_de_noirs": {
+   "osm": "node/4723221891",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "l_endroit": {
+   "osm": "node/5129465187",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_pot_o_lait": {
+   "osm": "node/5222573357",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "b_o_u_l_o_m": {
+   "osm": "node/5646462621",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "yellow_tucan": {
+   "osm": "node/6347807759",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "hang_art": {
+   "osm": "node/6939904390",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "amendula": {
+   "osm": "node/7111581946",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "juni_armenian_bakery": {
+   "osm": "node/7472967187",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "mori_cafe": {
+   "osm": "node/7514785271",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "hanwoo_haussmann": {
+   "osm": "node/10120462641",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "oranta": {
+   "osm": "node/10614190835",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "biondi": {
+   "osm": "node/252263209",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "perlamatta": {
+   "osm": "node/252862944",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "doppio": {
+   "osm": "node/257540843",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "brasserie_wepler": {
+   "osm": "node/408952534",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "kfc": {
+   "osm": "node/418053068",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "burger_king": {
+   "osm": "node/418053069",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "flam_s": {
+   "osm": "node/418464718",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "ty_louis": {
+   "osm": "node/428164786",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jodhpur_palace": {
+   "osm": "node/428167065",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "sushi_bar": {
+   "osm": "node/508588125",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bibimcup": {
+   "osm": "node/508588158",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "paya_thai_aligre": {
+   "osm": "node/531497617",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "nelson_s": {
+   "osm": "node/678855682",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "trantranzai": {
+   "osm": "node/680617611",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "charly": {
+   "osm": "node/683133918",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "hippopotamus": {
+   "osm": "node/687044631",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_tresor": {
+   "osm": "node/702915981",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bloom_sushi": {
+   "osm": "node/703460891",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "auberge_de_venise": {
+   "osm": "node/703876600",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "oxymore": {
+   "osm": "node/719642299",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_bebert": {
+   "osm": "node/727735237",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pause_bobun": {
+   "osm": "node/739798709",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "riz_riz": {
+   "osm": "node/747801176",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pitaya": {
+   "osm": "node/821879330",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "indiana_cafe": {
+   "osm": "node/821879351",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "au_bois_d_acacia": {
+   "osm": "node/822037743",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "yemeni": {
+   "osm": "node/839922895",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "les_tontons_veg": {
+   "osm": "node/912308752",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "ki_sushi": {
+   "osm": "node/936840625",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "domino_s": {
+   "osm": "node/1005318030",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "el_fares": {
+   "osm": "node/1244411703",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_touareg": {
+   "osm": "node/1252382310",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "apeti_segur": {
+   "osm": "node/1263347459",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "les_cedres_du_liban": {
+   "osm": "node/1273736829",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "joyti": {
+   "osm": "node/1287933955",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "dalmata": {
+   "osm": "node/1307319293",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "sando_club": {
+   "osm": "node/1312774894",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jovia": {
+   "osm": "node/1440251000",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "romy_s": {
+   "osm": "node/1490547177",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "neko_ramen_green": {
+   "osm": "node/1494265643",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_paradis_du_fruit": {
+   "osm": "node/1528685379",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "contraste": {
+   "osm": "node/1649702461",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "aca": {
+   "osm": "node/1670390154",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "van_april": {
+   "osm": "node/1684658954",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_nicos": {
+   "osm": "node/1702570598",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "gourou": {
+   "osm": "node/1780508213",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "ramses": {
+   "osm": "node/1930542203",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pizza_julia": {
+   "osm": "node/1965587246",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "popine": {
+   "osm": "node/1989732855",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "nouilles_ceintures": {
+   "osm": "node/2103216542",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "bloom_sushi_wagram": {
+   "osm": "node/2123947089",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_creme_de_paris": {
+   "osm": "node/2126361723",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "manhattn_s_burgers": {
+   "osm": "node/2164930196",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "au_rocher_de_cancale": {
+   "osm": "node/2164935920",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "tipaza": {
+   "osm": "node/2273232850",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "breizh": {
+   "osm": "node/2296255409",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_petit_josselin": {
+   "osm": "node/2347006547",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_jeanne": {
+   "osm": "node/2347006550",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "konvives": {
+   "osm": "node/2377890493",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_pizza_de_nico": {
+   "osm": "node/2425856836",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "papillon": {
+   "osm": "node/2494113876",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "burger_and_fries": {
+   "osm": "node/2496113318",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "perchiana": {
+   "osm": "node/2500448784",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "monk_la_taverne_de_cluny": {
+   "osm": "node/2529721872",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chez_zareta": {
+   "osm": "node/2575207520",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "juni": {
+   "osm": "node/2621697294",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "irasshai": {
+   "osm": "node/11186895723",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "au_reve": {
+   "osm": "node/5468333637",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "harry_s_bar": {
+   "osm": "node/251023849",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "rosa_bonheur": {
+   "osm": "node/635864714",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_point_ephemere": {
+   "osm": "node/921881553",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_dernier_bar_avant_la_fin": {
+   "osm": "node/1824374964",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "oculto": {
+   "osm": "node/2003145820",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_tango": {
+   "osm": "node/4537714186",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "one_way": {
+   "osm": "node/4623635818",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_duplex": {
+   "osm": "node/5690175583",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "quai_branly_museum": {
+   "osm": "way/17954721",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "museum_of_orsay": {
+   "osm": "way/63178753",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "modern_art_museum_of_paris": {
+   "osm": "way/79219308",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "palace_of_tokyo": {
+   "osm": "way/79219351",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "louvre_museum": {
+   "osm": "relation/7515426",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "orangerie_museum": {
+   "osm": "way/54188996",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "great_palace": {
+   "osm": "way/56185523",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "conciergerie": {
+   "osm": "node/910390736",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "rodin_museum": {
+   "osm": "way/472159547",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "carnavalet_museum": {
+   "osm": "relation/2405955",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "museum_of_fine_arts_of_the_c": {
+   "osm": "relation/2778854",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "architecture_and_heritage_ci": {
+   "osm": "node/1296750671",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "gallery_of_mineralogy_and_ge": {
+   "osm": "way/21999357",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "discovery_palace": {
+   "osm": "way/188108997",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "treasury_of_notre_dame": {
+   "osm": "node/1913411918",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "the_cluny_museum": {
+   "osm": "way/56640163",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_national_picasso_paris": {
+   "osm": "way/57745741",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "grand_gallery_of_evolution": {
+   "osm": "way/83913793",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "galliera_museum": {
+   "osm": "relation/1191057",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "museum_of_arts_et_metiers": {
+   "osm": "node/247618453",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_grevin": {
+   "osm": "node/251851363",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "espace_dali": {
+   "osm": "node/252970813",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "national_museum_of_the_navy": {
+   "osm": "node/1296754169",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "mineralogy_museum": {
+   "osm": "node/1426245245",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_de_montmartre": {
+   "osm": "way/154679327",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_du_luxembourg": {
+   "osm": "way/170226810",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_bourdelle": {
+   "osm": "relation/21041407",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "maison_de_victor_hugo": {
+   "osm": "node/254033221",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "musee_de_la_legion_d_honneur": {
+   "osm": "node/12977566999",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "galeries_de_paleontologie_et": {
+   "osm": "way/21999454",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_d_art_et_d_histoire_du": {
+   "osm": "way/56687783",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_cognacq_jay": {
+   "osm": "way/57781649",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_de_la_vie_romantique": {
+   "osm": "way/84511123",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "maison_de_balzac": {
+   "osm": "way/84511129",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "maison_de_la_culture_du_japo": {
+   "osm": "way/151074455",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_de_la_poste": {
+   "osm": "node/993828548",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_adam_mickiewicz": {
+   "osm": "node/1426016793",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "bibliotheque_musee_de_l_oper": {
+   "osm": "node/1426281644",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_des_archives_nationale": {
+   "osm": "node/4664509356",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "musee_boleslas_biegas": {
+   "osm": "node/4679772363",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "the_world_of_banksy": {
+   "osm": "node/9610343418",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_des_egouts": {
+   "osm": "node/11148144370",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "musee_curie": {
+   "osm": "node/11259580512",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "fondation_cartier_pour_l_art": {
+   "osm": "node/13260353506",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "halle_saint_pierre": {
+   "osm": "way/45073393",
+   "estimated": [
+    "durationMin"
+   ]
+  },
+  "eiffel_tower": {
+   "osm": "way/5013364",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pantheon": {
+   "osm": "way/16407465",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "pere_lachaise_cemetery": {
+   "osm": "way/13859706",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "montparnasse_tower": {
+   "osm": "way/16406633",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "arc_de_triomphe": {
+   "osm": "way/226413508",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "hotel_de_ville": {
+   "osm": "relation/284089",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "college_des_bernardins": {
+   "osm": "way/26584053",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "aquarium_de_paris_cineaqua": {
+   "osm": "way/79742887",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "les_grandes_serres_du_jardin": {
+   "osm": "way/1288442711",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "opera_garnier": {
+   "osm": "way/54667456",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "louvre_palace": {
+   "osm": "relation/3262297",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "national_assembly": {
+   "osm": "way/175448742",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "july_column": {
+   "osm": "way/227757683",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "louvre_pyramid": {
+   "osm": "way/375076234",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "elysee_palace": {
+   "osm": "relation/1060803",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "palace_of_justice": {
+   "osm": "relation/536982",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "luxembourg_palace": {
+   "osm": "relation/975955",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "saint_jacques_tower": {
+   "osm": "way/20326709",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "luxor_obelisk": {
+   "osm": "way/72937686",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "la_seine": {
+   "osm": "way/92316098",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "tomb_of_the_unknown_soldier": {
+   "osm": "way/339016618",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "cabaret_lido": {
+   "osm": "node/1986745614",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "richelieu_hall": {
+   "osm": "way/54053052",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "hotel_des_invalides": {
+   "osm": "relation/1463538",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "gustave_eiffel": {
+   "osm": "node/3422228091",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "champs_elysees": {
+   "osm": "node/4533627787",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "universite_paris_1_pantheon": {
+   "osm": "way/4433289",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "archaeological_crypt_of_the": {
+   "osm": "way/159896046",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "palais_de_chaillot": {
+   "osm": "relation/6826569",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "point_zero_for_french_road_m": {
+   "osm": "node/191031796",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "esplanade_of_trocadero": {
+   "osm": "node/1697202142",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "jeanne_d_arc": {
+   "osm": "way/96156233",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "military_school": {
+   "osm": "way/106312008",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "palais_bourbon": {
+   "osm": "relation/1019368",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "memorial_to_the_martyrs_of_t": {
+   "osm": "relation/9396191",
+   "estimated": [
+    "durationMin",
+    "openHours"
+   ]
+  },
+  "thermes_de_cluny": {
+   "osm": "node/1440131521",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "carrieres_souterraines_des_c": {
+   "osm": "node/2386545714",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "rotonde_de_la_villette": {
+   "osm": "way/63971487",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "bateaux_mouches": {
+   "osm": "way/182821008",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "triumphal_arch_of_the_carous": {
+   "osm": "way/227483542",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "colonne_vendome": {
+   "osm": "way/227762241",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "hotel_de_la_marine": {
+   "osm": "relation/1060822",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "fontaine_medicis": {
+   "osm": "node/782601793",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "tour_de_l_horloge": {
+   "osm": "node/2183872370",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "to_the_forgotten_ones": {
+   "osm": "node/12843775407",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "basilica_of_the_sacred_heart": {
+   "osm": "way/23762981",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cathedral_of_notre_dame": {
+   "osm": "way/201611261",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "grand_mosque_of_paris": {
+   "osm": "way/437812893",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_sulpice": {
+   "osm": "way/16077204",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_eustache": {
+   "osm": "way/53762963",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_etienne_du_mont": {
+   "osm": "way/55343672",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "temple_de_l_oratoire_du_louv": {
+   "osm": "way/30622528",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_de_la_madeleine": {
+   "osm": "way/54180046",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "saint_merri": {
+   "osm": "way/55742120",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_germain_des_pre": {
+   "osm": "way/62287173",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "saint_george_s_anglican_chur": {
+   "osm": "way/79368469",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_julien_le_pauvr": {
+   "osm": "way/19741083",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_eugene_sainte_c": {
+   "osm": "way/50371917",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_leu_saint_gille": {
+   "osm": "way/53933240",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_notre_dame_des_blancs": {
+   "osm": "way/55984117",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "basilique_notre_dame_du_perp": {
+   "osm": "way/63640725",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chapelle_notre_dame_de_conso": {
+   "osm": "way/69332061",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_notre_dame_de_la_croi": {
+   "osm": "way/70001850",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chapelle_du_corpus_christi": {
+   "osm": "way/70185807",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "cathedrale_de_la_sainte_trin": {
+   "osm": "way/449077939",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_severin": {
+   "osm": "way/19740659",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_medard": {
+   "osm": "way/24406636",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "espace_protestant_marc_boegn": {
+   "osm": "node/8100239259",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "chapelle_de_l_humanite": {
+   "osm": "node/8274486117",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "eglise_saint_jacques_du_haut": {
+   "osm": "way/60279510",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "champ_de_mars": {
+   "osm": "way/4208595",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "tuileries_garden": {
+   "osm": "way/53820452",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_nelson_mandela": {
+   "osm": "way/159103475",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_du_vert_galant": {
+   "osm": "way/53570787",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "parc_de_belleville": {
+   "osm": "way/154892778",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "elysee_palace_garden": {
+   "osm": "relation/3924785",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "royal_palace_garden": {
+   "osm": "way/4263203",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_de_l_arsenal": {
+   "osm": "way/13862204",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_franck_bauer": {
+   "osm": "way/15807896",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_nicole_de_hauteclocqu": {
+   "osm": "way/15807969",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_marie_trintignant": {
+   "osm": "way/17249266",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_des_meres_et_grands_m": {
+   "osm": "way/23692345",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_eugene_varlin": {
+   "osm": "way/26954399",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_henri_christine": {
+   "osm": "way/26954406",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_barye": {
+   "osm": "way/33189664",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_ernest_gouin": {
+   "osm": "way/47032962",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_des_recollets": {
+   "osm": "way/76910069",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_public_de_l_observato": {
+   "osm": "way/87334036",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_amadou_hampate_ba": {
+   "osm": "way/112705281",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_petite_ceinture_du_20e": {
+   "osm": "way/272547170",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_petite_ceinture_du_15e": {
+   "osm": "way/277811053",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "jardin_truillot": {
+   "osm": "way/336409585",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "coulee_verte_rene_dumont": {
+   "osm": "relation/3985957",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "menagerie_du_jardin_des_plan": {
+   "osm": "way/21999647",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_d_estienne_d_orves": {
+   "osm": "way/23272397",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_lamartine": {
+   "osm": "way/81305633",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_rosalind_franklin": {
+   "osm": "way/24000240",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_d_anvers_jean_claude": {
+   "osm": "way/34675527",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_louise_michel": {
+   "osm": "way/45189726",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "square_alex_biscarre": {
+   "osm": "way/107257915",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "galerie_vivienne": {
+   "osm": "relation/546789",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_bon_marche": {
+   "osm": "relation/10166422",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "la_samaritaine": {
+   "osm": "node/8854893320",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "marche_saint_germain": {
+   "osm": "way/22618451",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "so_ouest": {
+   "osm": "way/64800099",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "westfield_forum_des_halles": {
+   "osm": "way/408380251",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "les_ateliers_gaite": {
+   "osm": "way/865091400",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "printemps_men": {
+   "osm": "way/69226605",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "le_bhv_marais": {
+   "osm": "way/29168869",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "passage_des_panoramas": {
+   "osm": "node/620845441",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "beaugrenelle_magnetic": {
+   "osm": "way/53396302",
+   "estimated": [
+    "durationMin",
+    "price"
+   ]
+  },
+  "louvre_carousel": {
+   "osm": "relation/13452556",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "le_village_royal": {
+   "osm": "way/1094130100",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "printemps_beauty_home_childr": {
+   "osm": "way/69226711",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  },
+  "beaupassage": {
+   "osm": "node/12802197164",
+   "estimated": [
+    "durationMin",
+    "price",
+    "openHours"
+   ]
+  }
+ }
+}

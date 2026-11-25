@@ -74,6 +74,16 @@ app now shows the confirmation card before WayWay's reply. No effect on the meas
 - `npm run smoke:ai` (real model): 19/19, 15 calls; round 2 now shows a new option first and the kept one
   with the members' reactions.
 
+## v8 (Nov 25) — other cities (OpenStreetMap, see docs/cities.md)
+- **Spots**: per-weekday opening hours (`openHoursByDay`): `selectSpots`, the path check and "start visit by"
+  use the slot's real weekday (the Louvre is never proposed on a Tuesday). Big city files: at most 40 spots per
+  call (`LIMITS.maxSpotsInPrompt`), by distance to `Trip.base`, members' interests and fame (Paris: 161 → 40).
+  No bars in a daytime slot.
+- **Currency**: prices and budgets in `Trip.currency` (prompts, cards, interview: new `<trip_currency>` tag,
+  rule 4 no longer says "yen"). Tokyo unchanged (JPY).
+- Results: `smoke:ai` (Tokyo, real model) 19/19, 16 calls; `try:city` (Paris, Tuesday) both slots valid
+  (afternoon after 1 retry), Louvre not sent, food spots `allergy_unverified` for the member with a nut allergy.
+
 ## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |

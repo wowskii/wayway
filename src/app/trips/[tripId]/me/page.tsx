@@ -2,6 +2,7 @@
 // Split in two, so the member sees exactly what the group can see and what stays private.
 // "Update with WayWay" opens the private chat with WayWay (trip page, ?panel=private): the AI keeps
 // updating this profile from what you tell it there. "Start a new interview" is not built yet.
+import { currencyOf, formatMoney } from "@/lib/cities";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -48,7 +49,7 @@ export default async function MePage({ params }: { params: Promise<{ tripId: str
         <Card className="flex flex-col gap-4">
           <SectionTitle title="Only you can see" hint="WayWay uses this to filter options, but never shares it." />
           <Row label="Allergies">{list(priv?.allergies, "None")}</Row>
-          <Row label="Max budget">{priv?.max_budget ? `¥${priv.max_budget.toLocaleString("en-US")} per person` : "Not set"}</Row>
+          <Row label="Max budget">{priv?.max_budget ? `${formatMoney(priv.max_budget, currencyOf(trip.city))} per person` : "Not set"}</Row>
           <Row label="What matters to you">
             {statements.length === 0 ? (
               "Nothing yet"

@@ -43,16 +43,21 @@ export const LEVEL_VALUE: Record<SatisfactionLevel, number> = {
 };
 
 // ======================================================================
-// Places (curated dataset)
+// Places (one dataset per city: data/cities.json lists them; Tokyo is hand-made, others come from OpenStreetMap)
 // ======================================================================
+export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
 export interface Spot {
   id: string;                   // short slug, e.g. "tnm"
   name: string;
-  category: "museum" | "temple" | "food" | "shopping" | "nature" | "nightlife" | "hotel";
-  price: number;                // estimated cost per person, JPY
+  category: "museum" | "temple" | "landmark" | "food" | "shopping" | "nature" | "nightlife" | "hotel";
+                                // landmark: monument, tower, square, viewpoint (e.g. Eiffel Tower)
+  price: number;                // estimated cost per person, in the trip's currency (Trip.currency, JPY by default)
   dietTags: string[];           // food spots only: ["vegetarian", "halal", ...]
   durationMin: number;
-  openHours: string;            // "09:30-17:00"
+  openHours: string;            // "09:30-17:00": usual daily hours
+  openHoursByDay?: Partial<Record<Weekday, string>>;   // optional, per weekday: "09:00-18:00" or "closed".
+                                // When present it wins over openHours for that day (e.g. the Louvre is closed on Tuesday).
   area: string;
   lat: number;
   lng: number;
@@ -67,7 +72,7 @@ export interface Spot {
 export interface HardConstraints {   // confirmed by the user, enforced by code
   diet: string[];
   allergies: string[];
-  maxBudget: number;                 // per person for the trip, JPY
+  maxBudget: number;                 // per person for the trip, in the trip's currency (JPY by default)
 }
 
 export interface MemberProfile {
@@ -93,6 +98,9 @@ export interface Trip {
   timezone: string;                  // "Asia/Tokyo": used for deadlines and the daily "definitely_no" reset
   goal: "relaxed" | "balanced" | "packed";   // shared trip goal
   members: MemberProfile[];
+  currency?: string;                 // "JPY" (default), "EUR"...: prices and budgets of this trip. From data/cities.json
+  base?: { lat: number; lng: number; label?: string };   // where the group starts from (city centre by default):
+                                     // the AI gets the spots closest to it first. From data/cities.json
 }
 
 // ======================================================================

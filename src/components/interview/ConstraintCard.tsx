@@ -2,6 +2,7 @@
 // The confirmation card: WayWay shows what it understood about diet / allergies / budget,
 // and nothing is saved until the member taps Confirm (or edits it first, or says it's wrong).
 // It also says WHO will see each item, so the member knows what stays private.
+import { formatMoney } from "@/lib/cities";
 import { useState } from "react";
 import type { HardConstraints } from "@/contracts/contract";
 import { Button } from "@/components/ui";
@@ -9,15 +10,18 @@ import { Button } from "@/components/ui";
 type Constraints = Partial<HardConstraints>;
 type Status = "pending" | "confirmed" | "rejected";
 
-const yen = (n: number) => `¥${n.toLocaleString("en-US")}`;
+
 const list = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export function ConstraintCard({
   constraints,
   status,
   onAnswer,
+  currency = "JPY",
 }: {
   constraints: Constraints;
+  /** The trip's currency (data/cities.json): how the budget is shown. */
+  currency?: string;
   status: Status;
   onAnswer: (decision: "confirm" | "reject", edited?: Constraints) => Promise<void>;
 }) {
@@ -54,7 +58,7 @@ export function ConstraintCard({
   if (constraints.allergies)
     rows.push({ label: "Allergies", value: constraints.allergies.join(", ") || "none", who: "Private: only WayWay", field: [allergies, setAllergies] });
   if (constraints.maxBudget !== undefined)
-    rows.push({ label: "Budget for the trip", value: yen(constraints.maxBudget), who: "Private: only WayWay", field: [budget, setBudget] });
+    rows.push({ label: "Budget for the trip", value: formatMoney(constraints.maxBudget, currency), who: "Private: only WayWay", field: [budget, setBudget] });
 
   return (
     <div className="ml-0 w-full max-w-[85%] rounded-2xl border border-line bg-card p-4 shadow-sm">

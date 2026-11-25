@@ -4,6 +4,7 @@ import "server-only";
 // save what it learned -> save WayWay's reply -> send both messages back.
 // Hard constraints (diet, allergies, budget) are only PROPOSED here; they are applied
 // in confirmConstraints() after the member taps "Confirm".
+import { currencyOf } from "@/lib/cities";
 import type { HardConstraints } from "@/contracts/contract";
 import { openingMessage } from "@/lib/ai-mock/interview";
 import { getInterviewer } from "@/lib/ai/interviewer";
@@ -132,6 +133,7 @@ export async function sendInterviewMessage(tripId: string, memberId: string, tex
     .limit(HISTORY_SIZE + 1);
   const history = (recent ?? []).filter((r) => r.id !== mine.id).reverse().map(toPrivateMessage);
   const coveredTopics = (priv?.interview_topics ?? []).filter(isInterviewTopic);
+  const { data: tripRow } = await admin.from("trips").select("city").eq("id", tripId).maybeSingle();
 
   // 3. Ask the interviewer (mock or real AI)
   const out = await getInterviewer()({
@@ -140,6 +142,7 @@ export async function sendInterviewMessage(tripId: string, memberId: string, tex
     history,
     round: ONBOARDING_ROUND,
     coveredTopics,
+    currency: currencyOf(tripRow?.city),   // budgets in the trip's currency (data/cities.json)
   });
 
   // 4. Save what it learned. Private things go to member_private, public profile to trip_members.

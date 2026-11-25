@@ -1,6 +1,8 @@
 "use server";
 // Creates the trip with the friends picked on the page, in one database transaction (create_trip).
 // Answers { tripId, inviteCode } so the page can show the invite link, or { error }.
+import { cityConfig } from "@/lib/cities";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { CITIES, GOALS, type CreateTripInput, type CreateTripResult } from "@/lib/tripgen-create/types";
 
@@ -28,6 +30,13 @@ export async function createTrip(input: CreateTripInput): Promise<CreateTripResu
     // Our own checks in create_trip have messages written for people; others don't
     const msg = error?.message ?? "";
     return { error: /at most|up to|signed in/.test(msg) ? msg : "The trip was not created. Try again." };
+  }
+  // The trip runs on its city's clock (deadlines, "today", times in the chat). create_trip leaves the
+  // table default (Asia/Tokyo), so set it here for other cities.
+  const tz = cityConfig(input.city)?.timezone;
+  if (tz && tz !== "Asia/Tokyo") {
+    const { error: tzError } = await createAdminClient().from("trips").update({ timezone: tz }).eq("id", trip.trip_id);
+    if (tzError) return { error: "The trip was created but its time zone could not be set. Try again." };
   }
   return { tripId: trip.trip_id, inviteCode: trip.invite_code };
 }

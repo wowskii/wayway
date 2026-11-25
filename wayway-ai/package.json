@@ -6,7 +6,10 @@
     "try:mock": "tsx scripts/try-ai.ts --mock",
     "try:interview": "tsx --env-file=.env scripts/try-interview.ts",
     "try:interview:mock": "tsx scripts/try-interview.ts --mock",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "try:city": "tsx --env-file=.env scripts/try-city.ts",
+    "city:fetch": "tsx scripts/osm-city.ts fetch",
+    "city:convert": "tsx scripts/osm-city.ts convert"
   },
   "devDependencies": {
     "@types/node": "22.10.2",
