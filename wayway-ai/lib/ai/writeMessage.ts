@@ -65,6 +65,12 @@ export async function writeMessage(input: MessageInput): Promise<MessageOutput> 
     if (VOTE_KINDS.has(input.kind) && /\b([Rr]eply|[Rr]eplying|[Aa]nswer|[Tt]ype|[Ww]rite|[Tt]ext)\b[^.!?]*\b(A|B|C)\b/.test(raw?.text ?? "")) {
       errors.push("Members vote in the Spot Suggestions panel: never ask them to reply or type their choice in the chat.");
     }
+    // Group messages never single a member out ("Thanks, Simon..."); answering a question may quote a card's
+    // "works for" names. The fairness note (favoredMemberName) is a separate field.
+    if (input.kind !== "answer_question") {
+      const named = input.trip.members.map((m) => m.name).filter((n) => n && new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(raw?.text ?? ""));
+      if (named.length) errors.push(`Do not name members in the group message (${named.join(", ")}): speak to the whole group.`);
+    }
     // A split is mentioned only when one of the options really is a split.
     if (input.facts.hasSplit === false && /\bsplit/i.test(visible)) errors.push("No option is a split: do not mention splitting up.");
     if (!input.favoredMemberName && raw?.fairnessNote) raw.fairnessNote = "";

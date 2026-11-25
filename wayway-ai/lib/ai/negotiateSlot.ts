@@ -152,6 +152,12 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
     if (action === "propose" && (typeof raw?.reply !== "string" || !raw.reply.trim())) {
       errors.push("propose needs a reply that states the time and asks the group to confirm or change it.");
     } else if (typeof raw?.reply === "string" && raw.reply.length > 300) errors.push("reply is too long: 1-2 short sentences.");
+    // "This afternoon" for a slot that is not today (v9: day 1 was tomorrow, WayWay said "this afternoon").
+    if (action === "propose" && typeof raw?.reply === "string" && Number.isInteger(raw?.slot?.day) && raw.slot.day !== cal.today &&
+      /\b(this (morning|afternoon|evening)|tonight|today)\b|\b(cet après-midi|ce (matin|soir)|aujourd'hui)/i.test(raw.reply)) {
+      errors.push(`Day ${raw.slot.day} is not today (${cal.today < 1 ? "the trip has not started" : `today is day ${cal.today}`}): ` +
+        `say "${raw.slot.day === cal.today + 1 ? "tomorrow" : `day ${raw.slot.day}`}" instead of "this afternoon" or "today".`);
+    }
     if (errors.length) return { ok: false, errors };
 
     if (action === "none") return { ok: true, value: { action } };

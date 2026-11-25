@@ -84,6 +84,19 @@ app now shows the confirmation card before WayWay's reply. No effect on the meas
 - Results: `smoke:ai` (Tokyo, real model) 19/19, 16 calls; `try:city` (Paris, Tuesday) both slots valid
   (afternoon after 1 retry), Louvre not sent, food spots `allergy_unverified` for the member with a nut allergy.
 
+## v9 (Nov 25) — after the first test in the app (Paris trip, end to end)
+| # | Seen in the app | Fix in v9 |
+|---|---|---|
+| 23 | A confirmed allergy ("mustard") came back as a confirmation card with every private message. | Code: `newConstraintsOnly` drops what the member already has (diet, allergies, same budget), in the interview and the private chat. Prompt: only a constraint stated in this message. |
+| 24 | "@WayWay how long is option B?" in the group: no answer at all (negotiateSlot said `none`). | App: `none` now gets an answer: `writeMessage("answer_question")` with the open option set's card facts, or a fixed "tell me what and when" sentence when nothing is open. |
+| 25 | "Which one should I pick?" was saved as reactions (A = want_to_go). | Code: a message that asks something without giving an opinion keeps no reactions (`isPureQuestion`). |
+| 26 | "I suggest this afternoon" for day 1 = tomorrow. | Code: a proposal that says "this afternoon / today / tonight" (EN/FR) for another day is retried with "tomorrow" or "day N". |
+| 27 | The interview answered a question about the options with "ask the group organiser". | Prompt: point to the options in Spot Suggestions, then go on with the interview. |
+| 28 | "B sounds like a better fit for you" (private); "Thanks, Simon" (group). | Neutrality check also catches "better fit for you" / "sounds like a better fit"; group messages never name a member (except answering a question with a card's "works for"). |
+
+Also (app, not a prompt): a round ends as soon as every member has reacted, a vote as soon as every member has a complete ballot.
+`smoke:ai` (real): 16/17 — the failed check is a perfect tie (both options had the same estimates): the vote logic correctly asks for a revote, the smoke test expects a decision.
+
 ## Results per version (real model: Sonnet 5.5 for options, Haiku 5.5 for the rest)
 
 | Version | Scenario | Valid on 1st try | Retries | Leaks | A ≠ B | Estimate = real reaction | Notes |

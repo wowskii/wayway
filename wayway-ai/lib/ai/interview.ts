@@ -11,7 +11,7 @@
 import type { HardConstraints, MemberProfile } from "@/contracts/contract";
 import { MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import { isPrivateStatement, storeStatement, stripPrivate } from "./context";
-import { checkHardConstraints, checkStatements, nonEmptyHard, type ExtractInput, type ExtractOutput } from "./extractPreferences";
+import { checkHardConstraints, checkStatements, newConstraintsOnly, nonEmptyHard, type ExtractInput, type ExtractOutput } from "./extractPreferences";
 import { AIOutputError, callTool, type Validation } from "./llm";
 import { INTERVIEW_SYSTEM, interviewUser } from "./prompts";
 import { INTERVIEW_SCHEMA } from "./schemas";
@@ -166,12 +166,12 @@ export async function interview(input: InterviewInput): Promise<InterviewOutput>
     if (v.profileUpdate?.interests?.length) profileUpdate.interests = cleanWords(v.profileUpdate.interests, 8);
     if (v.profileUpdate?.pace) profileUpdate.pace = v.profileUpdate.pace;
     if (v.profileUpdate?.sleep) profileUpdate.sleep = v.profileUpdate.sleep;
-    const hard = nonEmptyHard(v.hardConstraintsToConfirm && {
+    const hard = nonEmptyHard(newConstraintsOnly(v.hardConstraintsToConfirm && {
       ...v.hardConstraintsToConfirm,
       ...(v.hardConstraintsToConfirm.diet ? { diet: cleanWords(v.hardConstraintsToConfirm.diet, 10) } : {}),
       ...(v.hardConstraintsToConfirm.allergies ? { allergies: cleanWords(v.hardConstraintsToConfirm.allergies, 10) } : {}),
       ...(v.hardConstraintsToConfirm.maxBudget ? { maxBudget: Math.round(v.hardConstraintsToConfirm.maxBudget) } : {}),
-    });
+    }, member));
 
     return {
       preferenceUpdate: {

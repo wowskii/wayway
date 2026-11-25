@@ -1,4 +1,4 @@
-export { extractPreferences } from "./extractPreferences";
+export { describeOptions, extractPreferences } from "./extractPreferences";
 export type { ExtractInput, ExtractOutput } from "./extractPreferences";
 export { interview, progressFrom, INTERVIEW_TOPICS } from "./interview";
 export type { InterviewInput, InterviewOutput, InterviewProgress, InterviewTopic, ProfileUpdate } from "./interview";

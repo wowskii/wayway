@@ -62,6 +62,23 @@ export function checkHardConstraints(h: any, errors: string[]) {
   }
 }
 
+// Never propose again what the member already has (v9: a confirmed "mustard" allergy came back as a card
+// with every message). Diet and allergies compared without case; the budget only if it is the same amount.
+export function newConstraintsOnly(h: Partial<HardConstraints> | undefined, member: MemberProfile): Partial<HardConstraints> | undefined {
+  if (!h) return h;
+  const has = (list: string[], v: string) => list.some((x) => x.trim().toLowerCase() === v.trim().toLowerCase());
+  const out: Partial<HardConstraints> = {};
+  if (h.diet) out.diet = h.diet.filter((d) => !has(member.hard.diet, d));
+  if (h.allergies) out.allergies = h.allergies.filter((a) => !has(member.hard.allergies, a));
+  if (h.maxBudget !== undefined && h.maxBudget !== member.hard.maxBudget) out.maxBudget = h.maxBudget;
+  return out;
+}
+
+// A question alone is not a reaction (v9: "Which one should I pick?" was saved as A = want_to_go): reactions
+// of a message that asks something without saying what the member thinks are dropped.
+const OPINION = /\b(like|love|loved|prefer|hate|better|worse|good|bad|boring|fun|too|want|wanna|rather|fine|ok|okay|perfect|great|nice|not|no|dislike|enjoy|sounds|happy|amazing|awesome|meh|cool|interesting|tired|far|expensive|cheap|j'?aime|préf[eè]re|nul|bien|trop|pas)\b/i;
+export const isPureQuestion = (text: string) => /[?？]/.test(text) && !OPINION.test(text);
+
 // Only non-empty hard constraints are returned (an empty object would show an empty confirmation card).
 export function nonEmptyHard(h: Partial<HardConstraints> | undefined): Partial<HardConstraints> | undefined {
   if (!h) return undefined;
@@ -78,6 +95,8 @@ const RECOMMEND = new RegExp([
   String.raw`\byou should (?:pick|choose|vote|take|go (?:for|with))\b`,
   String.raw`\b(?:best|right|ideal|perfect) (?:fit|choice|option|pick|match)\b`,
   String.raw`\b(?:fits?|suits?) you (?:best|better|most)\b`,
+  String.raw`\b(?:better|best|good|great|perfect) (?:fit|choice|option|match) for you\b`,
+  String.raw`\b(?:sounds|seems|looks) like (?:a |the )?(?:better|best|good|great|right|perfect) (?:fit|choice|option|match|pick)\b`,
   String.raw`\bje (?:te |vous )?(?:recommande|conseille|sugg[eè]re)\b`,
   String.raw`\b(?:meilleur|bon) choix\b`,
   String.raw`\btu devrais (?:choisir|prendre|voter)\b`,
@@ -159,9 +178,10 @@ export async function extractPreferences(input: ExtractInput): Promise<ExtractOu
       tool: { name: "save_preferences", description: "Save the member's updated preferences, reactions and reply.", schema: EXTRACT_SCHEMA },
       validate: makeValidator(new Set((currentOptions ?? []).map((o) => o.id))),
     });
-    const h = nonEmptyHard(res.value.hardConstraintsToConfirm);
+    const h = nonEmptyHard(newConstraintsOnly(res.value.hardConstraintsToConfirm, member));
     const hasHard = Boolean(h);
-    const reactions = (res.value.reactions ?? []).map((r) => ({ optionId: r.option, level: r.level, reason: r.reason.trim() }));
+    const reactions = isPureQuestion(message.text) ? []
+      : (res.value.reactions ?? []).map((r) => ({ optionId: r.option, level: r.level, reason: r.reason.trim() }));
     return {
       preferenceUpdate: {
         memberId: member.id,
