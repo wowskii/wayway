@@ -4,8 +4,9 @@ import "server-only";
 // Henry's rules decide (src/lib/logic/voting.ts), this file only loads and saves:
 //   pollFromRows -> castVote (vote still open, option exists, "definitely no" max 2 a day, split
 //   answer only on a split) -> save the vote, my "definitely no" counter and who has voted.
-// A ballot counts only when EVERY option is rated (completeBallots). Closing the vote at the
-// deadline (advancePoll -> decision, credits, itinerary) is not built yet.
+// A ballot counts only when EVERY option is rated (completeBallots). When every member has a complete
+// ballot, the vote deadline is moved to now: the usual closing step (advancePoll -> decision, credits,
+// itinerary, in lib/chatbox-rounds/service.ts) runs right away instead of at the deadline.
 import type { Option, SatisfactionLevel, Vote } from "@/contracts/contract";
 import { loadSuggestions } from "@/lib/chatbox-trip-hub/suggestions";
 import { toMemberProfile } from "@/lib/db/mappers";
@@ -74,7 +75,13 @@ export async function castMyVote(
   const { data: fresh } = await admin.from("votes").select("*").eq("option_set_id", row.id);
   const poll = pollFromRows({ optionSet: row, votes: fresh ?? [], states: states ?? [], timezone: trip.timezone, guard });
   const voterIds = [...completeBallots(poll).keys()];
-  await admin.from("option_sets").update({ voter_ids: voterIds }).eq("id", row.id).eq("status", "voting");
+  const everyone = ids.length > 0 && ids.every((id) => voterIds.includes(id));
+  const nowIso = new Date().toISOString();
+  await admin
+    .from("option_sets")
+    .update({ voter_ids: voterIds, ...(everyone && row.vote_deadline && row.vote_deadline > nowIso ? { vote_deadline: nowIso } : {}) })
+    .eq("id", row.id)
+    .eq("status", "voting");
 
   return { suggestions: await loadSuggestions(supabase, tripId, member.id) };
 }

@@ -318,6 +318,7 @@ function SetCard({
       const res = await postJson<FeedbackTurnResponse>("/api/private/feedback", { tripId, optionSetId: set.id, text });
       onMessages((m) => [...m.filter((x) => x.id !== tempId), ...res.messages]);
       onSent();
+      if (res.roundEnded) void onRefresh();   // everyone has reacted: the next round starts now
     } catch (err) {
       onMessages((m) => m.filter((x) => x.id !== tempId));
       onDraft(text);   // give the text back so nothing is lost

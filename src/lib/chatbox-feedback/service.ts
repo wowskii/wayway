@@ -98,5 +98,35 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
     .single();
   if (e2 || !reply) throw new InterviewError(500, "WayWay could not answer. Try again.");
 
-  return { messages: [toInterviewMessage(mine), toInterviewMessage(reply)] };
+  // 7. Everyone has reacted? Then the round does not wait for its deadline: the deadline is moved to now
+  //    and the usual next-round step runs (the browser asks /api/chatbox/next-round). A question alone is
+  //    not a reaction: a member counts once WayWay recorded a reaction of theirs to an option of this round.
+  const roundEnded = await endRoundIfEveryoneReacted(admin, set, (memberRows ?? []).map((m) => m.id));
+
+  return { messages: [toInterviewMessage(mine), toInterviewMessage(reply)], ...(roundEnded ? { roundEnded } : {}) };
+}
+
+async function endRoundIfEveryoneReacted(
+  admin: ReturnType<typeof createAdminClient>, set: { id: string; round: number }, memberIds: string[],
+): Promise<boolean> {
+  if (!memberIds.length) return false;
+  const { data: rows } = await admin
+    .from("private_messages")
+    .select("member_id, reactions")
+    .eq("option_set_id", set.id)
+    .eq("round", set.round)
+    .eq("sender", "wayway")
+    .not("reactions", "is", null);
+  const reacted = new Set((rows ?? []).filter((r) => Array.isArray(r.reactions) && r.reactions.length).map((r) => r.member_id));
+  if (!memberIds.every((id) => reacted.has(id))) return false;
+  const now = new Date().toISOString();
+  const { data: moved } = await admin
+    .from("option_sets")
+    .update({ round_deadline: now })
+    .eq("id", set.id)
+    .eq("round", set.round)
+    .eq("status", "collecting_feedback")
+    .gt("round_deadline", now)
+    .select("id");
+  return Boolean(moved?.length);
 }
