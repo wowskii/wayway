@@ -16,7 +16,7 @@ Try it: join `localhost:3000/join/tokyo26`, then open the **Map** tab (the demo 
 
 ## How the data flows
 ```
-itinerary_items (Supabase, RLS: members only)          data/spots_tokyo.json + data/place_ids.json
+itinerary_items (Supabase, RLS: members only)          data/spots_tokyo.json (with placeId)
         │ src/lib/itinerary/source.ts                          │ src/lib/spots.ts (SPOTS, getSpot)
         ▼                                                      ▼
   ItineraryItem[] ──► buildDayPlans (view.ts) ──► dayLegs (legs.ts) ──► TripMap (panel + map + card)
@@ -44,7 +44,7 @@ point as its own item that starts when the split ends (the contract has no rende
 - **No public transport routes in Japan** through the Routes API (tested: empty answer). Legs over 1.2 km never
   call Google: dashed line + the same travel estimate as the AI (`travelMin`: 10 min in an area, else
   10 + 3 min/km) + a free Google Maps directions link (which does show trains).
-- **Terms:** only Place IDs are stored (`data/place_ids.json`). Details, reviews and photos are fetched on click
+- **Terms:** only Place IDs are stored (`placeId` in `data/spots_tokyo.json`). Details, reviews and photos are fetched on click
   and never saved; review authors, photo authors and "Details from Google" are always shown.
 
 ## Setup (once per machine)
@@ -58,7 +58,7 @@ point as its own item that starts when the split ends (the contract has no rende
 | Command | What it does |
 |---|---|
 | `npm run seed:itinerary [inviteCode]` | Puts the 2-day demo itinerary into a trip (default `tokyo26`), with the trip's **real members** alternating between the two groups. Re-run after people join. Only replaces seeded rows; refuses a trip with a real (voted) itinerary. |
-| `npm run match:places` | Finds Google Place IDs for spots without one (`--dry-run`, `--only id1,id2`, `--query "…"`). Writes `data/place_ids.json`; the review report goes to git-ignored `scripts/output/` (delete it after reading). |
+| `npm run match:places` | Finds Google Place IDs for spots without one (`--dry-run`, `--only id1,id2`, `--query "…"`). Writes `placeId` into `data/spots_tokyo.json`; the review report goes to git-ignored `scripts/output/` (delete it after reading). |
 | `npm run check:google` | 5 checks of the Google usage counter (limit, simultaneous calls, server-only). |
 | `npm run check:locations` | 10 privacy checks of location sharing. |
 
@@ -79,14 +79,14 @@ visible while sharing. Browsers only give the location on `localhost` or HTTPS.
 | `src/lib/itinerary/view.ts` · `legs.ts` · `source.ts` | Day plans, legs, data source (pure logic except `source.ts`) |
 | `src/lib/google/` | Daily limits + `googleFetch` (the only server code that calls Google) |
 | `src/app/api/google/map-load` · `api/route` · `api/places/[placeId]` | The 3 Google routes (logged-in users only) |
-| `src/lib/spots.ts` · `data/place_ids.json` | Spots + Place IDs (temporary, see below) |
+| `src/lib/spots.ts` | Spots with their Place IDs, for the map |
 
 ## To do after the other branches are merged
 - **Henry's PR** (`feature/logic-evaluation`): `data/spots_tokyo.json` is identical on both branches (no
   conflict). `package.json` / `package-lock.json` will conflict (both add scripts): keep **both** sets of
   scripts, then run `npm install` to rebuild the lock file.
-  Then: copy the Place IDs into `spots_tokyo.json` as `placeId`, delete `data/place_ids.json` and the merge in
-  `src/lib/spots.ts`, replace `src/lib/spots.ts` by `@/lib/logic/dataset` (same `SPOTS` / `SPOTS_BY_ID` names),
+  Done (Nov 25): the Place IDs are in `spots_tokyo.json` as `placeId` (`data/place_ids.json` deleted).
+  Still open: replace `src/lib/spots.ts` by `@/lib/logic/dataset` (same `SPOTS` / `SPOTS_BY_ID` names),
   and import `travelMin` from `@/lib/logic/itinerary` in `legs.ts`.
 - **Decision step** (Simon's `/api/chat`): when a vote decides, write the `itinerary_items` rows with their
   `option_set_id` (Henry's `itineraryFromOption` builds them). The map then shows them with no change.

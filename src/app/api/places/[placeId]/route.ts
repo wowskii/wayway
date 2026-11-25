@@ -1,6 +1,6 @@
 // GET /api/places/<placeId> — Google details for one of OUR spots, for the place card on the map page.
 //
-// - Logged-in users only; only Place IDs of our own spots (data/place_ids.json), so nobody can spend
+// - Logged-in users only; only Place IDs of our own spots (placeId in data/spots_tokyo.json), so nobody can spend
 //   the team's free calls looking up other places.
 // - 2 Google calls, each counted in the shared daily limit:
 //     place_details (rating, reviews, hours...: top "Enterprise + Atmosphere" tier, 30/day)

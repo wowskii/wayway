@@ -1,7 +1,7 @@
 // Finds the Google Place ID of each spot in data/spots_tokyo.json (Places API (New), Text Search).
 //
 // Output:
-//   data/place_ids.json                      { spotId: placeId } for confident matches only. Committed:
+//   data/spots_tokyo.json (field placeId)    for confident matches only. Committed:
 //                                            Google's terms allow keeping Place IDs (and nothing else).
 //   scripts/output/match-places-report.md    one line per spot for a human to review: Google's name,
 //                                            distance from our coordinates, status. Git-ignored and
@@ -13,8 +13,8 @@
 //   FAR      more than 1.5 km away: probably the wrong place, or our coordinates are wrong
 //   NONE     no result
 // CHECK / FAR / NONE are NOT saved: read the report, then either copy the right Place ID into
-// data/place_ids.json by hand, rerun the spot with a better query (--query), or write null:
-//   "shimokitazawa": null   = no single Google place fits (an area): never searched again.
+// data/spots_tokyo.json by hand ("placeId": "..."), rerun the spot with a better query (--query), or add
+// the spot to NO_SINGLE_PLACE below (an area, no single Google place fits): never searched again.
 //
 // Every call goes through the shared daily counter (google_usage, limit text_search) like the app.
 //
@@ -24,11 +24,13 @@
 //   npm run match:places -- --only tnm,ghibli         only these spots (even if already matched)
 //   npm run match:places -- --only ghibli --query "Ghibli Museum Mitaka"   custom search text
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 // Keep in sync with GOOGLE_DAILY_LIMITS.text_search in src/lib/google/limits.ts
 const TEXT_SEARCH_DAILY_LIMIT = 100;
-const IDS_FILE = "data/place_ids.json";
+const SPOTS_FILE = "data/spots_tokyo.json";
+// Areas: no single Google place fits, so they are never searched (and have no placeId).
+const NO_SINGLE_PLACE = new Set(["shibuya_shopping", "shimokitazawa"]);
 const REPORT_DIR = "scripts/output";
 const REPORT_FILE = `${REPORT_DIR}/match-places-report.md`;
 
@@ -45,12 +47,12 @@ const customQuery = value("--query");
 if (customQuery && only?.length !== 1) throw new Error("--query needs exactly one spot in --only");
 
 // ---------- Data ----------
-const spots = JSON.parse(readFileSync("data/spots_tokyo.json", "utf8"));
-const saved = existsSync(IDS_FILE) ? JSON.parse(readFileSync(IDS_FILE, "utf8")) : {};
+const spots = JSON.parse(readFileSync(SPOTS_FILE, "utf8"));
+const saved = {};   // new Place IDs found in this run
 for (const id of only ?? []) if (!spots[id]) throw new Error(`Unknown spot id "${id}"`);
 
-// A spot already in the file (with an ID, or null = decided "no place") is skipped unless named in --only.
-const todo = Object.values(spots).filter((s) => (only ? only.includes(s.id) : !Object.hasOwn(saved, s.id) && !s.placeId));
+// A spot that already has a placeId (or is an area) is skipped unless named in --only.
+const todo = Object.values(spots).filter((s) => (only ? only.includes(s.id) : !s.placeId && !NO_SINGLE_PLACE.has(s.id)));
 
 // "Ghibli Museum (advance tickets)" -> "Ghibli Museum, Mitaka, Tokyo": the brackets are our notes, not the name.
 const queryFor = (s) => customQuery ?? `${s.name.replace(/\s*\([^)]*\)/g, "")}, ${s.area}, Tokyo`;
@@ -156,9 +158,16 @@ for (const s of todo) {
   console.log(`${verdict.status.padEnd(5)} ${s.id.padEnd(18)} ${verdict.name ?? ""}${verdict.why ? `  (${verdict.why})` : ""}`);
 }
 
-// Only Place IDs are written to the committed file (sorted by spot id for small, readable diffs).
-const sorted = Object.fromEntries(Object.entries(saved).filter(([k]) => spots[k]).sort(([a], [b]) => a.localeCompare(b)));
-writeFileSync(IDS_FILE, JSON.stringify(sorted, null, 2) + "\n");
+// Only Place IDs are written to the committed dataset. The file keeps one spot per line, so the line of
+// each spot is edited in place (small, readable diffs).
+const text = readFileSync(SPOTS_FILE, "utf8").split("\n").map((line) => {
+  const id = line.match(/^  "([a-z0-9_]+)": \{/)?.[1];
+  if (!id || !saved[id]) return line;
+  const spot = JSON.parse(line.trim().replace(/^"[a-z0-9_]+":\s*/, "").replace(/,$/, ""));
+  spot.placeId = saved[id];
+  return `  ${JSON.stringify(id)}: ${JSON.stringify(spot).replace(/":/g, '": ').replace(/,"/g, ', "')}${line.endsWith(",") ? "," : ""}`;
+});
+writeFileSync(SPOTS_FILE, text.join("\n"));
 
 mkdirSync(REPORT_DIR, { recursive: true });
 const esc = (t) => String(t ?? "").replace(/\|/g, "\\|");
@@ -178,4 +187,4 @@ writeFileSync(REPORT_FILE, report);
 
 const count = (st) => rows.filter((r) => r.status === st).length;
 console.log(`\nOK ${count("OK")} · CHECK ${count("CHECK")} · FAR ${count("FAR")} · NONE ${count("NONE")} · ERROR ${count("ERROR")}`);
-console.log(`Saved ${Object.keys(sorted).length} Place ID(s) to ${IDS_FILE}. Review: ${REPORT_FILE}`);
+console.log(`Saved ${Object.keys(saved).length} new Place ID(s) to ${SPOTS_FILE}. Review: ${REPORT_FILE}`);
