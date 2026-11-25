@@ -22,6 +22,7 @@ import { PERSONA_MODEL, evaluateRun, personaRating, publicCardText } from "@/lib
 import type { Observation, Persona } from "@/lib/logic/evaluation";
 import type { Balances } from "@/lib/logic/metrics";
 import { METRICS, breakdown, countsOf, fmt } from "./summary";
+import { withReactions } from "../wayway-ai/lib/ai/options";
 
 /** Bump when what a result file measures changes (aggregate.ts only pools files of the same version). */
 const EVAL_VERSION = 2;
@@ -156,11 +157,13 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
       for (let round = 2; round <= rounds && gen.revise && options.length; round++) {
         const reactions = options.flatMap(o => members.map(m => ({ memberId: m.id, optionId: o.id, level: rate(o, m.id).level, reason: "persona" })));
         for (const r of reactions) references.push({ tripId: trip.id, optionSetId: setId, round: round - 1, attempt: 1, optionId: r.optionId, memberId: r.memberId, level: r.level });
-        const candidate = options.find(o => o.id === candidateId) ?? options[0];
-        const r = await gen.revise(trip, slot, allowed, chat, options, candidate, reactions);
+        // Same as the app (chatbox-rounds nextRound): members' reactions replace the AI's guesses first.
+        const reacted = withReactions(options, reactions);
+        const candidate = reacted.find(o => o.id === (pickCandidateId(reacted) ?? candidateId)) ?? reacted[0];
+        const r = await gen.revise(trip, slot, allowed, chat, reacted, candidate, reactions);
         total += r.attempts; invalid += Math.max(0, r.attempts - 1);
         // Kept for the next round: the candidate, plus the previous A if different (AI module's keptOptions).
-        const kept = [candidate, ...options.filter(o => o.kind === "best_total" && o.id !== candidate.id)] as CandidateLike[];
+        const kept = [candidate, ...reacted.filter(o => o.kind === "best_total" && o.id !== candidate.id)] as CandidateLike[];
         const rebuilt = buildOptions([...kept, ...r.candidates], members, SPOT_INDEX, credits, { spentByMember: spent });
         tally(r, rebuilt);
         options = rebuilt.options;

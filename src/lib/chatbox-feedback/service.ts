@@ -11,6 +11,7 @@ import { toMemberProfile, toPrivateMessage } from "@/lib/db/mappers";
 import { InterviewError, loadOwnMember, MAX_MESSAGE_LENGTH, toInterviewMessage } from "@/lib/interview/service";
 import { SPOTS } from "@/lib/spots";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAiLimit } from "@/lib/ai/limit";
 import { toOptions } from "@/lib/chatbox-trip-hub/suggestions";
 import type { FeedbackTurnResponse } from "./types";
 
@@ -23,6 +24,7 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
 
   const { supabase, member, priv } = await loadOwnMember(tripId);
   const admin = createAdminClient();
+  await checkAiLimit(admin, "private", member.id);
 
   // 1. The option set must be in this trip (RLS: members read their trip's sets) and still collecting feedback
   const { data: set } = await supabase

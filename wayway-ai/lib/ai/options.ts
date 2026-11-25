@@ -60,6 +60,24 @@ export function pickCandidate(options: Option[]): Option {
   return [...options].sort((a, b) => optMin(b) - optMin(a) || optMean(b) - optMean(a))[0];
 }
 
+// Before a revision: a member's own reaction this round replaces the AI's guess for that member on that
+// option. Without this, kept options keep their round-1 estimates ("Tom = want_to_go" after Tom said
+// lean_not_go), rank above the new ones and the cards barely change. Only the level is taken: the
+// reaction's reason is private and never copied. Stale metrics are dropped (buildOptions recomputes them;
+// pickCandidate falls back to the scores).
+export function withReactions(options: Option[], reactions: MemberReaction[]): Option[] {
+  if (!reactions.length) return options;
+  return options.map((o) => {
+    const mine = new Map(reactions.filter((r) => r.optionId === o.id).map((r) => [r.memberId, r.level]));
+    if (!mine.size) return o;
+    const { metrics: _stale, ...rest } = o;
+    return {
+      ...rest,
+      scores: o.scores.map((s) => (mine.has(s.memberId) ? { ...s, level: mine.get(s.memberId)!, source: "vote" as const } : s)),
+    };
+  });
+}
+
 // Options carried over to the next round: the candidate, plus the previous best_total if different,
 // so a round never loses its best option. The next ranking runs on [...kept, ...new candidates].
 export function keptOptions(previous: Option[], candidate: Option): Option[] {

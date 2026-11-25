@@ -96,6 +96,22 @@ function checkSlot(raw: any, trip: Trip, cal: ReturnType<typeof tripCalendar>, d
   return e;
 }
 
+// ---------- Times written in a message ----------
+// "18:00", "9:30", "18.00" -> "HH:MM". Used to catch a "confirm" that ignores a new time, and to check that
+// WayWay's own proposal states the slot it proposes.
+export const timesIn = (text: string) =>
+  [...text.matchAll(/(?<![\d:.])([01]?\d|2[0-3])[:.]([0-5]\d)(?![\d:])/g)].map((m) => `${m[1].padStart(2, "0")}:${m[2]}`);
+const dayIn = (text: string) => Number(text.match(/\bday\s*(\d{1,2})\b/i)?.[1]) || undefined;
+
+// The proposal posted as WayWay in the group: the model's sentence only if it states the proposed times
+// and has no link; otherwise a fixed sentence built by code (an injected message cannot make WayWay say
+// something else in the group).
+export function safeProposal(reply: string, slot: TimeSlot): string {
+  const said = timesIn(reply);
+  const ok = said.includes(slot.start) && said.includes(slot.end) && !/https?:|www\.|\.(com|net|org|io)\b/i.test(reply);
+  return ok ? reply : `I suggest ${slot.start}-${slot.end} (${slot.label}). Reply "@WayWay ok" or tell me another time.`;
+}
+
 // ---------- Main ----------
 export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
   const { trip, message, recentChat, pending, decided } = input;
@@ -121,6 +137,15 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
     // "confirm" of the pending proposal: the code reuses the pending slot, the model's slot is ignored.
     const usesModelSlot = action === "propose" || action === "change" || (action === "confirm" && !pending);
     if (usesModelSlot) errors.push(...checkSlot(raw, trip, cal, decided));
+    // "Day 1 evening 18:00-21:00" while day 2 15:00-18:00 is pending is a change, not a yes.
+    if (action === "confirm" && pending) {
+      const other = timesIn(message.text).filter((t) => t !== pending.start && t !== pending.end);
+      const day = dayIn(message.text);
+      if (other.length || (day && day !== pending.day)) {
+        errors.push(`The message gives another time (${[day && `day ${day}`, ...other].filter(Boolean).join(", ")}) than the ` +
+          `pending proposal (day ${pending.day}, ${pending.start}-${pending.end}): use "change" with the new slot.`);
+      }
+    }
     if (action === "confirm" && pending && pendingProblems.length) {
       errors.push(`The pending proposal can no longer be confirmed (${pendingProblems.join(" ")}). Use "propose" with a new time instead.`);
     }
@@ -132,7 +157,7 @@ export async function negotiateSlot(input: SlotInput): Promise<SlotOutput> {
     if (action === "none") return { ok: true, value: { action } };
     if (action === "confirm" && pending) return { ok: true, value: { action, slot: pending, kind: slotKind(pending) } };
     const slot: TimeSlot = { day: raw.slot.day, start: raw.slot.start, end: raw.slot.end, label: raw.slot.label.trim() };
-    return { ok: true, value: { action, slot, kind: raw.kind, ...(action === "propose" ? { reply: raw.reply.trim() } : {}) } };
+    return { ok: true, value: { action, slot, kind: raw.kind, ...(action === "propose" ? { reply: safeProposal(raw.reply.trim(), slot) } : {}) } };
   };
 
   try {
