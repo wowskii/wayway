@@ -229,7 +229,9 @@ async function runScenario(s: Scenario, gen: Generator, rounds: number) {
   }
   const report = evaluateRun({ trip: s.trip, optionSets, publicPayloads, references, finalOptions,
     invalidResponses: invalid, totalResponses: total, extraCanaries: s.canaries, aiRejected, dropped }, SPOT_INDEX);
-  return { scenario: s.id, description: s.description, expected: s.expected, report, aiRejected, decisions,
+  // publicTexts: every text the group saw (cards of every round + WayWay's messages), kept so a person can read
+  // them for paraphrased leaks (the automatic scan above only catches private words).
+  return { scenario: s.id, description: s.description, expected: s.expected, report, aiRejected, decisions, publicTexts: publicPayloads,
     itinerary: itinerary.map(i => ({ ...i, branches: i.branches?.map(b => ({ members: b.memberIds.map(id => name.get(id)), spots: b.spots })) })) };
 }
 
