@@ -28,7 +28,11 @@ import { buildOptions } from "@/lib/logic";
 import { SPOT_INDEX } from "@/lib/logic/dataset";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkAiLimit } from "@/lib/ai/limit";
-import { AIOutputError, mentionsWayWay } from "../../../wayway-ai/lib/ai";
+import { AIOutputError, describeOptions, mentionsWayWay } from "../../../wayway-ai/lib/ai";
+import { getRoundAI } from "@/lib/ai/rounds";
+import { currencyOf } from "@/lib/cities";
+import { toOptions } from "@/lib/chatbox-trip-hub/suggestions";
+import { SPOTS_BY_ID } from "@/lib/logic/dataset";
 import type { WayWayMessageResponse } from "./types";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -99,7 +103,36 @@ export async function sendWayWayMessage(tripId: string, text: string): Promise<W
     if (agreed) replies.push(...(await createOptions(admin, ctx, out.slot)));
   }
 
+  // Not about the time (a question about the options, a greeting...): WayWay answers instead of staying silent.
+  if (out.action === "none") replies.push(await answerInGroup(admin, ctx, tripId));
+
   return { message, replies: replies.filter((r) => r !== null) };
+}
+
+// The open option set (feedback or vote) gives the facts: WayWay answers with the cards only (writeMessage
+// "answer_question"). No open set: a fixed sentence built by code (no AI call).
+async function answerInGroup(admin: ReturnType<typeof createAdminClient>, ctx: Context, tripId: string) {
+  const { data: open } = await admin
+    .from("option_sets")
+    .select("id, options")
+    .eq("trip_id", tripId)
+    .in("status", ["collecting_feedback", "voting"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const options = open ? toOptions(open.options) : [];
+  if (!options.length) {
+    return postAsWayWay(admin, tripId, 'I can plan the next part of your trip: tell me what and when, e.g. "@WayWay lunch tomorrow" or "@WayWay this afternoon".', null);
+  }
+  const names = Object.fromEntries(ctx.members.map((m) => [m.id, m.name]));
+  const spots = [...new Set(options.flatMap((o) => (o.branches ? o.branches.flatMap((b) => b.spots) : o.spots)))]
+    .flatMap((id) => (SPOTS_BY_ID[id] ? [SPOTS_BY_ID[id]] : []));
+  const { write } = getRoundAI();
+  const msg = await write({
+    trip: ctx.trip, kind: "answer_question", recentChat: ctx.recentChat,
+    facts: { options: describeOptions(options, spots, names, currencyOf(ctx.trip.city)) },
+  });
+  return postAsWayWay(admin, tripId, msg.text, open?.id ?? null);
 }
 
 // ③ What? The first option set for the agreed slot

@@ -11,7 +11,7 @@
 import type { HardConstraints, MemberProfile } from "@/contracts/contract";
 import { MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import { isPrivateStatement, storeStatement, stripPrivate } from "./context";
-import { checkHardConstraints, checkStatements, nonEmptyHard, type ExtractInput, type ExtractOutput } from "./extractPreferences";
+import { checkHardConstraints, checkStatements, newConstraintsOnly, nonEmptyHard, type ExtractInput, type ExtractOutput } from "./extractPreferences";
 import { AIOutputError, callTool, type Validation } from "./llm";
 import { INTERVIEW_SYSTEM, interviewUser } from "./prompts";
 import { INTERVIEW_SCHEMA } from "./schemas";
@@ -61,7 +61,7 @@ const QUESTIONS: Record<InterviewTopic, string> = {
   sleep: "Are you an early bird, a night owl, or flexible?",
   diet: "Do you follow a diet, like vegetarian, vegan or halal?",
   allergies: "Any food allergies I should always avoid? This stays private.",
-  budget: "Roughly how much do you want to spend for the whole trip, in yen? This stays private too.",
+  budget: "Roughly how much do you want to spend for the whole trip? This stays private too.",
 };
 
 interface Raw {
@@ -155,6 +155,7 @@ export async function interview(input: InterviewInput): Promise<InterviewOutput>
         covered: before,
         history: history.slice(-8).map((m) => `${m.sender === "wayway" ? "WayWay" : member.name}: ${m.text}`).join("\n"),
         message: message.text,
+        currency: input.currency,
       }),
       tool: { name: "save_interview", description: "Save what the member said and reply with the next question.", schema: INTERVIEW_SCHEMA },
       validate: makeValidator(before, message.text, [...history].reverse().find((m) => m.sender === "member")?.text),
@@ -165,12 +166,12 @@ export async function interview(input: InterviewInput): Promise<InterviewOutput>
     if (v.profileUpdate?.interests?.length) profileUpdate.interests = cleanWords(v.profileUpdate.interests, 8);
     if (v.profileUpdate?.pace) profileUpdate.pace = v.profileUpdate.pace;
     if (v.profileUpdate?.sleep) profileUpdate.sleep = v.profileUpdate.sleep;
-    const hard = nonEmptyHard(v.hardConstraintsToConfirm && {
+    const hard = nonEmptyHard(newConstraintsOnly(v.hardConstraintsToConfirm && {
       ...v.hardConstraintsToConfirm,
       ...(v.hardConstraintsToConfirm.diet ? { diet: cleanWords(v.hardConstraintsToConfirm.diet, 10) } : {}),
       ...(v.hardConstraintsToConfirm.allergies ? { allergies: cleanWords(v.hardConstraintsToConfirm.allergies, 10) } : {}),
       ...(v.hardConstraintsToConfirm.maxBudget ? { maxBudget: Math.round(v.hardConstraintsToConfirm.maxBudget) } : {}),
-    });
+    }, member));
 
     return {
       preferenceUpdate: {

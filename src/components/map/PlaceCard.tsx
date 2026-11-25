@@ -4,6 +4,7 @@
 //   Below: Google's data, loaded on click (photo, rating, description, hours of the trip day, reviews).
 // Attribution (Google's terms): review authors and photo authors are named and linked, and the
 // Google content is labelled as coming from Google.
+import { currencyOfSpot, formatMoney, fromOpenStreetMap } from "@/lib/cities";
 import type { PlaceDetails } from "@/lib/places/types";
 import type { PlanStop } from "@/lib/itinerary/view";
 
@@ -26,7 +27,7 @@ export function PlaceCard({ stop, place, tripDate, weekdayIndex, onClose }: Prop
   const { spot } = stop;
   const facts = [
     CATEGORY[spot.category] ?? spot.category,
-    spot.price > 0 ? `≈ ¥${spot.price.toLocaleString("en-US")} per person` : "Free",
+    spot.price > 0 ? `≈ ${formatMoney(spot.price, currencyOfSpot(spot.id))} per person` : "Free",
     `usually ${duration(spot.durationMin)}`,
   ];
 
@@ -55,7 +56,9 @@ export function PlaceCard({ stop, place, tripDate, weekdayIndex, onClose }: Prop
           </button>
         </div>
 
-        {!place && <p className="mt-3 text-xs text-muted">This stop is an area, not a single place: no Google details.</p>}
+        {!place && (fromOpenStreetMap(spot.id)
+          ? <p className="mt-3 text-xs text-muted">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:underline">OpenStreetMap contributors</a> (no Google details for this place yet).</p>
+          : <p className="mt-3 text-xs text-muted">This stop is an area, not a single place: no Google details.</p>)}
         {place?.status === "loading" && <p className="mt-3 text-xs text-muted">Loading details from Google…</p>}
         {place?.status === "error" && <p className="mt-3 text-xs text-muted">{place.message}</p>}
         {place?.status === "ok" && <GoogleDetails data={place.data} tripDate={tripDate} weekdayIndex={weekdayIndex} />}

@@ -3,12 +3,12 @@
 // Our code validates them; role 4's rankOptions then picks A (best weighted total),
 // B (fairest) and C (split) and computes the metrics.
 
-import type { Branch, MemberScore, Option, Spot, TimeSlot, Trip, Vote, ChatMessage } from "@/contracts/contract";
+import type { Branch, MemberScore, Option, Spot, TimeSlot, Trip, Vote, ChatMessage, Weekday } from "@/contracts/contract";
 import { LEVEL_VALUE } from "@/contracts/contract";
 import { LIMITS, MAX_TOKENS, MODELS, TEMPERATURE } from "./config";
 import {
   buildAliases, findLeaks, formatChat, formatCritiques, formatEstimatesVsReactions, formatMembers, formatOptions,
-  formatSpots, hhmm, isOpenDuring, isSatisfied, maxStops, privateTokens, selectSpots, slotKind, slotMinutes, toMin, travelMin,
+  formatSpots, hhmm, hoursOn, isOpenDuring, isSatisfied, maxStops, privateTokens, selectSpots, slotKind, slotMinutes, toMin, travelMin, weekdayOf,
   type Aliases, type MemberReaction, type PrivateGroups, type SlotKind,
 } from "./context";
 import { AIOutputError, callTool, type Validation } from "./llm";
@@ -98,6 +98,7 @@ interface Ctx {
   leakTokens: PrivateGroups;
   keptSignatures: Set<string>;       // options already carried over by code (revision only)
   keptHasSplit: boolean;             // a kept option is already a split (revision only)
+  weekday?: Weekday;                 // weekday of the slot: per-day opening hours
 }
 
 // Visits happen in order from `start`, with travel time between spots (travelMin) and, if given,
@@ -121,8 +122,9 @@ function checkPath(
       continue;
     }
     if (prev) t += travelMin(prev, spot);
-    if (!isOpenDuring(spot, t, t + spot.durationMin)) {
-      errors.push(`${tag}: "${id}" is closed during its visit (${hhmm(t)}-${hhmm(t + spot.durationMin)}, open ${spot.openHours}). Reorder or replace it.`);
+    if (!isOpenDuring(spot, t, t + spot.durationMin, ctx.weekday)) {
+      const open = hoursOn(spot, ctx.weekday);
+      errors.push(`${tag}: "${id}" is closed during its visit (${hhmm(t)}-${hhmm(t + spot.durationMin)}, ${open === "closed" ? "closed all day" : `open ${open}`} on this day). Reorder or replace it.`);
     }
     if (spot.category === "food") {
       const missing = diets.filter((d) => !spot.dietTags.includes(d));
@@ -187,8 +189,8 @@ function checkCandidate(c: any, i: number, ctx: Ctx): { candidate?: Candidate; e
       errors.push(`${tag}: rendezvous time must be HH:MM inside the slot ${ctx.slot.start}-${ctx.slot.end}.`);
     } else {
       const at = toMin(rv.time);
-      if (!isOpenDuring(rvSpot, at, Math.min(at + 15, slotEnd))) {
-        errors.push(`${tag}: rendezvous spot "${rv.spot}" is closed at ${rv.time} (open ${rvSpot.openHours}).`);
+      if (!isOpenDuring(rvSpot, at, Math.min(at + 15, slotEnd), ctx.weekday)) {
+        errors.push(`${tag}: rendezvous spot "${rv.spot}" is closed at ${rv.time} (open ${hoursOn(rvSpot, ctx.weekday)} on this day).`);
       }
       c.branches.forEach((b: any, k: number) => {
         const members = Array.isArray(b?.members) ? b.members : [];
@@ -295,12 +297,13 @@ function makeValidator(ctx: Ctx, minCandidates: number, rejected: string[]) {
 async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsOutput> {
   const { trip, slot, recentChat } = input;
   const aliases = buildAliases(trip.members);
-  const spots = selectSpots(input.allowedSpots, slot);           // context selection
+  const weekday = weekdayOf(trip, slot.day);                     // per-day opening hours (Louvre closed on Tuesday)
+  const spots = selectSpots(input.allowedSpots, slot, { weekday, trip });   // context selection (+ relevance cap)
   const minSatisfied = revise ? revise.candidate.satisfiedMemberIds.length : 0;
   const kind = slotKind(slot);
   const kept = revise ? keptOptions(revise.previousOptions, revise.candidate) : [];
   const ctx: Ctx = {
-    trip, aliases, slot, kind, minSatisfied,
+    trip, aliases, slot, kind, minSatisfied, weekday,
     keptSignatures: new Set(kept.map(signature)),
     keptHasSplit: kept.some((o) => Boolean(o.branches?.length)),
     spots: new Map(spots.map((s) => [s.id, s])),
@@ -322,7 +325,7 @@ async function run(input: GenerateInput, revise?: ReviseInput): Promise<OptionsO
       slot: `${slot.label}: day ${slot.day}, ${slot.start}-${slot.end} (${slotMinutes(slot)} min), type: ${kind}, ` +
         `about ${maxStops(spots, slot)} stop(s) per path at most`,
       members: formatMembers(trip, aliases, true),
-      spots: formatSpots(spots, slot),
+      spots: formatSpots(spots, slot, { weekday, currency: trip.currency }),
       chat: formatChat(recentChat, trip),
       ...(revise ? {
         previous: formatOptions(revise.previousOptions, aliases),

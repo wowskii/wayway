@@ -22,6 +22,8 @@ Principle: **the LLM proposes and explains, the code checks and decides.**
 | `data/scenario2.ts` | Test trip (museum vs shopping), uses the shared spots |
 | `scripts/try-ai.ts` | Runs the whole pipeline on scenario 2 |
 | `scripts/try-interview.ts` | Runs an 8-message onboarding interview (`npm run try:interview`, or `try:interview:mock`) |
+| `scripts/osm-city.ts` | Builds a city from OpenStreetMap once (`npm run city:fetch -- paris`, then `city:convert`): `data/spots_<city>.json` + quality report. See `../docs/cities.md` |
+| `scripts/try-city.ts` | Runs Henry's filter + the real options AI on a city file (`npm run try:city`, `-- --no-ai` is free) |
 | `scripts/mock.ts` | Fake model for free offline tests (first answer is deliberately wrong) |
 
 ## Run

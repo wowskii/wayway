@@ -107,10 +107,10 @@ export const mockClient: LLMClient = {
         // First answer deliberately wrong: an activity whose label names a meal.
         if (slotCalls === 1) {
           return tool(name, { action: "propose", kind: "activity", slot: { day: 1, start: "14:00", end: "17:30", label: "Lunch and visits" },
-            reply: "Je propose cet après-midi de 14:00 à 17:30. Ça vous va, ou vous préférez un autre horaire ?" });
+            reply: "Je propose le jour 1, de 14:00 à 17:30. Ça vous va, ou vous préférez un autre horaire ?" });
         }
         return tool(name, { action: "propose", kind: "activity", slot: { day: 1, start: "14:00", end: "17:30", label: "Afternoon, day 1" },
-          reply: "Je propose cet après-midi de 14:00 à 17:30. Ça vous va, ou vous préférez un autre horaire ?" });
+          reply: "Je propose le jour 1, de 14:00 à 17:30. Ça vous va, ou vous préférez un autre horaire ?" });
       }
       return tool(name, { action: "change", kind: "activity", slot: { day: 1, start: "15:00", end: "18:00", label: "Afternoon, day 1" } });
     }

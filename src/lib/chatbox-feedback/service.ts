@@ -5,6 +5,7 @@ import "server-only";
 //   (Simon's extractPreferences, or the mock) -> save what it learned -> save WayWay's reply.
 // Every message is tagged with the option set and its round, so each set has its own thread.
 // Hard constraints are only PROPOSED (confirmation card, answered with /api/private/confirm).
+import { currencyOf } from "@/lib/cities";
 import type { Json } from "@/lib/db/database.types";
 import { getFeedbackHandler } from "@/lib/ai/feedback";
 import { toMemberProfile, toPrivateMessage } from "@/lib/db/mappers";
@@ -36,6 +37,7 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
   if (!set) throw new InterviewError(404, "These suggestions were not found.");
   if (set.status !== "collecting_feedback") throw new InterviewError(409, "Feedback for this round is closed.");
   const options = toOptions(set.options);
+  const { data: tripRow } = await admin.from("trips").select("city").eq("id", tripId).maybeSingle();
 
   // 2. Save the member's message (as the user: RLS checks it is really theirs)
   const { data: mine, error: e1 } = await supabase
@@ -66,7 +68,8 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
     history,
     round: set.round,
     currentOptions: options,
-    spots: SPOTS,
+    spots: SPOTS,                            // every city: the cards' spots are looked up by id
+    currency: currencyOf(tripRow?.city),     // prices and budgets in the trip's currency
     memberNames: Object.fromEntries((memberRows ?? []).map((m) => [m.id, m.name])),
   });
 
@@ -95,5 +98,35 @@ export async function sendFeedbackMessage(tripId: string, optionSetId: string, t
     .single();
   if (e2 || !reply) throw new InterviewError(500, "WayWay could not answer. Try again.");
 
-  return { messages: [toInterviewMessage(mine), toInterviewMessage(reply)] };
+  // 7. Everyone has reacted? Then the round does not wait for its deadline: the deadline is moved to now
+  //    and the usual next-round step runs (the browser asks /api/chatbox/next-round). A question alone is
+  //    not a reaction: a member counts once WayWay recorded a reaction of theirs to an option of this round.
+  const roundEnded = await endRoundIfEveryoneReacted(admin, set, (memberRows ?? []).map((m) => m.id));
+
+  return { messages: [toInterviewMessage(mine), toInterviewMessage(reply)], ...(roundEnded ? { roundEnded } : {}) };
+}
+
+async function endRoundIfEveryoneReacted(
+  admin: ReturnType<typeof createAdminClient>, set: { id: string; round: number }, memberIds: string[],
+): Promise<boolean> {
+  if (!memberIds.length) return false;
+  const { data: rows } = await admin
+    .from("private_messages")
+    .select("member_id, reactions")
+    .eq("option_set_id", set.id)
+    .eq("round", set.round)
+    .eq("sender", "wayway")
+    .not("reactions", "is", null);
+  const reacted = new Set((rows ?? []).filter((r) => Array.isArray(r.reactions) && r.reactions.length).map((r) => r.member_id));
+  if (!memberIds.every((id) => reacted.has(id))) return false;
+  const now = new Date().toISOString();
+  const { data: moved } = await admin
+    .from("option_sets")
+    .update({ round_deadline: now })
+    .eq("id", set.id)
+    .eq("round", set.round)
+    .eq("status", "collecting_feedback")
+    .gt("round_deadline", now)
+    .select("id");
+  return Boolean(moved?.length);
 }

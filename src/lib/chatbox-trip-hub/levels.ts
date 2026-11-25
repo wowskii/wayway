@@ -13,7 +13,8 @@ export const LEVELS: readonly { id: SatisfactionLevel; label: string }[] = [
 /** Spot.category as shown under the spot name. */
 export const CATEGORY_LABEL: Record<Spot["category"], string> = {
   museum: "Museum",
-  temple: "Temple & shrine",
+  temple: "Temple, church & shrine",
+  landmark: "Landmark",
   food: "Food & market",
   shopping: "Shopping",
   nature: "Nature & parks",

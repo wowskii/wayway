@@ -259,6 +259,7 @@ function VoteList({
 
 // ----- One option set = one full-height card
 function SetCard({
+  currency,
   set,
   tripId,
   draft,
@@ -272,6 +273,7 @@ function SetCard({
   onFresh,
   onRefresh,
 }: {
+  currency: string;
   set: SuggestionSet;
   tripId: string;
   draft: string;
@@ -316,6 +318,7 @@ function SetCard({
       const res = await postJson<FeedbackTurnResponse>("/api/private/feedback", { tripId, optionSetId: set.id, text });
       onMessages((m) => [...m.filter((x) => x.id !== tempId), ...res.messages]);
       onSent();
+      if (res.roundEnded) void onRefresh();   // everyone has reacted: the next round starts now
     } catch (err) {
       onMessages((m) => m.filter((x) => x.id !== tempId));
       onDraft(text);   // give the text back so nothing is lost
@@ -404,6 +407,7 @@ function SetCard({
                 </MessageBubble>
                 {m.constraintsToConfirm && m.constraintsStatus && (
                   <ConstraintCard
+                    currency={currency}
                     constraints={m.constraintsToConfirm}
                     status={m.constraintsStatus}
                     onAnswer={(decision, edited) => answerCard(m.id, decision, edited)}
@@ -475,6 +479,7 @@ function PagerButton({ dir, disabled, highlight, onClick }: { dir: "prev" | "nex
  * panel or write about it).
  */
 function SuggestionsPager({
+  currency,
   sets: liveSets,
   waiting,
   visible,
@@ -494,6 +499,7 @@ function SuggestionsPager({
   onUpdateSet: (setId: string, update: (s: SuggestionSet) => SuggestionSet) => void;
   onFresh: (sets: SuggestionSet[]) => void;
   onRefresh: () => Promise<void>;
+  currency: string;
 }) {
   const [opened] = useState(() => {
     const stored = parseSeen(readSeenRaw(tripId));
@@ -560,6 +566,7 @@ function SuggestionsPager({
 
   const card = (
     <SetCard
+      currency={currency}
       key={current.id}
       set={current}
       tripId={tripId}
@@ -600,7 +607,10 @@ export function SuggestionsPanel({
   onFresh,
   onRefresh,
   onClose,
+  currency = "JPY",
 }: {
+  /** The trip's currency, for the budget on a confirmation card. */
+  currency?: string;
   sets: SuggestionSet[];
   /** Phases whose end was reported and that have not moved on yet (set id -> phase): "moving to the next step…" */
   waiting: Record<string, string>;
@@ -639,6 +649,7 @@ export function SuggestionsPanel({
           </div>
         ) : isClient ? (
           <SuggestionsPager
+            currency={currency}
             sets={sets}
             waiting={waiting}
             visible={visible}

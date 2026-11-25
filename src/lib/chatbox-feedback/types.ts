@@ -11,4 +11,6 @@ export interface FeedbackRequest {
 /** The member's saved message and WayWay's reply (both tagged with the option set). */
 export interface FeedbackTurnResponse {
   messages: InterviewMessage[];
+  /** Every member has now reacted to this round: its deadline was moved to now, ask for the next round. */
+  roundEnded?: boolean;
 }
