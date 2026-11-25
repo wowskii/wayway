@@ -70,6 +70,9 @@ for (const [name, spots] of Object.entries(byCity)) for (const s of spots) spotC
 /** The currency a spot's price is in (its city's). */
 export const currencyOfSpot = (spotId: string): string => currencyOf(spotCity[spotId]);
 
+/** True if the spot comes from an OpenStreetMap snapshot (its card must credit OpenStreetMap, ODbL). */
+export const fromOpenStreetMap = (spotId: string): boolean => /OpenStreetMap/.test(cityConfig(spotCity[spotId])?.source ?? "");
+
 /** "¥30,000", "€500": a whole amount in a currency (same look as before for yen). */
 export function formatMoney(amount: number, currency = "JPY"): string {
   try {
