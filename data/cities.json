@@ -4,13 +4,23 @@
     "source": "hand-made (Role 4), with allergen evidence in spots_evidence.json",
     "currency": "JPY",
     "timezone": "Asia/Tokyo",
-    "base": { "lat": 35.6812, "lng": 139.7671, "label": "Tokyo Station" }
+    "base": {
+      "lat": 35.6812,
+      "lng": 139.7671,
+      "label": "Tokyo Station"
+    },
+    "region": "JP"
   },
   "Paris": {
     "spots": "spots_paris.json",
     "source": "OpenStreetMap snapshot (© OpenStreetMap contributors, ODbL), built by wayway-ai/scripts/osm-city.ts",
     "currency": "EUR",
     "timezone": "Europe/Paris",
-    "base": { "lat": 48.8606, "lng": 2.3376, "label": "Louvre / Châtelet" }
+    "base": {
+      "lat": 48.8606,
+      "lng": 2.3376,
+      "label": "Louvre / Châtelet"
+    },
+    "region": "FR"
   }
 }

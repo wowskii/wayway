@@ -231,16 +231,22 @@ function convert(key: string) {
   }
   // Ids must be unique across ALL cities (src/lib/cities.ts looks spots up by id for any trip).
   const ids = new Set<string>(Object.keys(JSON.parse(readFileSync(`${DATA}/spots_tokyo.json`, "utf8"))));
+  // Google Place IDs already matched (scripts/match-places.mjs) survive a re-conversion.
+  let previous: Record<string, { placeId?: string }> = {};
+  try { previous = JSON.parse(readFileSync(`${DATA}/spots_${key}.json`, "utf8")); } catch { /* first run */ }
   const spots: Record<string, any> = {};
   const meta: Record<string, any> = {};
   for (const r of kept) {
     let id = slug(r.spot.name) || "spot";
     for (let n = 2; ids.has(id); n++) id = `${slug(r.spot.name).slice(0, 25)}_${n}`;
     ids.add(id);
-    spots[id] = { ...r.spot, id };
+    spots[id] = { ...r.spot, id, ...(previous[id]?.placeId ? { placeId: previous[id].placeId } : {}) };
     meta[id] = { osm: r.osm, estimated: r.estimated };
   }
-  writeFileSync(`${DATA}/spots_${key}.json`, JSON.stringify(spots, null, 1));
+  // One spot per line, same layout as spots_tokyo.json (small diffs; match-places.mjs edits lines in place).
+  const line = (v: unknown) => JSON.stringify(v).replace(/":/g, '": ').replace(/,"/g, ', "');
+  writeFileSync(`${DATA}/spots_${key}.json`,
+    `{\n${Object.entries(spots).map(([id, s]) => `  ${JSON.stringify(id)}: ${line(s)}`).join(",\n")}\n}\n`);
   writeFileSync(`${DATA}/osm/meta_${key}.json`, JSON.stringify({ source: "© OpenStreetMap contributors (ODbL)", currency: c.currency, spots: meta }, null, 1));
 
   // ---------- Quality report ----------

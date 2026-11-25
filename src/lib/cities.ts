@@ -16,6 +16,7 @@ export interface CityConfig {
   source: string;
   currency: string;                  // "EUR"
   timezone: string;                  // "Europe/Paris"
+  region?: string;                   // "FR": Google region code (scripts/match-places.mjs)
   base: { lat: number; lng: number; label?: string };
 }
 

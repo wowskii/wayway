@@ -23,12 +23,14 @@
 //   npm run match:places                              all spots that have no Place ID yet
 //   npm run match:places -- --only tnm,ghibli         only these spots (even if already matched)
 //   npm run match:places -- --only ghibli --query "Ghibli Museum Mitaka"   custom search text
+//   npm run match:places -- --city Paris --limit 95  another city of data/cities.json; --limit takes the best
+//                                                      known spots first, one category after the other
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 // Keep in sync with GOOGLE_DAILY_LIMITS.text_search in src/lib/google/limits.ts
 const TEXT_SEARCH_DAILY_LIMIT = 100;
-const SPOTS_FILE = "data/spots_tokyo.json";
+const CITIES = JSON.parse(readFileSync("data/cities.json", "utf8"));
 // Areas: no single Google place fits, so they are never searched (and have no placeId).
 const NO_SINGLE_PLACE = new Set(["shibuya_shopping", "shimokitazawa"]);
 const REPORT_DIR = "scripts/output";
@@ -44,6 +46,11 @@ const value = (name) => {
 const dryRun = flag("--dry-run");
 const only = value("--only")?.split(",").map((s) => s.trim()).filter(Boolean);
 const customQuery = value("--query");
+const CITY = value("--city") ?? "Tokyo";
+if (!CITIES[CITY]) throw new Error(`Unknown city "${CITY}" (data/cities.json: ${Object.keys(CITIES).join(", ")})`);
+const SPOTS_FILE = `data/${CITIES[CITY].spots}`;
+const REGION = CITIES[CITY].region ?? "JP";
+const LIMIT = value("--limit") ? Number(value("--limit")) : Infinity;
 if (customQuery && only?.length !== 1) throw new Error("--query needs exactly one spot in --only");
 
 // ---------- Data ----------
@@ -52,10 +59,16 @@ const saved = {};   // new Place IDs found in this run
 for (const id of only ?? []) if (!spots[id]) throw new Error(`Unknown spot id "${id}"`);
 
 // A spot that already has a placeId (or is an area) is skipped unless named in --only.
-const todo = Object.values(spots).filter((s) => (only ? only.includes(s.id) : !s.placeId && !NO_SINGLE_PLACE.has(s.id)));
+const pending = Object.values(spots).filter((s) => (only ? only.includes(s.id) : !s.placeId && !NO_SINGLE_PLACE.has(s.id)));
+// --limit: round-robin over categories, in file order (OpenStreetMap cities are written best known first),
+// so museums, landmarks, restaurants... all get some Google details.
+const todo = [];
+const byCat = Object.groupBy ? Object.groupBy(pending, (s) => s.category) : pending.reduce((a, s) => ((a[s.category] ??= []).push(s), a), {});
+const queues = Object.values(byCat);
+while (todo.length < Math.min(LIMIT, pending.length)) for (const q of queues) if (q.length && todo.length < LIMIT) todo.push(q.shift());
 
 // "Ghibli Museum (advance tickets)" -> "Ghibli Museum, Mitaka, Tokyo": the brackets are our notes, not the name.
-const queryFor = (s) => customQuery ?? `${s.name.replace(/\s*\([^)]*\)/g, "")}, ${s.area}, Tokyo`;
+const queryFor = (s) => customQuery ?? `${s.name.replace(/\s*\([^)]*\)/g, "")}, ${s.area}, ${CITY}`;
 
 if (dryRun) {
   console.log(`${todo.length} spot(s) would be searched (no Google call):`);
@@ -93,7 +106,7 @@ async function search(s) {
     body: JSON.stringify({
       textQuery: queryFor(s),
       languageCode: "en",
-      regionCode: "JP",
+      regionCode: REGION,
       pageSize: 3,
       // Prefer results near our coordinates (a bias, not a filter): picks the right branch of a chain.
       locationBias: { circle: { center: { latitude: s.lat, longitude: s.lng }, radius: 1000 } },
@@ -114,7 +127,7 @@ function meters(a, b) {
 }
 
 // "Sensō-ji" -> ["senso", "ji"]: lowercase, accents removed, small filler words ignored.
-const STOP = new Set(["tokyo", "the", "of", "and", "a"]);
+const STOP = new Set([CITY.toLowerCase(), "the", "of", "and", "a", "de", "du", "des", "la", "le", "les", "l"]);
 const words = (t) =>
   new Set(t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w && !STOP.has(w)));
 const sharesWord = (a, b) => [...words(a)].some((w) => words(b).has(w));
