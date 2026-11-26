@@ -44,7 +44,8 @@ export const mockRevise: Reviser = async ({ previousOptions, candidate, reaction
       spots: [...base.spots.slice(0, -1), swap.id],
       scores,
       satisfiedMemberIds: scores.filter((s) => SATISFIED.has(s.level)).map((s) => s.memberId),
-      explanation: `Like option ${base.id}, but ends at ${swap.name} instead of ${lastSpot.name}.`,
+      // No letter here: options are re-lettered after ranking, so "like option A" could end up on A itself.
+      explanation: `Changed after your feedback: ends at ${swap.name} instead of ${lastSpot.name}.`,
       assumptions: base.assumptions,
     }],
     kept,

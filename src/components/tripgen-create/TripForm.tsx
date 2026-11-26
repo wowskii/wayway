@@ -10,7 +10,7 @@ import { DateField } from "./DateField";
 import { FriendSearch, Initial } from "./FriendSearch";
 import { InviteLink } from "./InviteLink";
 
-/** today: YYYY-MM-DD in the trip city's time zone (computed on the server, so both sides agree). */
+/** today: YYYY-MM-DD, the earliest "today" among the cities' time zones (computed on the server, so both sides agree). */
 export function TripForm({ today, hostName }: { today: string; hostName: string }) {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");

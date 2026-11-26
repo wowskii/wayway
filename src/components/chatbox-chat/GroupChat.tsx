@@ -258,7 +258,7 @@ export function GroupChat({
               if (e.target.value.trim()) sendTyping();
             }}
             onKeyDown={onKeyDown}
-            placeholder="Message… (type @WayWay to ask the assistant)"
+            placeholder="Message… @WayWay for help"
             aria-label="Message to your group"
             rows={1}
             maxLength={MAX_CHAT_LENGTH}

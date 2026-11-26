@@ -65,8 +65,10 @@ function TimeLeft({ deadline, moving, voting }: { deadline: string; moving: bool
   // deadline a little while it works: don't show that as time left)
   if (voting && (left <= 0 || moving)) return <span className="text-sm font-medium text-muted">Voting time is up · counting votes…</span>;
   if (left <= 0 || moving) return <span className="text-sm font-medium text-muted">Time&apos;s up · moving to the next step…</span>;
-  const min = Math.floor(left / 60_000);
-  const sec = Math.floor((left % 60_000) / 1000);
+  // Round UP to whole seconds: the last second shows 00:01, never "00:00 left" before "Time's up".
+  const total = Math.ceil(left / 1000);
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
   const text = min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min` : `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   return (
     <span className={`text-sm font-medium tabular-nums ${left < 5 * 60_000 ? "text-red-600" : "text-ink"}`} aria-live="off">
@@ -83,13 +85,16 @@ const KIND_LABEL: Record<SuggestionOption["kind"], string> = {
 };
 
 function OptionCard({ o, children }: { o: SuggestionOption; children?: ReactNode }) {
+  // One stop whose name starts with the title ("Ain Soph Journey" / "Ain Soph Journey (vegan cafe)"):
+  // show the full name once, as the title, instead of the same name twice.
+  const single = !o.groups && o.stops.length === 1 && o.stops[0].startsWith(o.title);
   return (
     <article className="flex min-w-0 snap-start flex-col gap-1.5 rounded-xl border border-line bg-page p-3">
       <div className="flex items-center gap-2">
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white">{o.id}</span>
         <span className="rounded-full bg-card px-2 py-0.5 text-[11px] font-medium text-muted">{KIND_LABEL[o.kind]}</span>
       </div>
-      <h4 className="line-clamp-2 font-semibold leading-snug">{o.title}</h4>
+      <h4 className="line-clamp-2 font-semibold leading-snug">{single ? o.stops[0] : o.title}</h4>
       {o.groups ? (
         <div className="flex flex-col gap-0.5 text-sm">
           {o.groups.map((g, i) => (
@@ -99,7 +104,7 @@ function OptionCard({ o, children }: { o: SuggestionOption; children?: ReactNode
           ))}
           {o.meet && <p className="text-muted">Meet at {o.meet.place}, {o.meet.time}</p>}
         </div>
-      ) : (
+      ) : single ? null : (
         <p className="line-clamp-3 text-sm">{o.stops.join(" → ")}</p>
       )}
       {o.worksFor.length > 0 && <p className="text-xs text-brand">Works for {o.worksFor.join(", ")}</p>}

@@ -77,7 +77,7 @@ export const mockNegotiate: Negotiator = async ({ trip, message, pending, decide
     action: "propose",
     slot,
     kind: kindOf(slot),
-    reply: `How about ${slot.label}, ${slot.start}–${slot.end}? Reply "@WayWay ok" to confirm, or give me another time.`,
+    reply: `How about ${slot.label}, ${slot.start}–${slot.end}? Reply @WayWay ok to confirm, or give me another time.`,
   };
 };
 
