@@ -14,7 +14,8 @@ Try it: join `localhost:3000/join/tokyo26`, then open the **Map** tab (the demo 
 - **Live:** the map shows only **decided** stops (rows with an `option_set_id`, same filter as the chat's
   itinerary panel), and updates by itself when the group decides a slot (`useItineraryUpdates.ts`: Realtime on
   `itinerary_items` → `router.refresh()`). Nothing decided yet → "Nothing planned yet" + a link to the group chat.
-  Rows from `npm run seed:itinerary` have no option set, so they are not shown.
+  `npm run seed:itinerary` writes its stops as decided too (one "decided" option set per time slot, with no
+  options = how the script recognises its own sets), so the demo shows on the map and in the chat panel.
 - **Location sharing** (opt-in, top-left of the map): share your real position or a demo position in Tokyo;
   members see each other live.
 
@@ -61,7 +62,7 @@ point as its own item that starts when the split ends (the contract has no rende
 ## Scripts
 | Command | What it does |
 |---|---|
-| `npm run seed:itinerary [inviteCode]` | Puts the 2-day demo itinerary into a trip (default `tokyo26`), with the trip's **real members** alternating between the two groups. Re-run after people join. Only replaces seeded rows; refuses a trip with a real (voted) itinerary. |
+| `npm run seed:itinerary [inviteCode]` | Puts the 2-day demo itinerary into a trip (default `tokyo26`), with the trip's **real members** alternating between the two groups. Re-run after people join. Stops are written as decided (shown on the map and in the chat panel). Only replaces its own seed; refuses a trip with a real (voted) itinerary. |
 | `npm run match:places` | Finds Google Place IDs for spots without one (`--dry-run`, `--only id1,id2`, `--query "…"`). Writes `placeId` into `data/spots_tokyo.json`; the review report goes to git-ignored `scripts/output/` (delete it after reading). |
 | `npm run check:google` | 5 checks of the Google usage counter (limit, simultaneous calls, server-only). |
 | `npm run check:locations` | 10 privacy checks of location sharing. |
