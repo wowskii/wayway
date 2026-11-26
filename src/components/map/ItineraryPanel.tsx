@@ -1,12 +1,14 @@
 "use client";
 // Left card of the map page: day tabs + the day's plan (shared stops and split cards).
 // Clicking a stop selects it (the map pans to it); a pin click selects it here too.
+import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { directionsUrl, type Leg, type WalkRoute } from "@/lib/itinerary/legs";
 import { namesLabel, type DayPlan, type PlanStop } from "@/lib/itinerary/view";
 import { GROUP_COLOR } from "./colors";
 
 interface Props {
+  tripId: string;
   days: DayPlan[];
   day: number;
   onDay: (day: number) => void;
@@ -19,7 +21,7 @@ interface Props {
   walks: Record<string, WalkRoute | null>;
 }
 
-export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf, nameOf, myMemberId, legs, walks }: Props) {
+export function ItineraryPanel({ tripId, days, day, onDay, selectedKey, onSelect, dateOf, nameOf, myMemberId, legs, walks }: Props) {
   const plan = days.find((d) => d.day === day);
 
   // The trip shown above each stop = how you get there. The meeting point is reached by both groups:
@@ -41,6 +43,27 @@ export function ItineraryPanel({ days, day, onDay, selectedKey, onSelect, dateOf
   useEffect(() => {
     if (selectedKey) document.getElementById(`stop-${selectedKey}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selectedKey]);
+
+  // Nothing decided yet: say where plans come from, with a way to get there.
+  if (days.length === 0) {
+    return (
+      <section className="flex min-h-0 flex-col bg-card md:w-72 md:shrink-0 md:border-r md:border-line">
+        <div className="border-b border-line p-4">
+          <h2 className="font-semibold">Proposed itinerary</h2>
+        </div>
+        <div className="m-4 rounded-xl bg-page p-4 text-center">
+          <p className="text-sm font-medium text-ink">Nothing planned yet</p>
+          <p className="mt-1 text-sm text-muted">Ask @WayWay in the group chat to plan a time slot. Decided stops show up here and on the map.</p>
+          <Link
+            href={`/trips/${tripId}`}
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
+          >
+            Open the group chat
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="flex min-h-0 flex-col bg-card md:w-72 md:shrink-0 md:border-r md:border-line">

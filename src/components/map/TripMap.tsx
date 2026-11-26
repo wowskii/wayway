@@ -89,39 +89,34 @@ export function TripMap({ tripId, days, itemIds, startDate, memberNames, myMembe
     // md and up: fills the screen under the header, nothing scrolls but the plan list.
     <main className="flex flex-col bg-page md:h-[calc(100dvh-4rem-1px)] md:flex-row md:overflow-hidden">
       <h1 className="sr-only">Trip map</h1>
-      {days.length === 0 ? (
-        <p className="m-auto max-w-sm px-6 py-16 text-center text-sm text-muted">
-          No itinerary yet. Once the group votes on WayWay&apos;s options, the plan appears here.
-        </p>
-      ) : (
-        <>
-          <ItineraryPanel
-            days={days}
-            day={day}
-            onDay={changeDay}
-            selectedKey={selectedKey}
-            onSelect={selectStop}
-            dateOf={dateOf}
-            nameOf={nameOf}
-            myMemberId={myMemberId}
-            legs={legs}
-            walks={walks}
+      {/* No stops yet: the panel says so (with a link to the chat) and the map still opens, so
+          location sharing works before anything is planned. */}
+      <ItineraryPanel
+        tripId={tripId}
+        days={days}
+        day={day}
+        onDay={changeDay}
+        selectedKey={selectedKey}
+        onSelect={selectStop}
+        dateOf={dateOf}
+        nameOf={nameOf}
+        myMemberId={myMemberId}
+        legs={legs}
+        walks={walks}
+      />
+      <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
+        <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
+          sharing={{ ...sharing, myMemberId, nameOf }} />
+        {selectedStop && (
+          <PlaceCard
+            stop={selectedStop}
+            place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
+            tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
+            weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}
+            onClose={() => setSelectedKey(null)}
           />
-          <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
-            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
-              sharing={{ ...sharing, myMemberId, nameOf }} />
-            {selectedStop && (
-              <PlaceCard
-                stop={selectedStop}
-                place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
-                tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
-                weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}
-                onClose={() => setSelectedKey(null)}
-              />
-            )}
-          </div>
-        </>
-      )}
+        )}
+      </div>
     </main>
   );
 }
