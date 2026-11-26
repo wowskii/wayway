@@ -1,8 +1,7 @@
 # Trip map (Role 2) — Google Maps, itinerary, place cards, location sharing
 
 Branch `feature/map`. Page: **`/trips/<tripId>/map`** (Figma `288:2015` "Trip map · Simplified", decluttered).
-Try it: join `localhost:3000/join/tokyo26`, plan a slot with @WayWay in the group chat (mock AI: rounds last 30 s),
-vote, then open the **Map** tab. Stops appear live, without a reload.
+Try it: join `localhost:3000/join/tokyo26`, then open the **Map** tab (the demo trip has a seeded itinerary).
 
 ## What the page does
 - **Itinerary panel** (left): day tabs, stops with times, a **split card** ("Your group · with …" / the other
@@ -58,6 +57,7 @@ point as its own item that starts when the split ends (the contract has no rende
 ## Scripts
 | Command | What it does |
 |---|---|
+| `npm run seed:itinerary [inviteCode]` | Puts the 2-day demo itinerary into a trip (default `tokyo26`), with the trip's **real members** alternating between the two groups. Re-run after people join. Only replaces seeded rows; refuses a trip with a real (voted) itinerary. |
 | `npm run match:places` | Finds Google Place IDs for spots without one (`--dry-run`, `--only id1,id2`, `--query "…"`). Writes `placeId` into `data/spots_tokyo.json`; the review report goes to git-ignored `scripts/output/` (delete it after reading). |
 | `npm run check:google` | 5 checks of the Google usage counter (limit, simultaneous calls, server-only). |
 | `npm run check:locations` | 10 privacy checks of location sharing. |

@@ -1,5 +1,5 @@
 {
-  "_about": "Example itinerary (contract: ItineraryItem[]) with fake members (m_mia...). Spot ids are real ids from data/spots_tokyo.json. A split is one item with 2 branches, followed by the meeting point as its own item (same shape as Henry's itineraryFromOption).",
+  "_about": "Template itinerary (contract: ItineraryItem[]) used by npm run seed:itinerary, which replaces the fake members (m_mia...) by the trip's real members. Spot ids are real ids from data/spots_tokyo.json. A split is one item with 2 branches, followed by the meeting point as its own item (same shape as Henry's itineraryFromOption).",
   "me": "m_mia",
   "members": [
     {
