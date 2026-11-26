@@ -28,6 +28,7 @@ export default async function MapPage({ params }: { params: Promise<{ tripId: st
       <TripMap
         tripId={tripId}
         days={days}
+        itemIds={itinerary.itemIds}
         startDate={trip.start_date}
         memberNames={Object.fromEntries(itinerary.members.map((m) => [m.id, m.name]))}
         myMemberId={itinerary.myMemberId}

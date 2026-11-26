@@ -8,18 +8,23 @@ import type { DayPlan } from "@/lib/itinerary/view";
 import { ItineraryPanel } from "./ItineraryPanel";
 import { MapView } from "./MapView";
 import { PlaceCard, type PlaceState } from "./PlaceCard";
+import { useItineraryUpdates } from "./useItineraryUpdates";
 import { useLocationSharing } from "./useLocationSharing";
 
 interface Props {
   tripId: string;
   days: DayPlan[];
+  itemIds: string[];                       // database ids of the stops shown (live refresh)
   startDate: string;                       // trip start "2026-11-21": day 1
   memberNames: Record<string, string>;
   myMemberId?: string;
 }
 
-export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Props) {
-  const [day, setDay] = useState(days[0]?.day ?? 1);
+export function TripMap({ tripId, days, itemIds, startDate, memberNames, myMemberId }: Props) {
+  useItineraryUpdates(tripId, itemIds);   // a new decision -> the server data is reloaded -> new `days`
+  const [chosenDay, setDay] = useState(days[0]?.day ?? 1);
+  // After a live refresh the chosen day may no longer exist (a stop was removed): show the first day.
+  const day = days.some((d) => d.day === chosenDay) ? chosenDay : (days[0]?.day ?? 1);
   const sharing = useLocationSharing(tripId, myMemberId);
   const nameOf = (id: string) => memberNames[id] ?? "Someone";
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
