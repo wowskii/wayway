@@ -3,6 +3,7 @@
 // the trip get its itinerary and its members' names.
 // Only rows written by a group decision (save_decision: they carry their option_set_id) are shown:
 // the SAME filter as the chat's itinerary panel (src/lib/chatbox-trip-hub/load.ts), so both always match.
+// Demo rows from `npm run seed:itinerary` have no option set, so they are not shown (kept for now).
 import "server-only";
 import type { ItineraryItem } from "@/contracts/contract";
 import { toItineraryItem } from "@/lib/db/mappers";
