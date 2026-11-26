@@ -60,8 +60,8 @@ export async function loadHub(tripId: string, userId: string): Promise<HubData |
         .eq("trip_id", tripId)
         .order("created_at", { ascending: false })
         .limit(MESSAGE_PAGE),
-      // Only stops written by a group decision (they carry their option set). Demo rows written by
-      // `npm run seed:itinerary` for the map page have none and are not shown here.
+      // Only stops written by a group decision (they carry their option set). The map page
+      // (src/lib/itinerary/source.ts) uses the same filter, so both always show the same plan.
       supabase
         .from("itinerary_items")
         .select("id, day, start_time, end_time, spot_id, branches, created_at")
