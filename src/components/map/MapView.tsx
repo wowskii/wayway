@@ -9,15 +9,16 @@ import { useEffect, useRef, useState } from "react";
 import { AdvancedMarker, APIProvider, ControlPosition, Map, Polyline, useMap } from "@vis.gl/react-google-maps";
 import type { Leg, WalkRoute } from "@/lib/itinerary/legs";
 import type { PlanStop } from "@/lib/itinerary/view";
+import type { MapCity } from "./TripMap";
 import { GROUP_COLOR } from "./colors";
 import { LocationControl, LocationMarkers } from "./LocationLayer";
 import type { MemberLocation, ShareMode } from "./useLocationSharing";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
-const TOKYO = { lat: 35.6812, lng: 139.7671 };   // Tokyo Station: first view before fitting the pins
 
 interface Props {
+  city: MapCity;
   stops: PlanStop[];
   legs: Leg[];
   walks: Record<string, WalkRoute | null>;
@@ -54,10 +55,10 @@ export function MapView(props: Props) {
   if (!gate.ok) return <Placeholder text={gate.message!} />;
 
   return (
-    <APIProvider apiKey={API_KEY} language="en" region="JP">
+    <APIProvider apiKey={API_KEY} language="en" region={props.city.region}>
       <Map
         mapId={MAP_ID}
-        defaultCenter={TOKYO}
+        defaultCenter={props.city.base}     // the city's starting point, until the pins are fitted
         defaultZoom={12}
         gestureHandling="greedy"
         disableDefaultUI
@@ -85,7 +86,17 @@ export function MapView(props: Props) {
         <PanToSelected stops={props.stops} selectedKey={props.selectedKey} />
       </Map>
       {/* Over the map, top-left (APIProvider adds no element, so this sits in the map's box). */}
-      <LocationControl {...props.sharing} />
+      <LocationControl {...props.sharing} cityName={props.city.name} />
+      {/* OpenStreetMap's licence (ODbL) asks for a visible credit wherever its data is used: always on, not
+          only in the place card. Bottom-left, just above Google's logo. */}
+      {props.city.osm && (
+        <p className="absolute bottom-7 left-2 z-10 rounded bg-card/90 px-1.5 py-0.5 text-[10px] text-muted shadow-sm">
+          Places ©{" "}
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:underline">
+            OpenStreetMap contributors
+          </a>
+        </p>
+      )}
     </APIProvider>
   );
 }

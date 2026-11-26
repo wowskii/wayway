@@ -4,8 +4,9 @@
 import type { Metadata } from "next";
 import { TripHeader } from "@/components/Header";
 import { FloatingChat } from "@/components/map/FloatingChat";
-import { TripMap } from "@/components/map/TripMap";
+import { TripMap, type MapCity } from "@/components/map/TripMap";
 import { formatTripDates } from "@/lib/auth";
+import { cityConfig } from "@/lib/cities";
 import { loadChatWindow, unreadCount } from "@/lib/chat-window";
 import { getTripItinerary } from "@/lib/itinerary/source";
 import { buildDayPlans } from "@/lib/itinerary/view";
@@ -22,12 +23,23 @@ export default async function MapPage({ params }: { params: Promise<{ tripId: st
   const { days, missing } = buildDayPlans(itinerary.items, getSpot, itinerary.myMemberId);
   if (missing.length) console.warn(`[map] trip ${tripId}: unknown spot ids skipped: ${missing.join(", ")}`);
 
+  // Only what the browser needs about the trip's city (not its spot file). Unknown city: Tokyo's values.
+  const c = cityConfig(trip.city) ?? cityConfig("Tokyo")!;
+  const city: MapCity = {
+    name: c.name,
+    base: { lat: c.base.lat, lng: c.base.lng },
+    region: c.region ?? "JP",
+    currency: c.currency,
+    osm: /OpenStreetMap/.test(c.source),     // OpenStreetMap data must be credited on the map (ODbL)
+  };
+
   return (
     <>
       <TripHeader tripId={tripId} tripName={trip.name} dates={formatTripDates(trip.start_date, trip.end_date)} active="map" />
       <TripMap
         tripId={tripId}
         days={days}
+        city={city}
         itemIds={itinerary.itemIds}
         startDate={trip.start_date}
         memberNames={Object.fromEntries(itinerary.members.map((m) => [m.id, m.name]))}

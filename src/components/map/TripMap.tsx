@@ -11,8 +11,18 @@ import { PlaceCard, type PlaceState } from "./PlaceCard";
 import { useItineraryUpdates } from "./useItineraryUpdates";
 import { useLocationSharing } from "./useLocationSharing";
 
+/** The trip's city, as the map needs it (prepared by the server page). */
+export interface MapCity {
+  name: string;                            // "Paris"
+  base: { lat: number; lng: number };      // first view + demo position
+  region: string;                          // Google region code "FR"
+  currency: string;                        // "EUR": prices on the place card
+  osm: boolean;                            // spots come from OpenStreetMap -> credit it on the map
+}
+
 interface Props {
   tripId: string;
+  city: MapCity;
   days: DayPlan[];
   itemIds: string[];                       // database ids of the stops shown (live refresh)
   startDate: string;                       // trip start "2026-11-21": day 1
@@ -20,12 +30,12 @@ interface Props {
   myMemberId?: string;
 }
 
-export function TripMap({ tripId, days, itemIds, startDate, memberNames, myMemberId }: Props) {
+export function TripMap({ tripId, city, days, itemIds, startDate, memberNames, myMemberId }: Props) {
   useItineraryUpdates(tripId, itemIds);   // a new decision -> the server data is reloaded -> new `days`
   const [chosenDay, setDay] = useState(days[0]?.day ?? 1);
   // After a live refresh the chosen day may no longer exist (a stop was removed): show the first day.
   const day = days.some((d) => d.day === chosenDay) ? chosenDay : (days[0]?.day ?? 1);
-  const sharing = useLocationSharing(tripId, myMemberId);
+  const sharing = useLocationSharing(tripId, myMemberId, city.base);
   const nameOf = (id: string) => memberNames[id] ?? "Someone";
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const plan = days.find((d) => d.day === day);
@@ -105,11 +115,13 @@ export function TripMap({ tripId, days, itemIds, startDate, memberNames, myMembe
         walks={walks}
       />
       <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
-        <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
+        <MapView city={city} stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
           sharing={{ ...sharing, myMemberId, nameOf }} />
         {selectedStop && (
           <PlaceCard
             stop={selectedStop}
+            currency={city.currency}
+            osm={city.osm}
             place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
             tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
             weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}

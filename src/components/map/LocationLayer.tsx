@@ -12,6 +12,7 @@ interface Props {
   locations: MemberLocation[];
   myMemberId?: string;
   nameOf: (memberId: string) => string;
+  cityName?: string;
 }
 
 export function LocationMarkers({ locations, myMemberId, nameOf }: Pick<Props, "locations" | "myMemberId" | "nameOf">) {
@@ -35,7 +36,7 @@ export function LocationMarkers({ locations, myMemberId, nameOf }: Pick<Props, "
   });
 }
 
-export function LocationControl({ mode, setMode, error, locations, myMemberId, nameOf }: Props) {
+export function LocationControl({ mode, setMode, error, locations, myMemberId, nameOf, cityName = "the city" }: Props) {
   const map = useMap();
   const [open, setOpen] = useState(false);
   const others = locations.filter((l) => l.memberId !== myMemberId);
@@ -87,7 +88,7 @@ export function LocationControl({ mode, setMode, error, locations, myMemberId, n
               </button>
               <button onClick={() => { setMode("demo"); setOpen(false); }}
                 className="w-full rounded-xl border border-line px-3 py-2 hover:bg-page">
-                Use a demo position in Tokyo
+                Use a demo position in {cityName}
               </button>
             </div>
           ) : (
