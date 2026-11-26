@@ -73,6 +73,43 @@ export function dayLegs(plan: DayPlan): Leg[] {
   return legs;
 }
 
+/**
+ * Decodes Google's "encoded polyline" text into points (Google's published algorithm: each number is
+ * the difference from the previous point, x 1e5, split into 5-bit chunks stored as characters).
+ * We decode it ourselves so the map can add the pins at both ends (see walkPath).
+ */
+export function decodePolyline(encoded: string): { lat: number; lng: number }[] {
+  const points: { lat: number; lng: number }[] = [];
+  let i = 0, lat = 0, lng = 0;
+  const next = () => {
+    let result = 0, shift = 0, b: number;
+    do {
+      b = encoded.charCodeAt(i++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20 && i < encoded.length);
+    return result & 1 ? ~(result >> 1) : result >> 1;
+  };
+  while (i < encoded.length) {
+    lat += next();
+    lng += next();
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+  return points;
+}
+
+/**
+ * The line to draw for a walk: pin -> Google's route -> pin. Google snaps the start and end to the
+ * nearest street, a few meters from the pin; the two short extra segments make the line touch the pins.
+ */
+export function walkPath(leg: Leg, walk: WalkRoute): { lat: number; lng: number }[] {
+  return [
+    { lat: leg.from.spot.lat, lng: leg.from.spot.lng },
+    ...decodePolyline(walk.polyline),
+    { lat: leg.to.spot.lat, lng: leg.to.spot.lng },
+  ];
+}
+
 /** Straight-line distance in meters (haversine). */
 export function distanceMeters(a: Pick<Spot, "lat" | "lng">, b: Pick<Spot, "lat" | "lng">): number {
   const rad = Math.PI / 180;

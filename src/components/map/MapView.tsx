@@ -7,7 +7,7 @@
 // development the server page re-renders on every file save, which would count loads that never happen.
 import { useEffect, useRef, useState } from "react";
 import { AdvancedMarker, APIProvider, ControlPosition, Map, Polyline, useMap } from "@vis.gl/react-google-maps";
-import type { Leg, WalkRoute } from "@/lib/itinerary/legs";
+import { walkPath, type Leg, type WalkRoute } from "@/lib/itinerary/legs";
 import type { PlanStop } from "@/lib/itinerary/view";
 import type { MapCity } from "./TripMap";
 import { GROUP_COLOR } from "./colors";
@@ -127,7 +127,7 @@ function StopPin({ stop, selected }: { stop: PlanStop; selected: boolean }) {
 //   train/subway leg, or walk not loaded (yet) -> dashed straight line ("roughly this way")
 function LegLine({ leg, walk }: { leg: Leg; walk?: WalkRoute | null }) {
   const color = GROUP_COLOR[leg.group];
-  if (walk) return <Polyline encodedPath={walk.polyline} strokeColor={color} strokeOpacity={0.85} strokeWeight={4} clickable={false} />;
+  if (walk) return <Polyline path={walkPath(leg, walk)} strokeColor={color} strokeOpacity={0.85} strokeWeight={4} clickable={false} />;
   return (
     <Polyline
       path={[{ lat: leg.from.spot.lat, lng: leg.from.spot.lng }, { lat: leg.to.spot.lat, lng: leg.to.spot.lng }]}
