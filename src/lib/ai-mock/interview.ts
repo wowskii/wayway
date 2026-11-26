@@ -13,13 +13,21 @@ import {
 } from "@/lib/ai/types";
 
 export const QUESTIONS: Record<InterviewTopic, string> = {
-  interests: "What do you enjoy most when you travel? Food, temples, museums, shopping, nature, nightlife…",
+  // City-neutral examples: the opening message (below) is used with the real AI too, in every city.
+  interests: "What do you enjoy most when you travel? Food, museums, landmarks, shopping, nature, nightlife…",
   pace: "How busy do you like your days: relaxed with breaks, something in between, or packed?",
   sleep: "Are you an early bird, a night owl, or flexible?",
   diet: "Do you follow a diet, like vegetarian, vegan or halal?",
   allergies: "Any food allergies I should always avoid? This stays private.",
-  budget: "Roughly how much do you want to spend for the whole trip, in yen? This stays private too.",
+  budget: "Roughly how much do you want to spend for the whole trip? This stays private too.",
 };
+
+// The budget question names the trip's currency ("in euros" for Paris), so the number means something.
+const CURRENCY_WORD: Record<string, string> = { JPY: "yen", EUR: "euros", USD: "US dollars", GBP: "pounds" };
+function question(topic: InterviewTopic, currency: string) {
+  if (topic !== "budget") return QUESTIONS[topic];
+  return `Roughly how much do you want to spend for the whole trip, in ${CURRENCY_WORD[currency] ?? currency}? This stays private too.`;
+}
 
 export function openingMessage(name: string) {
   return `Hi ${name}! I'm WayWay. A few quick questions so I can suggest plans you'll like. Only I see this chat. ${QUESTIONS.interests}`;
@@ -63,12 +71,14 @@ const PRIVATE = /\b(don'?t tell|between us|private|secret|confidential|embarrass
 const found = (text: string, table: [RegExp, string][]) =>
   [...new Set(table.filter(([re]) => re.test(text)).map(([, v]) => v))];
 
-function parseBudget(text: string): number | undefined {
-  // "30000", "30,000 yen", "¥30000", "30k", "3万"
-  const m = text.replace(/,/g, "").match(/(¥\s*)?(\d+(?:\.\d+)?)\s*(k|万|man)?\b/);
+function parseBudget(text: string, currency: string): number | undefined {
+  // "30000", "30,000 yen", "¥30000", "30k", "3万", "€500", "500 euros"
+  const m = text.replace(/,/g, "").match(/([¥€$£]\s*)?(\d+(?:\.\d+)?)\s*(k|万|man)?\b/);
   if (!m) return undefined;
   const n = parseFloat(m[2]) * (m[3] === "k" ? 1_000 : m[3] ? 10_000 : 1);
-  return n >= 1_000 && n <= 10_000_000 ? Math.round(n) : undefined;   // ignore "3 days" etc.
+  // Ignore small numbers like "3 days": below ¥1,000 in yen, below 20 in other currencies.
+  const min = currency === "JPY" ? 1_000 : 20;
+  return n >= min && n <= 10_000_000 ? Math.round(n) : undefined;
 }
 
 function pick<T>(text: string, rules: [RegExp, T][]): T | undefined {
@@ -80,6 +90,7 @@ const shorten = (s: string, words = 12) => s.trim().split(/\s+/).slice(0, words)
 // --- the interviewer -----------------------------------------------------------
 export const mockInterviewer: Interviewer = async (input) => {
   const { member, message, coveredTopics, round } = input;
+  const currency = input.currency ?? "JPY";
   const text = message.text.toLowerCase();
   const covered = new Set(coveredTopics);
   const current = INTERVIEW_TOPICS.find((t) => !covered.has(t));   // topic WayWay just asked about
@@ -131,7 +142,7 @@ export const mockInterviewer: Interviewer = async (input) => {
     hard.allergies = allergies;
     covered.add("allergies");
   }
-  const budget = current === "budget" || /yen|¥|budget|spend/.test(text) ? parseBudget(text) : undefined;
+  const budget = current === "budget" || /yen|¥|€|euros?|budget|spend/.test(text) ? parseBudget(text, currency) : undefined;
   if (budget) {
     hard.maxBudget = budget;
     covered.add("budget");
@@ -160,7 +171,7 @@ export const mockInterviewer: Interviewer = async (input) => {
       : ["Nice!", "Got it.", "Noted, thanks!"][progress.covered.length % 3];
   const next = progress.missing[0];
   const reply = next
-    ? `${reaction} ${QUESTIONS[next]}`
+    ? `${reaction} ${question(next, currency)}`
     : `${reaction} That's everything I need! Tell me anything else you'd like me to know, or tap Finish.`;
 
   const output: InterviewOutput = {
