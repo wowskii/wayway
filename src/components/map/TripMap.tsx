@@ -1,11 +1,11 @@
 "use client";
-// The map page's body, full screen like the trip page: itinerary panel (left, same width as the trip
-// page's sidebar, so the tabs line up with its edge) + Google map (rest), sharing two pieces of state:
-// the selected day and the selected stop. Data comes ready from the server page (buildDayPlans).
+// The map page's body, full screen like the trip page. md and up: itinerary panel (left, same width as
+// the trip page's sidebar, so the tabs line up with its edge) + Google map (rest). Phones: map on top,
+// itinerary as a sheet under it. Both share two pieces of state: the selected day and the selected stop. Data comes ready from the server page (buildDayPlans).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dayLegs, type WalkRoute } from "@/lib/itinerary/legs";
 import type { DayPlan } from "@/lib/itinerary/view";
-import { ItineraryPanel } from "./ItineraryPanel";
+import { ItineraryPanel, type SheetState } from "./ItineraryPanel";
 import { MapView } from "./MapView";
 import { PlaceCard, type PlaceState } from "./PlaceCard";
 import { useItineraryUpdates } from "./useItineraryUpdates";
@@ -38,6 +38,7 @@ export function TripMap({ tripId, city, days, itemIds, startDate, memberNames, m
   const sharing = useLocationSharing(tripId, myMemberId, city.base);
   const nameOf = (id: string) => memberNames[id] ?? "Someone";
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<SheetState>("open");     // phones only: the itinerary sheet's size
   const plan = days.find((d) => d.day === day);
 
   // Trips between the day's stops. Short ones get a real walking route from Google (one call per leg,
@@ -95,9 +96,10 @@ export function TripMap({ tripId, city, days, itemIds, startDate, memberNames, m
   const dateOf = (d: number) => dateOfDay(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 
   return (
-    // Phones: map on top (half the screen), the day's plan under it, the page scrolls.
-    // md and up: fills the screen under the header, nothing scrolls but the plan list.
-    <main className="flex flex-col bg-page md:h-[calc(100dvh-4rem-1px)] md:flex-row md:overflow-hidden">
+    // Fills the screen under the header (h-16 + 1px border); the page never scrolls, only the plan list.
+    // The map stays mounted even behind a full-screen sheet: mounting it again would load Google Maps
+    // again and count one more map load in the daily limit.
+    <main className="flex h-[calc(100dvh-4rem-1px)] flex-col overflow-hidden bg-page md:flex-row">
       <h1 className="sr-only">Trip map</h1>
       {/* No stops yet: the panel says so (with a link to the chat) and the map still opens, so
           location sharing works before anything is planned. */}
@@ -107,16 +109,27 @@ export function TripMap({ tripId, city, days, itemIds, startDate, memberNames, m
         day={day}
         onDay={changeDay}
         selectedKey={selectedKey}
-        onSelect={selectStop}
+        onSelect={(key) => {
+          selectStop(key);
+          if (sheet === "full") setSheet("open");      // phones: bring the map back to show the pin
+        }}
+        sheet={sheet}
+        onSheet={setSheet}
         dateOf={dateOf}
         nameOf={nameOf}
         myMemberId={myMemberId}
         legs={legs}
         walks={walks}
       />
-      <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
+      <div className="relative order-first min-h-0 flex-1 overflow-hidden bg-card md:order-none">
         <MapView city={city} stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
           sharing={{ ...sharing, myMemberId, nameOf }} />
+        {/* Empty trip: the map still opens on the city (location sharing works), with a notice on top. */}
+        {days.length === 0 && (
+          <p role="status" className="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-full border border-line bg-card/95 px-4 py-2 text-center text-sm text-ink shadow">
+            No itinerary yet: decided stops will show up here.
+          </p>
+        )}
         {selectedStop && (
           <PlaceCard
             stop={selectedStop}
