@@ -59,7 +59,7 @@ export function MapView(props: Props) {
       <Map
         mapId={MAP_ID}
         defaultCenter={props.city.base}     // the city's starting point, until the pins are fitted
-        defaultZoom={12}
+        defaultZoom={13}
         gestureHandling="greedy"
         disableDefaultUI
         zoomControl

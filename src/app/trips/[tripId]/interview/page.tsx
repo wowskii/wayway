@@ -26,7 +26,7 @@ export default async function InterviewPage({ params }: { params: Promise<{ trip
 
   return (
     <>
-      <Header wide>
+      <Header>
         <span className="border-l border-line pl-4 text-sm font-medium">{trip.name}</span>
       </Header>
       <InterviewChat
