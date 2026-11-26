@@ -11,6 +11,10 @@ Try it: join `localhost:3000/join/tokyo26`, then open the **Map** tab (the demo 
   when you are in neither), route lines (solid = real walking path, dashed = train/subway estimate).
 - **Place card** on click (list or pin): our data (category, price, usual visit length, diet tags) + Google's
   (photo, rating, description, opening hours **on that trip day**, 3 reviews, "Open in Google Maps").
+- **Live:** the map shows only **decided** stops (rows with an `option_set_id`, same filter as the chat's
+  itinerary panel), and updates by itself when the group decides a slot (`useItineraryUpdates.ts`: Realtime on
+  `itinerary_items` → `router.refresh()`). Nothing decided yet → "Nothing planned yet" + a link to the group chat.
+  Rows from `npm run seed:itinerary` have no option set, so they are not shown.
 - **Location sharing** (opt-in, top-left of the map): share your real position or a demo position in Tokyo;
   members see each other live.
 
