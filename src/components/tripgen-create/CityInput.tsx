@@ -69,7 +69,7 @@ export function CityInput({ value, onChange }: { value: string; onChange: (v: st
           </div>
         )}
       </div>
-      <span className="text-xs text-muted">More cities are coming.</span>
+      <span className="text-xs text-muted">Available now: {CITIES.join(", ")}.</span>
     </div>
   );
 }

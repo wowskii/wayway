@@ -21,9 +21,10 @@ interface RoutesAnswer {
   routes?: { duration?: string; distanceMeters?: number; polyline?: { encodedPolyline?: string } }[];
 }
 
-// Prefer the Place ID (Google knows the entrance); fall back to our coordinates.
-const waypoint = (s: Spot) =>
-  s.placeId ? { placeId: s.placeId } : { location: { latLng: { latitude: s.lat, longitude: s.lng } } };
+// Our own coordinates = exactly where the pin is drawn. (We used the Place ID before: Google then starts
+// the walk at ITS point for the place (an entrance, the middle of a park...), which can be a few hundred
+// meters from our pin, so lines seemed to start and end in random spots near the pins.)
+const waypoint = (s: Spot) => ({ location: { latLng: { latitude: s.lat, longitude: s.lng } } });
 
 export async function POST(req: Request) {
   const supabase = await createClient();

@@ -1,28 +1,44 @@
 "use client";
-// The map page's body, full screen like the trip page: itinerary panel (left, same width as the trip
-// page's sidebar, so the tabs line up with its edge) + Google map (rest), sharing two pieces of state:
-// the selected day and the selected stop. Data comes ready from the server page (buildDayPlans).
+// The map page's body, full screen like the trip page. md and up: itinerary panel (left, same width as
+// the trip page's sidebar, so the tabs line up with its edge) + Google map (rest). Phones: map on top,
+// itinerary as a sheet under it. Both share two pieces of state: the selected day and the selected stop. Data comes ready from the server page (buildDayPlans).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dayLegs, type WalkRoute } from "@/lib/itinerary/legs";
 import type { DayPlan } from "@/lib/itinerary/view";
-import { ItineraryPanel } from "./ItineraryPanel";
+import { ItineraryPanel, type SheetState } from "./ItineraryPanel";
 import { MapView } from "./MapView";
 import { PlaceCard, type PlaceState } from "./PlaceCard";
+import { useItineraryUpdates } from "./useItineraryUpdates";
 import { useLocationSharing } from "./useLocationSharing";
+
+/** The trip's city, as the map needs it (prepared by the server page). */
+export interface MapCity {
+  name: string;                            // "Paris"
+  base: { lat: number; lng: number };      // first view + demo position
+  region: string;                          // Google region code "FR"
+  currency: string;                        // "EUR": prices on the place card
+  osm: boolean;                            // spots come from OpenStreetMap -> credit it on the map
+}
 
 interface Props {
   tripId: string;
+  city: MapCity;
   days: DayPlan[];
+  itemIds: string[];                       // database ids of the stops shown (live refresh)
   startDate: string;                       // trip start "2026-11-21": day 1
   memberNames: Record<string, string>;
   myMemberId?: string;
 }
 
-export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Props) {
-  const [day, setDay] = useState(days[0]?.day ?? 1);
-  const sharing = useLocationSharing(tripId, myMemberId);
+export function TripMap({ tripId, city, days, itemIds, startDate, memberNames, myMemberId }: Props) {
+  useItineraryUpdates(tripId, itemIds);   // a new decision -> the server data is reloaded -> new `days`
+  const [chosenDay, setDay] = useState(days[0]?.day ?? 1);
+  // After a live refresh the chosen day may no longer exist (a stop was removed): show the first day.
+  const day = days.some((d) => d.day === chosenDay) ? chosenDay : (days[0]?.day ?? 1);
+  const sharing = useLocationSharing(tripId, myMemberId, city.base);
   const nameOf = (id: string) => memberNames[id] ?? "Someone";
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<SheetState>("open");     // phones only: the itinerary sheet's size
   const plan = days.find((d) => d.day === day);
 
   // Trips between the day's stops. Short ones get a real walking route from Google (one call per leg,
@@ -80,43 +96,52 @@ export function TripMap({ tripId, days, startDate, memberNames, myMemberId }: Pr
   const dateOf = (d: number) => dateOfDay(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 
   return (
-    // Phones: map on top (half the screen), the day's plan under it, the page scrolls.
-    // md and up: fills the screen under the header, nothing scrolls but the plan list.
-    <main className="flex flex-col bg-page md:h-[calc(100dvh-4rem-1px)] md:flex-row md:overflow-hidden">
+    // Fills the screen under the header (h-16 + 1px border); the page never scrolls, only the plan list.
+    // The map stays mounted even behind a full-screen sheet: mounting it again would load Google Maps
+    // again and count one more map load in the daily limit.
+    <main className="flex h-[calc(100dvh-4rem-1px)] flex-col overflow-hidden bg-page md:flex-row">
       <h1 className="sr-only">Trip map</h1>
-      {days.length === 0 ? (
-        <p className="m-auto max-w-sm px-6 py-16 text-center text-sm text-muted">
-          No itinerary yet. Once the group votes on WayWay&apos;s options, the plan appears here.
-        </p>
-      ) : (
-        <>
-          <ItineraryPanel
-            days={days}
-            day={day}
-            onDay={changeDay}
-            selectedKey={selectedKey}
-            onSelect={selectStop}
-            dateOf={dateOf}
-            nameOf={nameOf}
-            myMemberId={myMemberId}
-            legs={legs}
-            walks={walks}
+      {/* No stops yet: the panel says so (with a link to the chat) and the map still opens, so
+          location sharing works before anything is planned. */}
+      <ItineraryPanel
+        tripId={tripId}
+        days={days}
+        day={day}
+        onDay={changeDay}
+        selectedKey={selectedKey}
+        onSelect={(key) => {
+          selectStop(key);
+          if (sheet === "full") setSheet("open");      // phones: bring the map back to show the pin
+        }}
+        sheet={sheet}
+        onSheet={setSheet}
+        dateOf={dateOf}
+        nameOf={nameOf}
+        myMemberId={myMemberId}
+        legs={legs}
+        walks={walks}
+      />
+      <div className="relative order-first min-h-0 flex-1 overflow-hidden bg-card md:order-none">
+        <MapView city={city} stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
+          sharing={{ ...sharing, myMemberId, nameOf }} />
+        {/* Empty trip: the map still opens on the city (location sharing works), with a notice on top. */}
+        {days.length === 0 && (
+          <p role="status" className="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-full border border-line bg-card/95 px-4 py-2 text-center text-sm text-ink shadow">
+            No itinerary yet: decided stops will show up here.
+          </p>
+        )}
+        {selectedStop && (
+          <PlaceCard
+            stop={selectedStop}
+            currency={city.currency}
+            osm={city.osm}
+            place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
+            tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
+            weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}
+            onClose={() => setSelectedKey(null)}
           />
-          <div className="relative order-first h-[50dvh] min-h-0 border-b border-line bg-card md:order-none md:h-auto md:flex-1 md:border-b-0">
-            <MapView stops={plan?.stops ?? []} legs={legs} walks={walks} selectedKey={selectedKey} onSelect={selectStop}
-              sharing={{ ...sharing, myMemberId, nameOf }} />
-            {selectedStop && (
-              <PlaceCard
-                stop={selectedStop}
-                place={selectedStop.spot.placeId ? (places[selectedStop.spot.placeId] ?? { status: "loading" }) : undefined}
-                tripDate={dateOfDay(day).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
-                weekdayIndex={(dateOfDay(day).getUTCDay() + 6) % 7}
-                onClose={() => setSelectedKey(null)}
-              />
-            )}
-          </div>
-        </>
-      )}
+        )}
+      </div>
     </main>
   );
 }

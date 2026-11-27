@@ -5,20 +5,18 @@ import { Logo } from "@/components/ui";
 
 // Top bar of every page: logo (back to my trips) · page content (trip name + tabs) · [Me] · Log out.
 // me:   link to my profile for this trip (trip pages only); `active` when the Me page is open.
-// wide: full-width bar (every trip page), instead of the centered 5xl column. It is `relative` so the
-//       trip tabs (TripTabs) can line up with the trip page's sidebar edge, at the same place on every tab.
+// The bar is full width on EVERY page (the logo never jumps when you move between pages). It is
+// `relative` so the trip tabs (TripTabs) can line up with the trip page's sidebar edge.
 export function Header({
   me,
   children,
-  wide = false,
 }: {
   me?: { href: string; active: boolean };
   children?: React.ReactNode;
-  wide?: boolean;
 }) {
   return (
     <header className="border-b border-line bg-card">
-      <div className={`mx-auto flex h-16 items-center gap-2 px-4 sm:gap-4 ${wide ? "relative max-w-none" : "max-w-5xl"}`}>
+      <div className="relative flex h-16 items-center gap-2 px-4 sm:gap-4">
         <Link href="/" aria-label="My trips" className="shrink-0">
           <Logo />
         </Link>
@@ -53,7 +51,7 @@ export function TripHeader({
   active: "chat" | "map" | "me";
 }) {
   return (
-    <Header wide me={{ href: `/trips/${tripId}/me`, active: active === "me" }}>
+    <Header me={{ href: `/trips/${tripId}/me`, active: active === "me" }}>
       <TripTabs tripId={tripId} tripName={tripName} dates={dates} active={active === "me" ? undefined : active} />
     </Header>
   );

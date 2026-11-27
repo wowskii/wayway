@@ -161,6 +161,18 @@ export function GroupChat({
     inputRef.current?.focus();
   }
 
+  // The "W" button left of the box: puts "@WayWay " at the start of the message (once), cursor at the end,
+  // so asking the assistant doesn't need typing the mention.
+  function askWayWay() {
+    if (!mentionsWayWay(draft)) setDraft((d) => `@WayWay ${d.trimStart()}`);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  }
+
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.nativeEvent.isComposing) return;   // typing Chinese / Japanese: the keys belong to the IME
     if (e.key === "Tab" && !e.shiftKey && offerWayWay) {
@@ -249,6 +261,14 @@ export function GroupChat({
           </button>
         )}
         <div className="flex items-end gap-2">
+          <button
+            type="button"
+            onClick={askWayWay}
+            title="Ask WayWay (adds @WayWay to your message)"
+            className="h-11 shrink-0 rounded-full border border-brand/40 bg-brand-soft px-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
+          >
+            @WayWay
+          </button>
           <textarea
             ref={inputRef}
             id="group-chat-input"
@@ -258,7 +278,7 @@ export function GroupChat({
               if (e.target.value.trim()) sendTyping();
             }}
             onKeyDown={onKeyDown}
-            placeholder="Message… (type @WayWay to ask the assistant)"
+            placeholder="Message… @WayWay for help"
             aria-label="Message to your group"
             rows={1}
             maxLength={MAX_CHAT_LENGTH}

@@ -1,7 +1,7 @@
-// Trip name + the two main tabs of a trip: Group chat | Map. Goes inside <Header wide> (use <TripHeader>).
+// Trip name + the two main tabs of a trip: Group chat | Map. Goes inside <Header> (use <TripHeader>).
 // One component for every trip page (it replaces chatbox-hub/ChatboxTabs), so the tabs never move:
 // from md up they start exactly at the line between the trip page's sidebar (w-72) and the chat
-// (absolute, inside the wide Header which is relative); on phones they just follow the logo.
+// (absolute, inside the Header which is relative); on phones they just follow the logo.
 // "Me" is not a tab: it sits at the top right of the Header, next to Log out.
 import Link from "next/link";
 
@@ -24,7 +24,8 @@ export function TripTabs({
   return (
     <div className="flex items-center gap-4">
       <div className="hidden min-w-0 border-l border-line pl-4 sm:block md:max-w-[8.5rem]" title={tripName}>
-        <p className="truncate text-sm font-medium">{tripName}</p>
+        {/* Up to 2 short lines: the tabs are pinned to the sidebar edge, so the name has little width */}
+        <p className="line-clamp-2 break-words text-sm font-medium leading-tight">{tripName}</p>
         {dates && <p className="text-xs text-muted">{dates}</p>}
       </div>
       <nav className="flex gap-1 md:absolute md:inset-y-0 md:left-72 md:items-center" aria-label="Trip">

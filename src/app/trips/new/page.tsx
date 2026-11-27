@@ -4,13 +4,18 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { TripForm } from "@/components/tripgen-create/TripForm";
 import { requireUser } from "@/lib/auth";
+import { CITY_CONFIG } from "@/lib/cities";
 
 export const metadata: Metadata = { title: "New trip · WayWay" };
 
 export default async function NewTripPage() {
   const user = await requireUser("/trips/new");
-  // "Today" where the trips happen (Tokyo, the trips table's default time zone): the earliest first day
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tokyo" });
+  // Earliest first day = "today" in the city where it is still the earliest date (the city is chosen
+  // later in the form): Paris is still on yesterday when Tokyo is already on today.
+  const now = new Date();
+  const today = Object.values(CITY_CONFIG)
+    .map((c) => now.toLocaleDateString("en-CA", { timeZone: c.timezone }))
+    .sort()[0];
   return (
     <>
       <Header />

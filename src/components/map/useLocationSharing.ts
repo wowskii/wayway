@@ -5,7 +5,7 @@
 //   mode "off"  : not sharing (no row in the database)
 //   mode "live" : the browser's real position (asks permission), sent at most every 30 s, or sooner
 //                 after moving 25 m, and refreshed every 5 min so it doesn't expire while standing still
-//   mode "demo" : a fixed position near Tokyo Station (for testing / the demo video from outside Tokyo),
+//   mode "demo" : a fixed position near the city's starting point (for testing / the demo video from afar),
 //                 flagged is_demo so it's never shown as real
 // Friends' positions arrive live (Supabase Realtime). Positions older than 15 min are hidden.
 // The chosen mode is remembered for this member and trip in the browser, so a reload keeps sharing on.
@@ -26,7 +26,7 @@ const FRESH_MS = 15 * 60_000;          // same as the database read rule
 const MIN_INTERVAL_MS = 30_000;
 const MIN_MOVE_M = 25;
 const HEARTBEAT_MS = 5 * 60_000;
-const TOKYO_STATION = { lat: 35.6812, lng: 139.7671 };
+const TOKYO_STATION = { lat: 35.6812, lng: 139.7671 };   // default if no city base is given
 
 const storageKey = (tripId: string, memberId: string) => `wayway:share:${tripId}:${memberId}`;
 const sharingKey = (tripId: string, memberId: string) => JSON.stringify([tripId, memberId]);
@@ -57,7 +57,7 @@ const toLocation = (r: Row): MemberLocation => ({
   memberId: r.member_id, lat: r.lat, lng: r.lng, isDemo: r.is_demo, updatedAt: new Date(r.updated_at).getTime(),
 });
 
-export function useLocationSharing(tripId: string, myMemberId?: string) {
+export function useLocationSharing(tripId: string, myMemberId?: string, demoBase = TOKYO_STATION) {
   const [supabase] = useState(createClient);
   const [selection, setSelection] = useState<{ key: string; mode: ShareMode } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -118,9 +118,9 @@ export function useLocationSharing(tripId: string, myMemberId?: string) {
     let heartbeat: ReturnType<typeof setInterval>;
 
     if (mode === "demo") {
-      // ±300 m around Tokyo Station, so several demo users don't sit on the same point
+      // ±300 m around the city's starting point, so several demo users don't sit on the same point
       const jitter = () => (Math.random() - 0.5) * 0.006;
-      const pos = { lat: TOKYO_STATION.lat + jitter(), lng: TOKYO_STATION.lng + jitter() };
+      const pos = { lat: demoBase.lat + jitter(), lng: demoBase.lng + jitter() };
       // First send on the next tick (not inside the effect itself); cancelled if the mode changes at once.
       first = setTimeout(() => void send(pos.lat, pos.lng, null, true), 0);
       heartbeat = setInterval(() => void send(pos.lat, pos.lng, null, true), HEARTBEAT_MS);
@@ -162,7 +162,7 @@ export function useLocationSharing(tripId: string, myMemberId?: string) {
       clearTimeout(first);
       clearInterval(heartbeat);
     };
-  }, [mode, myMemberId, send]);
+  }, [mode, myMemberId, send, demoBase.lat, demoBase.lng]);
 
   // Resume the remembered choice after a reload.
   useEffect(() => {

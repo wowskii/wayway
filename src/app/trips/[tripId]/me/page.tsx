@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { TripHeader } from "@/components/Header";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { formatTripDates } from "@/lib/auth";
 import { loadTripPage } from "@/lib/trip";
 
@@ -42,7 +42,7 @@ export default async function MePage({ params }: { params: Promise<{ tripId: str
           <SectionTitle title="Your group can see" />
           <Row label="Interests">{list(pub?.interests)}</Row>
           <Row label="Pace">{pub?.pace ? PACE[pub.pace] : "Not known yet"}</Row>
-          <Row label="Rhythm">{pub?.sleep ? SLEEP[pub.sleep] : "Not known yet"}</Row>
+          <Row label="Sleep">{pub?.sleep ? SLEEP[pub.sleep] : "Not known yet"}</Row>
           <Row label="Diet">{list(pub?.diet, "No restrictions")}</Row>
         </Card>
 
@@ -65,15 +65,12 @@ export default async function MePage({ params }: { params: Promise<{ tripId: str
         </Card>
 
         {/* Changes go through the AI (private chat), not a form. */}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Link
-            href={`/trips/${tripId}?panel=private`}
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-brand px-5 text-sm font-medium text-white hover:bg-brand-dark"
-          >
-            Update with WayWay
-          </Link>
-          <Button disabled variant="ghost" className="flex-1" title="Coming soon">Start a new interview</Button>
-        </div>
+        <Link
+          href={`/trips/${tripId}?panel=private`}
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-medium text-white hover:bg-brand-dark"
+        >
+          Update with WayWay
+        </Link>
         <p className="text-center text-xs text-muted">Tell WayWay what changed in your private chat; it updates this page for you.</p>
       </main>
     </>
